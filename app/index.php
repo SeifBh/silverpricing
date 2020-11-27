@@ -9,3 +9,4 @@ if(strpos($_SERVER['HTTP_HOST'],'.home')){
 require_once $f;
 drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
 menu_execute_active_handler();
+return;?>
