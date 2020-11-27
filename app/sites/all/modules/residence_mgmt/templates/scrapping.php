@@ -54,6 +54,10 @@ function residence_mgmt_page_scrapping($departmentNumber = null) {
 }
 
 function residence_mgmt_page_detail_scrapping($currentUrl = null) {
+$id=explode('/',$currentUrl);$id=end($id);
+
+#Alpow\Wip\fun::cuo();
+    https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/010008571
     /*Angular generated content expose new API Path :: https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/010008571*/
 
     stream_context_set_default( [

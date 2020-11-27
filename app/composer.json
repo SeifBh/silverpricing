@@ -1,0 +1,6 @@
+{
+    "require": {
+        "alptech/wip": "dev-master",
+        "phpoffice/phpspreadsheet": "^1.15"
+    }
+}
