@@ -6,8 +6,8 @@ return [
     'logCollectorUrl' => $_SERVER['REQUEST_SCHEME'].'://1.x24.fr/a/logCollector.php',#exposed path loading alptech
     'logCollectorSecret'=>'secretBenSeed',
 
-    'mysql'=>['h' => '127.0.0.1', 'silverpricing' => 'a', 'p' => 'Silverpicing@wynter@2020', 'db' => 'silverpricing_db','names'=>'utf8'],
-    'mysql_host' => '127.0.0.1','mysql_user' => 'a', 'mysql_pass' => 'b', 'mysql_db' => 'alptech',#bash
+    'mysql'=>['h' => '127.0.0.1', 'u' => 'silverpricing', 'p' => 'Silverpicing@wynter@2020', 'db' => 'silverpricing_db','names'=>'utf8'],
+    'mysql_host' => '127.0.0.1','mysql_user' => 'silverpricing', 'mysql_pass' => 'Silverpicing@wynter@2020', 'mysql_db' => 'silverpricing_db',#bash
 
     'routes'=>['/route1'=>['router','test']],
     'a'=>['b'=>1],

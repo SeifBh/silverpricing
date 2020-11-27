@@ -2,7 +2,7 @@
 #require_once'../auto_prepend.php';
 define('DRUPAL_ROOT', getcwd());
 $f=DRUPAL_ROOT . '/includes/bootstrap.inc';
-if(strpos($_SERVER['HTTP_HOST'],'.home')){
+if(strpos($_SERVER['HTTP_HOST'],'.home') and 1){
     $_ENV['path']['drupal']['database']=DRUPAL_ROOT.'includes';
     $f='/Users/ben/home/overrides/d7.bootstrap.php';
 }
