@@ -9,3 +9,6 @@ GRANT ALL PRIVILEGES ON *.* TO silverpricing@'localhost' IDENTIFIED BY 'Silverpi
 
 composer require alptech/wip:dev-master
 composer require phpoffice/phpspreadsheet
+
+    find . -type f -mmin -120 | grep -v .jpg | grep -v data/cache | grep -v ~lock | grep -v .idea|  grep -v .git |  grep -v /framework/sessions/ | tee modified.list
+    x=`cat modified.list`;for i in $x; do git add $i -f;done;

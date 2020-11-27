@@ -14,7 +14,7 @@ if(isset($_POST['img'])){
     if(!$b64){
         \Alptech\Wip\fun::dbm([__FILE__.__line__,'missing b64'],'php500');
     }
-    $target="genmaps/".date('ymdHis').'-'.preg_replace('~\.+~','.',preg_replace('~[^a-z0-9_\-]~is','.',$_POST['name'])).'.'.$ext;
+    $target="genmaps/".date('ymdHis').'-'.preg_replace('~\.+~','.',preg_replace('~[^a-z0-9_\-=]~is','.',$_POST['name'])).'.'.$ext;
     $ok=file_put_contents($target,$b64);
     if($ok){
         die($target);
@@ -80,5 +80,3 @@ map.capture(function(capturedCanvas) {
 }, [], 50, 50, 700, 700);
 
 
-find . -type f -mmin -120 | grep -v .jpg | grep -v data/cache | grep -v ~lock | tee modified.list
-x=`cat modified.list`;for i in $x; do git add $i -f;done;

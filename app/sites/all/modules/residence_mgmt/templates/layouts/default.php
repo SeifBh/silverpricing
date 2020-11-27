@@ -1975,8 +1975,14 @@
           });
 
   <?php endif;
-$json=['uid'=>$user->uid,'uname'=>$user->name];
-echo "var json=".json_encode($json).";for(var i in json){window[i]=json[i];}";
+$json=[];
+if(isset($user)){$json=array_merge($json,['uid'=>$user->uid,'uname'=>$user->name]);}
+if(isset($_POST)){$json=array_merge($json,['post'=>$_POST]);}
+if(isset($_GET)){$json=array_merge($json,['get'=>$_GET]);}
+
+echo "var json=".json_encode($json).";for(var i in json){window[i]=json[i];}cl(json);";
+
+
 $a=$user->uid.'-'.$user->name;
   ?>
 

@@ -1,0 +1,9 @@
+./app/includes/cache.inc
+./app/includes/common.inc
+./app/sites/all/modules/residence_mgmt/data/alert_processing.php
+./app/sites/all/modules/residence_mgmt/data/distance_indexation.php
+./app/sites/all/modules/residence_mgmt/inc/database.inc.php
+./app/sites/all/modules/residence_mgmt/inc/user.inc.php
+./app/sites/default/settings.php
+./app/z/receptor.php
+./modified.list
