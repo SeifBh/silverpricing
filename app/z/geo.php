@@ -1,9 +1,14 @@
 <?php
-#namespace Alptech\Wip;
+/*
+id2latlon:7522
+7517 having total found 154250 with 20.520154316882
+processed in Time::::219(base)
+ */
+namespace Alptech\Wip;
 chdir(__DIR__);
 $a=getcwd();
 require_once'../autoload.php';
-use Alptech\Wip\fun as fun;
+#use Alptech\Wip\fun as fun;
 $a1=time();
 $maxFound=20;
 $maxKmSearch=round(50/2);
