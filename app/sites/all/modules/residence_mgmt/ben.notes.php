@@ -15,11 +15,6 @@ var w=window.open('about:blank','image from canvas');
 w.document.write("<img src='"+d+"' alt='from canvas'/>");
 
 nécessite un récepteur
+https://developer.here.com/documentation/maps/3.1.20.0/api_reference/H.util.ICapturable.html
 
-var hereMap = initHereMap(
-
-var b64img,canvas = document.querySelectorAll('canvas')[0];b64img = canvas.toDataURL("image/png");
-$.ajax({"url":"/z/receptor.php","method":"POST","data":{"name":"testé£¨$^é'1","img":b64img}}).done(function(e) {    console.log(e);     });
-
-$(canvas).css({"width":"100vw","height":"100vh","z-index":1,"position":"fixed"})
-https://stackoverflow.com/questions/58389022/how-to-export-here-maps-to-image-file-for-printing-programmatically
+here_library.js
