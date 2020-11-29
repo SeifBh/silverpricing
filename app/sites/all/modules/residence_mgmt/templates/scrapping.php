@@ -103,11 +103,13 @@ foreach( $tarifTable->find('tr') as $tarif ) {
 }
 
 /*
- * Drupal 7 new route to module action ..
+Drupal 7 new route to module action ..
+cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) '
  */
 
 function updateAll(){
-    $__inserts=[];
+/* Attention : ce ne sont pas toutes des Ehpad .. */
+    $ch2date=$res2date=$__inserts=[];
     $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';
     $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
     if(is_file($f)){
@@ -123,20 +125,40 @@ function updateAll(){
 
     if(1){
         $chambreIdtoResId=$resFit2Id=[];
-        $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b FROM silverpricing_db.field_revision_field_finess t where t.bundle='residence' group by entity_id order by revision_id desc");
-        foreach($x as $t){$resFit2Id[$t['b']]=$t['a'];}
-        $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_residence_target_id as b FROM silverpricing_db.field_revision_field_residence t where t.bundle='chambre' group by entity_id order by revision_id desc");
-        foreach($x as $t){$chambreIdtoResId[$t['b']]=$t['a'];}
+        $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b,nr.timestamp as date FROM field_revision_field_finess t inner join node_revision nr on nr.nid=t.entity_id  where t.bundle='residence' group by entity_id order by revision_id desc");
+        foreach($x as $t){$resFit2Id[$t['b']]=$t['a'];
+            $res2date[$t['a']]=$t['date'];
+        }
+        $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_residence_target_id as b,nr.timestamp as date FROM field_revision_field_residence t inner join node_revision nr on nr.nid=t.entity_id where t.bundle='chambre' group by entity_id order by revision_id desc");
+        foreach($x as $t){$chambreIdtoResId[$t['b']]=$t['a'];
+            $ch2date[$t['a']]=$t['date'];
+        }
         $a=1;
     }
 #+ todo :: catch all mysql insertions
 $mem=memory_get_usage(1);
     $_c=json_decode($_a['contents'],1);unset($_a);
     foreach($_c as $k=>$t){
+        if(!isset($t['ehpadPrice'])){#Marpa & Autres ...
+            continue;
+        }
         $cnid=0;
+        $lastmod=strtotime($t["updatedAt"]);
         $finess=$t['noFinesset'];
         if(isset($resFit2Id[$finess])){
-            $residence= node_load($resFit2Id[$finess]);
+            $rid=$resFit2Id[$finess];
+            if($res2date[$rid]){
+                $chambres=array_keys($chambreIdtoResId,$rid);
+                if($chambres) {
+                    $cnid = reset($chambres);
+                    if($ch2date[$cnid]){#
+                        $a=1;
+                    }
+                    $a=1;
+                }
+                $a=1;
+            }
+            $residence= node_load($rid);
             $a=1;
         } else{
             $a=1;#$residenceData from ça
@@ -191,7 +213,7 @@ if($t['ehpadPrice']){
             $data=_data2object($t,null);
             list($c,$r)=synchronizeChambre($cnid,$data,$finess);
         }#+ finess
-        $a=1;
+        $a='inserée';
     }
     $a=1;
     file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-chambreResidencesInserted.json',json_encode($__inserts));

@@ -1,6 +1,7 @@
 <?die;
 php56.home/ehpad/app
-cd $ehpad/db
+ehpad;cd ../db;my -u a -pb silverpricing_db < silverpricing_db.sql;
+cuj 'https://ehpad.home/yo' a '' 1 'sql=insert'
 u=silverpricing;p=Silverpicing@wynter@2020;db=silverpricing_db;
 db=silverpricing_data_db;u=silverpricing_data;p=0ah5ZZNqhVNk
 echo "create database $db;CREATE USER $u@΄localhost΄ IDENTIFIED BY '$p';GRANT ALL PRIVILEGES ON *.* TO '$u'@'localhost' IDENTIFIED BY '$p';flush privileges;"
