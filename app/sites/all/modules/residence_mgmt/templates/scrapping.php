@@ -115,10 +115,10 @@ function updateAll(){
         foreach($x as $t){$chambreIdtoResId[$t['b']]=$t['a'];}
         $a=1;
     }
-
+$mem=memory_get_usage(1);
     $_c=json_decode($_a['contents'],1);unset($_a);
-    foreach($_c as $k=>$v){
-        $finess=$v['noFinesset'];
+    foreach($_c as $k=>$t){
+        $finess=$t['noFinesset'];
         if(isset($resFit2Id[$finess])){
             $residence= node_load($resFit2Id[$finess]);
             $a=1;
