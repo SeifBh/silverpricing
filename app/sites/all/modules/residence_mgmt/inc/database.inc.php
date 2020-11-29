@@ -275,7 +275,9 @@ function addResidence($residenceData = null, $departmentNumber) {
     $newResidence->language = LANGUAGE_NONE;
     node_object_prepare($newResidence);
 
-    //$newResidence->field_finess[$newResidence->language][0]['value'] = "";
+    if($residenceData->finess){
+        $newResidence->field_finess[$newResidence->language][0]['value'] = $residenceData->finess;
+    }
     #if(isset($residenceData->address))$newResidence->field_address[$newResidence->language][0]['value'] = $residenceData->address;
     $newResidence->field_email[$newResidence->language][0]['value'] = $residenceData->email;
     $newResidence->field_site[$newResidence->language][0]['value'] = $residenceData->website;
@@ -399,7 +401,8 @@ function synchronizeChambre( $entityId, $data,$finess=null) {
         }
 
     }
-    return [$chambre,$residence];
+    return;
+    #return [$chambre,$residence];
 }
 
 // function getResidencesConcurrentes($currentLatitude, $currentLongitude, $currentResidenceId, $currentStatut = NULL) {

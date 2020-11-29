@@ -102,11 +102,13 @@ foreach( $tarifTable->find('tr') as $tarif ) {
     return $residence;
 }
 
-/*
+/*php -l sites/all/modules/residence_mgmt/templates/scrapping.php
 Drupal 7 new route to module action ..
-cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) '
- */
 
+my -u a -pb silverpricing_db < silverpricing_db.sql;
+cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) '
+on second update shall stop uneccessary updates
+*/
 function updateAll(){
 /* Attention : ce ne sont pas toutes des Ehpad .. */
     $ch2date=$res2date=$__inserts=[];
@@ -123,45 +125,49 @@ function updateAll(){
         $_written=file_put_contents($f,$_a['contents']);#
     }
 
-    if(1){
-        $chambreIdtoResId=$resFit2Id=[];
+    if('indexes'){
+        $chambreIdtoResId=$resFit2Id=$ch2date=$res2date=[];
         $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b,nr.timestamp as date FROM field_revision_field_finess t inner join node_revision nr on nr.nid=t.entity_id  where t.bundle='residence' group by entity_id order by revision_id desc");
-        foreach($x as $t){$resFit2Id[$t['b']]=$t['a'];
-            $res2date[$t['a']]=$t['date'];
-        }
+        foreach($x as $t){$resFit2Id[$t['b']]=$t['a'];$res2date[$t['a']]=$t['date'];}
         $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_residence_target_id as b,nr.timestamp as date FROM field_revision_field_residence t inner join node_revision nr on nr.nid=t.entity_id where t.bundle='chambre' group by entity_id order by revision_id desc");
-        foreach($x as $t){$chambreIdtoResId[$t['b']]=$t['a'];
-            $ch2date[$t['a']]=$t['date'];
-        }
+        foreach($x as $t){$chambreIdtoResId[$t['b']]=$t['a'];$ch2date[$t['a']]=$t['date'];}
         $a=1;
     }
 #+ todo :: catch all mysql insertions
-$mem=memory_get_usage(1);
     $_c=json_decode($_a['contents'],1);unset($_a);
-    foreach($_c as $k=>$t){
+    $_mem=memory_get_usage(1);
+    foreach($_c as $k=>&$t){
+        file_put_contents('current.log',$k);
         if(!isset($t['ehpadPrice'])){#Marpa & Autres ...
             continue;
         }
-        $cnid=0;
+        $rid=$cnid=$chambre=$residence=0;
         $lastmod=strtotime($t["updatedAt"]);
         $finess=$t['noFinesset'];
-        if(isset($resFit2Id[$finess])){
+        if(isset($resFit2Id[$finess])){#at 698
             $rid=$resFit2Id[$finess];
             if($res2date[$rid]){
+                $modifRes=$res2date[$rid];
                 $chambres=array_keys($chambreIdtoResId,$rid);
                 if($chambres) {
                     $cnid = reset($chambres);
-                    if($ch2date[$cnid]){#
-                        $a=1;
+                    if($ch2date[$cnid]){#compare $lastmod avec
+                        $modifCh=$ch2date[$cnid];
+                        if($lastmod<=$modifRes and $lastmod<=$modifCh){#ne nécessite pas de modification :: si deux runs successifs ...
+                            #not modified,
+                            continue;
+                        }
+                        $a='chambre existe avec date';
                     }
-                    $a=1;
+                    $a='chambre existe';
                 }
-                $a=1;
+                $a='résidence a date de dernière modifiecation';
             }
             $residence= node_load($rid);
             $a=1;
-        } else{
+        } else{#y'à pas cette résidence, on la crée
             $a=1;#$residenceData from ça
+            $residenceData->finess=$finess;
             $residenceData->title=$t['title'];
             $residenceData->email=$t["coordinates"]["emailContact"];
             $residenceData->website=$t["coordinates"]["website"];
@@ -211,10 +217,11 @@ if($t['ehpadPrice']){
 #puis données ordinaires ..
         if($cnid){#si chambre trouvée ( avec des tarifs ) ..
             $data=_data2object($t,null);
-            list($c,$r)=synchronizeChambre($cnid,$data,$finess);
+            synchronizeChambre($cnid,$data,$finess);
         }#+ finess
         $a='inserée';
-    }
+        $t=null;
+    }unset($t);
     $a=1;
     file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-chambreResidencesInserted.json',json_encode($__inserts));
     print_r($__inserts);die;
