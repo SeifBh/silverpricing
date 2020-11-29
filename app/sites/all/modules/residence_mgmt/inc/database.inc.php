@@ -365,7 +365,7 @@ function updateChambre($entityId = null, $data) {
 
 }
 
-function synchronizeChambre( $entityId, $data) {
+function synchronizeChambre( $entityId, $data,$finess=null) {
 
     $chambre = node_load($entityId);
 

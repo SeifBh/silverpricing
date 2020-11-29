@@ -53,20 +53,7 @@ function residence_mgmt_page_scrapping($departmentNumber = null) {
     return $residences;
 }
 
-#cuj "https://ehpad.home/admin/config/content/residences_management" '' '{"residence_mgmt_department_select":["74"],"op":"Importation","form_build_id":"form-UygdJ54Z6PbVEJE1miIAremWXumjzAbzdRP_vXVOTus","form_token":"5niaHCGX4qiMShE7xcxzD1_lmJFRzoV6Gylwa0HJH0g","form_id":"residence_mgmt_admin_form"}' 1 "has_js=1;ben=1;siteDisabled=1;Drupal_toolbar_collapsed=0;SESS02da88e2f02ccdeaa197b0dcdf4d100a=y-i9JGchnQTmin20XM0bOx6gEK6mB942fHOWpfIqyIM;SSESS02da88e2f02ccdeaa197b0dcdf4d100a=wNz6DGQ1m45ecM2E18vwm1ERJwt490dRJmiSg215Z4o;XDEBUG_SESSION=XDEBUG_ECLIPSE"
-function residence_mgmt_page_detail_scrapping($currentUrl = null,$finess=0) {
-    if(1){
-    #Todo add to curl multi exec
-    if(!$finess){preg_match('~[0-9]{6,}~',$currentUrl,$m);if($m[0])$finess=$m[0];}#/*$finess=explode('/',$currentUrl);array_pop($id);$id=array_pop($id);*/
-    $_a=Alptech\Wip\fun::cup(['url'=>'https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/'.$finess,'timeout'=>900]);
-    if(!$_a['contents'] or $_a["info"]["http_code"]!=200 or $_a['error']){
-        \Alptech\Wip\fun::dbm([__FILE__.__line__,'scrappingError:'.$currentUrl,$_a],'php500');
-        return null;
-        die('erreur');
-        return new StdClass();
-    }
-#https://www.pour-les-personnes-agees.gouv.fr/fiche-annuaire/hebergement/740789656/0 => redirects to https://www.pour-les-personnes-agees.gouv.fr/annuaire-ehpad-et-maisons-de-retraite/EHPAD/HAUTE-SAVOIE-74/thonon-les-bains-74200/ehpad-la-prairie/740789656
-    $_c=json_decode($_a['contents'],1)[0];
+function _data2object($_c,$currentUrl){
     $residence = new StdClass();#noFinesset
     $residence->urlSource = $currentUrl;
     $residence->modificationDate = date('YmdHis',strtotime($_c['updatedAt']));
@@ -75,39 +62,100 @@ function residence_mgmt_page_detail_scrapping($currentUrl = null,$finess=0) {
     $residence->gestionnaire = $_c['coordinates']['gestionnaire'];#trim(str_replace('Gestionnaire :', '', $itemLeft->first('.fiche-box .cnsa_search_item-statut')->getNode()->nodeValue));
     $residence->statut = $_c['legal_status'];#trim(str_replace('Statut juridique :', '', $itemLeft->first('.fiche-box .cnsa_search_item-statut2')->getNode()->nodeValue));
     $residence->address = trim(preg_replace('/\s+/', ' ', $_c['coordinates']['title'].' '.$_c['coordinates']['street'].' '.$_c['coordinates']['postcode'].' '.$_c['coordinates']['city']));
-     $residence->phone =$_c['coordinates']['phone'];
-     $residence->email =$_c['coordinates']['emailContact'];
-     $residence->website =$_c['coordinates']['website'];
+    $residence->phone =$_c['coordinates']['phone'];
+    $residence->email =$_c['coordinates']['emailContact'];
+    $residence->website =$_c['coordinates']['website'];
 
-if($_c['ehpadPrice']['prixHebPermCd'])$residence->tarif[0]['chambre-double']=$_c['ehpadPrice']['prixHebPermCd'];
-if($_c['ehpadPrice']['prixHebTempCd'])$residence->tarif[1]['chambre-double']=$_c['ehpadPrice']['prixHebTempCd'];
-if($_c['ehpadPrice']['prixHebPermCs'])$residence->tarif[0]['chambre-simple']=$_c['ehpadPrice']['prixHebPermCs'];
-if($_c['ehpadPrice']['prixHebTempCs'])$residence->tarif[1]['chambre-simple']=$_c['ehpadPrice']['prixHebTempCs'];
-if($_c['ehpadPrice']['prixHebPermCda'])$residence->tarif['cda']=$_c['ehpadPrice']['prixHebPermCda'];
-if($_c['ehpadPrice']['prixHebPermCsa'])$residence->tarif['csa']=$_c['ehpadPrice']['prixHebPermCsa'];
-/*
- $chambre->field_tarif_cs_aide_sociale[LANGUAGE_NONE][0]['value'] = $data['tarif_chambre_simple_aide_sociale'];
-        $chambre->field_tarif_cd_aide_sociale[LANGUAGE_NONE][0]['value'] = $data['tarif_chambre_double_aide_sociale'];
-$_c['ehpadPrice']
-0:normal, 1:tempo
+    if($_c['ehpadPrice']['prixHebPermCd'])$residence->tarif[0]['chambre-double']=$_c['ehpadPrice']['prixHebPermCd'];
+    if($_c['ehpadPrice']['prixHebTempCd'])$residence->tarif[1]['chambre-double']=$_c['ehpadPrice']['prixHebTempCd'];
+    if($_c['ehpadPrice']['prixHebPermCs'])$residence->tarif[0]['chambre-simple']=$_c['ehpadPrice']['prixHebPermCs'];
+    if($_c['ehpadPrice']['prixHebTempCs'])$residence->tarif[1]['chambre-simple']=$_c['ehpadPrice']['prixHebTempCs'];
+    if($_c['ehpadPrice']['prixHebPermCda'])$residence->tarif['cda']=$_c['ehpadPrice']['prixHebPermCda'];
+    if($_c['ehpadPrice']['prixHebPermCsa'])$residence->tarif['csa']=$_c['ehpadPrice']['prixHebPermCsa'];
+    /*
+    cuj "https://ehpad.home/dashboard?xhp=trace" '' 0 'SSESS02da88e2f02ccdeaa197b0dcdf4d100a=wNz6DGQ1m45ecM2E18vwm1ERJwt490dRJm iSg215Z4o;SESS02da88e2f02ccdeaa197b0dcdf4d100a=y-i9JGchnQTmin20XM0bOx6gEK6mB942fHOWpfIqyIM'
+     $chambre->field_tarif_cs_aide_sociale[LANGUAGE_NONE][0]['value'] = $data['tarif_chambre_simple_aide_sociale'];
+            $chambre->field_tarif_cd_aide_sociale[LANGUAGE_NONE][0]['value'] = $data['tarif_chambre_double_aide_sociale'];
+    $_c['ehpadPrice']
+    0:normal, 1:tempo
 
-prixHebPermCda -> cs-aide-sociale -> field_tarif_cd_aide_sociale
-prixHebPermCsa -> cs-aide-sociale -> field_tarif_cs_aide_sociale
-prixHebTempCsa
+    prixHebPermCda -> cs-aide-sociale -> field_tarif_cd_aide_sociale
+    prixHebPermCsa -> cs-aide-sociale -> field_tarif_cs_aide_sociale
+    prixHebTempCsa
 
-=>https://ehpad.home/node/42680/edit
-*/
+    =>https://ehpad.home/node/42680/edit
+foreach( $tarifTables as $type => $tarifTable ) {
+foreach( $tarifTable->find('tr') as $tarif ) {
+    $tarifKey = preg_replace('/[^A-Za-z0-9-*]+/', '-', $tarif->first('td.text-left')->getNode()->nodeValue);
+    $tarifValue = str_replace("€/jour", "", $tarif->first('td.text-right')->getNode()->nodeValue);
+    $residence->tarif[$type][strtolower($tarifKey)] = str_replace(",", ".", $tarifValue);
+}
+}
+    */
 #
 #$residence->tarif[$type][strtolower($tarifKey)] = str_replace(",", ".", $tarifValue);
-    foreach( $tarifTables as $type => $tarifTable ) {
-        foreach( $tarifTable->find('tr') as $tarif ) {
-            $tarifKey = preg_replace('/[^A-Za-z0-9-*]+/', '-', $tarif->first('td.text-left')->getNode()->nodeValue);
-            $tarifValue = str_replace("€/jour", "", $tarif->first('td.text-right')->getNode()->nodeValue);
-            $residence->tarif[$type][strtolower($tarifKey)] = str_replace(",", ".", $tarifValue);
-        }
+    return $residence;
+}
+
+/*
+ * Drupal 7 new route to module action ..
+ */
+
+function updateAll(){
+    $_a=Alptech\Wip\fun::cup(['url'=>'https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/','timeout'=>1600]);
+    if(!$_a['contents'] or $_a["info"]["http_code"]!=200 or $_a['error']){
+        \Alptech\Wip\fun::dbm([__FILE__.__line__,'scrappingError:'.$currentUrl,$_a],'php500');
+        return null;
+    }
+    if(1){
+        $chambreIdtoResId=$resFit2Id=[];
+        $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b FROM silverpricing_db.field_revision_field_finess t where t.bundle='residence' group by entity_id order by revision_id desc");
+        foreach($x as $t){$resFit2Id[$t['b']]=$t['a'];}
+        $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_residence_target_id as b FROM silverpricing_db.field_revision_field_residence t where t.bundle='chambre' group by entity_id order by revision_id desc");
+        foreach($x as $t){$chambreIdtoResId[$t['b']]=$t['a'];}
+        $a=1;
     }
 
-    return $residence;
+    $_c=json_decode($_a['contents'],1);unset($_a);
+    foreach($_c as $k=>$v){
+        $finess=$v['noFinesset'];
+        if(isset($resFit2Id[$finess])){
+            $residence= node_load($resFit2Id[$finess]);
+            $a=1;
+        } else{
+            $a=1;#$residenceData from ça
+            $residence=addResidence($residenceData,$departement);
+            $a=1;
+        }
+        $chambres=array_keys($chambreIdtoResId,$residence->nid);
+        if($chambres) {
+            $cnid= reset($chambres);
+        }else{
+            $a=1;
+            $chambre=addChambre($chambreData = null, $residence);
+            $cnid=$chambre->nid;
+        }
+        #todo : get chambre nodeId per Residence fitness Number ( might not exists !//// )
+        $data=_data2object($v);
+        synchronizeChambre($cnid,$data,$finess);#+ finess
+    }
+}
+
+#cuj "https://ehpad.home/admin/config/content/residences_management" '' '{"residence_mgmt_department_select":["74"],"op":"Importation","form_build_id":"form-UygdJ54Z6PbVEJE1miIAremWXumjzAbzdRP_vXVOTus","form_token":"5niaHCGX4qiMShE7xcxzD1_lmJFRzoV6Gylwa0HJH0g","form_id":"residence_mgmt_admin_form"}' 1 "SESS02da88e2f02ccdeaa197b0dcdf4d100a=y-i9JGchnQTmin20XM0bOx6gEK6mB942fHOWpfIqyIM;SSESS02da88e2f02ccdeaa197b0dcdf4d100a=wNz6DGQ1m45ecM2E18vwm1ERJwt490dRJmiSg215Z4o;XDEBUG_SESSION=XDEBUG_ECLIPSE"
+function residence_mgmt_page_detail_scrapping($currentUrl = null,$finess=0) {
+    if('new'){
+        #Todo add to curl multi exec
+        if(!$finess){preg_match('~[0-9]{6,}~',$currentUrl,$m);if($m[0])$finess=$m[0];}#/*$finess=explode('/',$currentUrl);array_pop($id);$id=array_pop($id);*/
+        $_a=Alptech\Wip\fun::cup(['url'=>'https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/'.$finess,'timeout'=>900]);
+        if(!$_a['contents'] or $_a["info"]["http_code"]!=200 or $_a['error']){
+            \Alptech\Wip\fun::dbm([__FILE__.__line__,'scrappingError:'.$currentUrl,$_a],'php500');
+            return null;
+            die('erreur');
+            return new StdClass();
+        }
+    #https://www.pour-les-personnes-agees.gouv.fr/fiche-annuaire/hebergement/740789656/0 => redirects to https://www.pour-les-personnes-agees.gouv.fr/annuaire-ehpad-et-maisons-de-retraite/EHPAD/HAUTE-SAVOIE-74/thonon-les-bains-74200/ehpad-la-prairie/740789656
+        $_c=json_decode($_a['contents'],1)[0];
+        return _data2object($_c,$currentUrl,$finess);
     }
 ###### Ancienne méthode ci dessous
     stream_context_set_default( [

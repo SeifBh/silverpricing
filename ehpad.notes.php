@@ -21,3 +21,5 @@ job_schedule being empty
 
 $_a=Alptech\Wip\fun::cup(['url'=>'https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/','timeout'=>900]);#Toutes
 file_put_contents(date('ymdHis').'toutesRésidences.json',$_a['contents']);
+
+cuj "https://ehpad.home/dashboard?xhp=trace" '' '[]' 0 "has_js=1;SESS02da88e2f02ccdeaa197b0dcdf4d100a=y-i9JGchnQTmin20XM0bOx6gEK6mB942fHOWpfIqyIM;SSESS02da88e2f02ccdeaa197b0dcdf4d100a=wNz6DGQ1m45ecM2E18vwm1ERJwt490dRJmiSg215Z4o"
