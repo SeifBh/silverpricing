@@ -53,14 +53,19 @@ function residence_mgmt_page_scrapping($departmentNumber = null) {
     return $residences;
 }
 
-function _data2object($_c,$currentUrl){
+function _data2object($_c,$currentUrl=null){
     $residence = new StdClass();#noFinesset
-    $residence->urlSource = $currentUrl;
+    if($currentUrl)$residence->urlSource = $currentUrl;
     $residence->modificationDate = date('YmdHis',strtotime($_c['updatedAt']));
     $residence->title = $_c['title'];#$title->getNode()->nodeValue;
 
     $residence->gestionnaire = $_c['coordinates']['gestionnaire'];#trim(str_replace('Gestionnaire :', '', $itemLeft->first('.fiche-box .cnsa_search_item-statut')->getNode()->nodeValue));
-    $residence->statut = $_c['legal_status'];#trim(str_replace('Statut juridique :', '', $itemLeft->first('.fiche-box .cnsa_search_item-statut2')->getNode()->nodeValue));
+$status='Privé';
+if(preg_match('~assoc~i',$t['legal_status']))$status='Associatif';
+elseif(preg_match('~public~i',$t['legal_status']))$status='Public';
+$a=1;
+    $residence->status=$status;#privé non lucratif #<== todo conversion????
+#$residence->statut = $_c['legal_status'];#trim(str_replace('Statut juridique :', '', $itemLeft->first('.fiche-box .cnsa_search_item-statut2')->getNode()->nodeValue));
     $residence->address = trim(preg_replace('/\s+/', ' ', $_c['coordinates']['title'].' '.$_c['coordinates']['street'].' '.$_c['coordinates']['postcode'].' '.$_c['coordinates']['city']));
     $residence->phone =$_c['coordinates']['phone'];
     $residence->email =$_c['coordinates']['emailContact'];
@@ -102,11 +107,20 @@ foreach( $tarifTable->find('tr') as $tarif ) {
  */
 
 function updateAll(){
-    $_a=Alptech\Wip\fun::cup(['url'=>'https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/','timeout'=>1600]);
-    if(!$_a['contents'] or $_a["info"]["http_code"]!=200 or $_a['error']){
-        \Alptech\Wip\fun::dbm([__FILE__.__line__,'scrappingError:'.$currentUrl,$_a],'php500');
-        return null;
+    $__inserts=[];
+    $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';
+    $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
+    if(is_file($f)){
+        $_a=['contents'=>file_get_contents($f)];#cached
+    }else{
+        $_a=Alptech\Wip\fun::cup(['url'=>$url,'timeout'=>1600]);
+        if(!$_a['contents'] or $_a["info"]["http_code"]!=200 or $_a['error']){
+            \Alptech\Wip\fun::dbm([__FILE__.__line__,'scrappingError:'.$currentUrl,$_a],'php500');
+            return null;
+        }
+        $_written=file_put_contents($f,$_a['contents']);#
     }
+
     if(1){
         $chambreIdtoResId=$resFit2Id=[];
         $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b FROM silverpricing_db.field_revision_field_finess t where t.bundle='residence' group by entity_id order by revision_id desc");
@@ -115,30 +129,73 @@ function updateAll(){
         foreach($x as $t){$chambreIdtoResId[$t['b']]=$t['a'];}
         $a=1;
     }
+#+ todo :: catch all mysql insertions
 $mem=memory_get_usage(1);
     $_c=json_decode($_a['contents'],1);unset($_a);
     foreach($_c as $k=>$t){
+        $cnid=0;
         $finess=$t['noFinesset'];
         if(isset($resFit2Id[$finess])){
             $residence= node_load($resFit2Id[$finess]);
             $a=1;
         } else{
             $a=1;#$residenceData from ça
-            $residence=addResidence($residenceData,$departement);
+            $residenceData->title=$t['title'];
+            $residenceData->email=$t["coordinates"]["emailContact"];
+            $residenceData->website=$t["coordinates"]["website"];
+            $residenceData->phone=$t["coordinates"]["phone"];
+            $residenceData->gestionnaire=$t["coordinates"]["gestionnaire"];
+            #$residenceData->address = trim(preg_replace('/\s+/', ' ', $_c['coordinates']['title'].' '.$_c['coordinates']['street'].' '.$_c['coordinates']['postcode'].' '.$_c['coordinates']['city']));
+            $residenceData->location[0]['address']['city']=$t["coordinates"]["city"];
+            $residenceData->location[0]['address']['postcode']=$t["coordinates"]["postcode"];
+            $residenceData->location[0]['lat']=$t["coordinates"]["latitude"];
+            $residenceData->location[0]['lon']=$t["coordinates"]["longitude"];
+#select distinct(field_statut_value) from field_revision_field_statut #Associatif,Privé,Public
+$status='Privé';
+if(preg_match('~assoc~i',$t['legal_status']))$status='Associatif';
+elseif(preg_match('~public~i',$t['legal_status']))$status='Public';
+$a=1;
+$residenceData->status=$status;#privé non lucratif #<== todo conversion????
+$residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'=>0]];
+if($t['ehpadPrice']){
+    $a=1;
+}
+            $residence=addResidence($residenceData,$t['coordinates']['deptcode']);
+            $__inserts['residences'][$finess]=$resFit2Id[$finess]=intval($residence->nid);
             $a=1;
-        }
+        }#array_keys($chambreIdtoResId,31210)[0] == 31209
         $chambres=array_keys($chambreIdtoResId,$residence->nid);
         if($chambres) {
             $cnid= reset($chambres);
-        }else{
+        }elseif($t['ehpadPrice']){
+            if($t['ehpadPrice']['prixHebPermCd'])$chambreData[0]['chambre-double']=$t['ehpadPrice']['prixHebPermCd'];
+            if($t['ehpadPrice']['prixHebTempCd'])$chambreData[1]['chambre-double']=$t['ehpadPrice']['prixHebTempCd'];
+            if($t['ehpadPrice']['prixHebPermCs'])$chambreData[0]['chambre-seule']=$t['ehpadPrice']['prixHebPermCs'];
+            if($t['ehpadPrice']['prixHebTempCs'])$chambreData[1]['chambre-seule']=$t['ehpadPrice']['prixHebTempCs'];
+            $chambre=addChambre($chambreData, $residence);
+            $chambreIdtoResId[$chambre->nid]=$residence->nid;
+            $__inserts['chambre'][$finess]=$cnid=intval($chambre->nid);
             $a=1;
-            $chambre=addChambre($chambreData = null, $residence);
-            $cnid=$chambre->nid;
+        }else{#no tarifs
+            $chambreData[0]['chambre-double']='NA';
+            $chambreData[1]['chambre-double']='NA';
+            $chambreData[0]['chambre-seule']='NA';
+            $chambreData[1]['chambre-seule']='NA';
+            $chambre=addChambre($chambreData, $residence);
+            $chambreIdtoResId[$chambre->nid]=$residence->nid;
+            $__inserts['chambre'][$finess]=$cnid=intval($chambre->nid);
         }
-        #todo : get chambre nodeId per Residence fitness Number ( might not exists !//// )
-        $data=_data2object($v);
-        synchronizeChambre($cnid,$data,$finess);#+ finess
+#todo : get chambre nodeId per Residence fitness Number ( might not exists !//// )
+#puis données ordinaires ..
+        if($cnid){#si chambre trouvée ( avec des tarifs ) ..
+            $data=_data2object($t,null);
+            list($c,$r)=synchronizeChambre($cnid,$data,$finess);
+        }#+ finess
+        $a=1;
     }
+    $a=1;
+    file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-chambreResidencesInserted.json',json_encode($__inserts));
+    print_r($__inserts);die;
 }
 
 #cuj "https://ehpad.home/admin/config/content/residences_management" '' '{"residence_mgmt_department_select":["74"],"op":"Importation","form_build_id":"form-UygdJ54Z6PbVEJE1miIAremWXumjzAbzdRP_vXVOTus","form_token":"5niaHCGX4qiMShE7xcxzD1_lmJFRzoV6Gylwa0HJH0g","form_id":"residence_mgmt_admin_form"}' 1 "SESS02da88e2f02ccdeaa197b0dcdf4d100a=y-i9JGchnQTmin20XM0bOx6gEK6mB942fHOWpfIqyIM;SSESS02da88e2f02ccdeaa197b0dcdf4d100a=wNz6DGQ1m45ecM2E18vwm1ERJwt490dRJmiSg215Z4o;XDEBUG_SESSION=XDEBUG_ECLIPSE"

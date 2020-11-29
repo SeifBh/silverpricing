@@ -276,6 +276,7 @@ function addResidence($residenceData = null, $departmentNumber) {
     node_object_prepare($newResidence);
 
     //$newResidence->field_finess[$newResidence->language][0]['value'] = "";
+    #if(isset($residenceData->address))$newResidence->field_address[$newResidence->language][0]['value'] = $residenceData->address;
     $newResidence->field_email[$newResidence->language][0]['value'] = $residenceData->email;
     $newResidence->field_site[$newResidence->language][0]['value'] = $residenceData->website;
     $newResidence->field_telephone[$newResidence->language][0]['value'] = $residenceData->phone;
@@ -366,9 +367,8 @@ function updateChambre($entityId = null, $data) {
 }
 
 function synchronizeChambre( $entityId, $data,$finess=null) {
-
+    $residence=null;
     $chambre = node_load($entityId);
-
     if( !empty($data) ) {
         // Tarifs
         if(isset($data->tarif['csa']))$chambre->field_tarif_cs_aide_sociale[LANGUAGE_NONE][0]['value'] = $data->tarif['csa'];
@@ -391,7 +391,7 @@ function synchronizeChambre( $entityId, $data,$finess=null) {
             node_save($chambre);
 
             $residence = node_load($chambre->field_residence[LANGUAGE_NONE][0]['target_id']);
-            if( empty($residence->field_url_source[LANGUAGE_NONE][0]['value']) ) {
+            if( empty($residence->field_url_source[LANGUAGE_NONE][0]['value']) and isset($data->urlSource)) {
                 $residence->field_url_source[LANGUAGE_NONE][0]['value'] = $data->urlSource;
                 node_save($residence);
             }
@@ -399,7 +399,7 @@ function synchronizeChambre( $entityId, $data,$finess=null) {
         }
 
     }
-
+    return [$chambre,$residence];
 }
 
 // function getResidencesConcurrentes($currentLatitude, $currentLongitude, $currentResidenceId, $currentStatut = NULL) {
