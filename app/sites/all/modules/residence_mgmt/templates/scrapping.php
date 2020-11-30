@@ -106,21 +106,21 @@ foreach( $tarifTable->find('tr') as $tarif ) {
 /*php -l sites/all/modules/residence_mgmt/templates/scrapping.php
 Drupal 7 new route to module action ..
 
-my -u a -pb silverpricing_db < ../db/silverpricing_db.sql;
+my -u a -pb silverpricing_db < ../db/silverpricing_db.sql;drushy cc all;
 a;cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) ';b;say done;
 on second update shall stop uneccessary updates
 */
 function updateAll(){
 #todo:lock
-    $lf=__file__.__function__.'.lock';if(is_file($lf) and filemtime($lf)>time()-70000)die("locked:$lf");touch($lf);
+    $lf=__file__.__function__.'.lock';#if(is_file($lf) and filemtime($lf)>time()-70000)die("locked:$lf");touch($lf);
     register_shutdown_function(function()use($lf){
         $a=1;
-        unlink($lf);});
+        unlink($lf);});#
     ini_set('max_execution_time',-1);
     ini_set('memory_limit',-1);
     $starts=time();
 /* Attention : ce ne sont pas toutes des Ehpad .. */
-    $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=[];
+    $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=$fin2rid=[];
     $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';
     $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
     if(is_file($f)){
@@ -133,7 +133,16 @@ function updateAll(){
         }
         $_written=file_put_contents($f,$_a['contents']);#
     }
-
+    $_c=json_decode($_a['contents'],1);unset($_a);
+    $_mem=memory_get_usage(1);
+    foreach($_c as $k=>&$t){
+        $finesses[]=ltrim($t['noFinesset'],0);
+    }
+    $finesses=array_unique($finesses);
+    $sql="SELECT entity_id as a,field_finess_value as b FROM field_revision_field_finess t where t.bundle='residence' and t.field_finess_value in ('".implode("','",$finesses)."') group by field_finess_value,entity_id order by revision_id desc";
+    $x=Alptech\Wip\fun::sql($sql);
+    foreach($x as $t){$fin2rid[$t['b']]=$t['a'];}
+    $a=1;#14758
     if('indexes'){
 #$x2=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b,nr.timestamp as date FROM field_revision_field_finess t inner join node_revision nr on nr.nid=t.entity_id  where t.bundle='residence' group by entity_id order by revision_id desc");
 $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b,n.changed as date FROM field_revision_field_finess t inner join node n on n.nid=t.entity_id where t.bundle='residence' group by entity_id order by revision_id desc");
@@ -148,9 +157,9 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
         $a=1;
     }
 #+ todo :: catch all mysql insertions
-    $_c=json_decode($_a['contents'],1);unset($_a);
-    $_mem=memory_get_usage(1);
-    foreach($_c as $k=>&$t){
+
+    $a=1;
+    foreach($_c as $k=>&$t){#10899 valeurs
         if(!isset($t['ehpadPrice'])){#Marpa & Autres ...
             continue;
         }
@@ -158,6 +167,14 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
         $lastmod=strtotime($t["updatedAt"]);
         $finess=ltrim($t['noFinesset'],0);
         #file_put_contents('current.log',$k.'/'.$finess);#todo apcu / memcached / redis ?
+        if(isset($fin2rid[$finess])){
+            $a='has';
+            if(isset($resFit2Id[$finess])){
+                $a='ok';
+            }else{
+                $whut=1;
+            }
+        }
         if(isset($resFit2Id[$finess])){#at 698
             $rid=$resFit2Id[$finess];
             if($res2date[$rid]){
@@ -181,7 +198,8 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
                 }#array_keys($chambreIdtoResId,$rid);
                 if($lastmod>$modifRes){
                     $residence = node_load($rid);
-                    if($residence->revision_timestamp>=$modifRes or $residence->revision_timestamp>=$lastmod){
+                    $rtt=$residence->revision_timestamp;#[$residence->revision_timestamp,$modifRes,$lastmod]
+                    if($rtt>=$modifRes or $rtt>=$lastmod){
                         $err=1;
                     }
 if(0){
@@ -292,7 +310,7 @@ if($t['ehpadPrice']){
     $msg="\n\ninsert : résidences:".count($__inserts['residences']).';chambres:'.count($__inserts['chambre'])."\nupdates:r:".count($__updates['residences']).';c:'.count($__updates['chambres'])."\nnotModified:r:".count($notModified['residence']).';c:'.count($notModified['chambre'])."\nTook: $took seconds\n";
     file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-chambreResidencesInserted.json',json_encode(compact('msg','__inserts','__updates','notModified')));
     #print_r($__inserts);print_r($__updates);
-    if(isset($_ENV['loggedSql']) and $_ENV['loggedSql'])file_put_contents('sqInsertsl.log',json_encode($_ENV['loggedSql']));
+    if(isset($_ENV['loggedSql']) and $_ENV['loggedSql']){file_put_contents('sqInserts.log',implode("\n",$_ENV['loggedSql']));}
     echo $msg;###<<<  $_ENV['loggedSql']
     die;
 }
