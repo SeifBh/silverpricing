@@ -112,10 +112,12 @@ on second update shall stop uneccessary updates
 */
 function updateAll(){
 #todo:lock
-    $lf=__file__.__function__.'.lock';#if(is_file($lf) and filemtime($lf)>time()-70000)die("locked:$lf");touch($lf);
-    register_shutdown_function(function()use($lf){
-        $a=1;
-        unlink($lf);});#
+    if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE){
+        $lf=__file__.__function__.'.lock';#if(is_file($lf) and filemtime($lf)>time()-70000)die("locked:$lf");touch($lf);
+        register_shutdown_function(function()use($lf){
+            $a=1;
+            unlink($lf);});#
+    }
     ini_set('max_execution_time',-1);
     ini_set('memory_limit',-1);
     $starts=time();
