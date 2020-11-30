@@ -396,7 +396,11 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
         }#end foreach tarif modifié
         $now=time();
         foreach($_inserts as $rid=>$k2v){
-            Alptech\Wip\fun::insert4values($k2v);
+            $k2v['rid']=$rid;
+            $k2v['date']=$now;
+            $sql='insert into z_variations '.Alptech\Wip\fun::insertValues($k2v);
+            $insertId=Alptech\Wip\fun::sql($sql);#
+            $b=1;
         }
     }
     $took=time()-$starts;$starts=time();
