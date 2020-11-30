@@ -17,7 +17,7 @@ if(isset($_POST['img'])){
     $target="genmaps/".date('ymdHis').'-'.preg_replace('~\.+~','.',preg_replace('~[^a-z0-9_\-=]~is','.',$_POST['name'])).'.'.$ext;
     $ok=file_put_contents($target,$b64);
     if($ok){
-        die($target);
+        die('/z/'.$target);
     }
     \Alptech\Wip\fun::dbm([__FILE__.__line__,'cant write image'],'php500');
     die;

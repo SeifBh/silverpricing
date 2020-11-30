@@ -95,22 +95,21 @@ ob_start();
 </body></html>
 <?php
 $footer = ob_get_clean();
-
 $option = array(
-  'binary' => RESIDENCE_MGMT_WKHTMLTOPDF,
-  'page-size' => 'A4',
-  'header-html' => $header,
-  'header-spacing' => '5',
-  'footer-html' => $footer,
-  'footer-spacing' => '10',
-  'ignoreWarnings' => true,
-  'commandOptions' => array(
+    'binary' => RESIDENCE_MGMT_WKHTMLTOPDF,
+    'page-size' => 'A4',
+    'header-html' => $header,
+    'header-spacing' => '5',
+    'footer-html' => $footer,
+    'footer-spacing' => '10',
+    'ignoreWarnings' => true,
+    'commandOptions' => array(
         'useExec' => true,
         'procEnv' => array(
             'LANG' => 'en_US.utf-8',
         ),
     ),
-  'javascript-delay' => 1000
+    'javascript-delay' => 1000
 );
 
 $pdf = new Pdf($option);

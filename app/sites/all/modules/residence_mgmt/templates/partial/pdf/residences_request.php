@@ -1,10 +1,17 @@
-<?php $a=1;?>
-<!DOCTYPE HTML>
-<html>
-    <head>
+<?php
+$map=$history->field_map["und"][0]["value"];
+if($map){
+    $map="<img src='".$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST']."/z/".$map."'/>";
+    $a=1;
+}
+$a=1;
+?><!DOCTYPE HTML><html id="h"><head>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
         <style type="text/css">
+            .results tr:nth-child(even){background:#EEEEEE;}
+            #h #b #content tr.black{background:#444444;color:#FFFFFF;}
 
+            img{max-height:30vh}
             body {
                 font-family: "Times New Roman", Georgia, Serif;
             }
@@ -26,33 +33,40 @@
 
         </style>
     </head>
-    <body>
-        <div id="header">
-            <div>
-                <p><strong>Adresse : </strong><?php echo $historyResult->request->adresse; ?></p>
-            </div>
+    <body id="b">
+        <table id="header">
+            <tr>
+                <td>
+                    <div>
+                        <p><strong>Adresse : </strong><?php echo $historyResult->request->adresse; ?></p>
+                    </div>
 
-            <div>
-                <p><strong>Latitude : </strong><?php echo $historyResult->request->latitude; ?></p>
-            </div>
+                    <div>
+                        <p><strong>Latitude : </strong><?php echo $historyResult->request->latitude; ?></p>
+                    </div>
 
-            <div>
-                <p><strong>Longitude : </strong><?php echo $historyResult->request->longitude; ?></p>
-            </div>
+                    <div>
+                        <p><strong>Longitude : </strong><?php echo $historyResult->request->longitude; ?></p>
+                    </div>
 
-            <div>
-                <p><strong>Statut : </strong><?php echo $historyResult->request->statut; ?></p>
-            </div>
+                    <div>
+                        <p><strong>Statut : </strong><?php echo $historyResult->request->statut; ?></p>
+                    </div>
 
-            <div>
-                <p><strong>Périmetre : </strong><?php echo $historyResult->request->perimetre; ?></p>
-            </div>
-        </div>
+                    <div>
+                        <p><strong>Périmetre : </strong><?php echo $historyResult->request->perimetre; ?></p>
+                    </div>
+                </td>
+                <td>
+                    <?php if(isset($map) and $map)echo $map;$map=0;?>
+                </td>
+            </tr>
+        </table>
 
         <div id="content">
-            <table class="table table-sm table-hover">
+            <table class="table table-sm table-hover results">
                 <thead>
-                    <tr>
+                    <tr class="black">
                     <th scope="col">Résidence</th>
                     <th scope="col">Code postal</th>
                     <th scope="col">Ville</th>

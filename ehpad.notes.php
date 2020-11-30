@@ -1,8 +1,8 @@
 <?die;
+g1 alternate results rows in pdf
 
 history
-find . -type f -mmin -30 | grep .php | grep -v .jpg | grep -v data/cache | grep -v ~lock | grep -v .idea|  grep -v .git |  grep -v /framework/sessions/ | tee modified.list
-x=`cat modified.list`;for i in $x; do git add $i -f;done;
+find . -type f -mmin -30 | grep .php | grep -v .jpg | grep -v data/cache | grep -v ~lock | grep -v .idea|  grep -v .git |  grep -v /framework/sessions/ | tee modified.list;x=`cat modified.list`;for i in $x; do git add $i -f;done;
 
 
 

@@ -874,7 +874,11 @@ function getHistories() {
   $query->join('field_data_field_balance_consumed', 'b', 'b.entity_id = n.nid', array());
   $query->leftjoin('field_data_body', 'body', 'body.entity_id = n.nid', array());
     $query->leftjoin('field_data_field_name', 'name', 'name.entity_id = n.nid', array());
+    $query->leftjoin('field_data_field_map', 'map', 'map.entity_id = n.nid', array());
+    $query->leftjoin('field_data_field_excel', 'excel', 'excel.entity_id = n.nid', array());
 
+  $query->fields('excel', array('excel'=>'field_excel_value'));
+  $query->fields('map', array('name'=>'field_map_value'));
   $query->fields('name', array('name'=>'field_name_value'));
   $query->fields('n', array('nid', 'title', 'created'));
   $query->fields('b', array('field_balance_consumed_value'));
