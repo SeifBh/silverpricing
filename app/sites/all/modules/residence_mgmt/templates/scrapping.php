@@ -123,7 +123,7 @@ function updateAll($forceFiness=null,$tarifsForces=null){
     ini_set('memory_limit',-1);
     $starts=time();
 /* Attention : ce ne sont pas toutes des Ehpad .. */
-    $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=$fin2rid=$tarifsModifies=[];
+    $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=$fin2rid=$tarifsModifies=$c2r=[];
     $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';
     $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
     if(is_file($f)){
@@ -239,6 +239,7 @@ if($rid and isset($t['ehpadPrice']) and 'alertes Modification de prix lorsque r�
     if(isset($tarifs['gir56'][$rid]) and $tarifs['gir56'][$rid] != $t['ehpadPrice']['tarifGir56']){$tarifsModifies['r'][$rid]['gir56']=[$tarifs['gir56'][$rid],$t['ehpadPrice']['tarifGir56']];}
     #cs,cd,cdt,
     if($cnid){
+        $c2r[$cnid]=$rid;#pour mapper par la suite
         $k='cs';$k2='prixHebPermCs';if(isset($tarifs[$k][$cnid]) and $tarifs[$k][$cnid] != $t['ehpadPrice'][$k2]){$tarifsModifies['c'][$cnid][$k]=[$tarifs[$k][$cnid],$t['ehpadPrice'][$k2]];}
         $k='cst';$k2='prixHebTempCs';if(isset($tarifs[$k][$cnid]) and $tarifs[$k][$cnid] != $t['ehpadPrice'][$k2]){$tarifsModifies['c'][$cnid][$k]=[$tarifs[$k][$cnid],$t['ehpadPrice'][$k2]];}
         $k='cd';$k2='prixHebPermCd';if(isset($tarifs[$k][$cnid]) and $tarifs[$k][$cnid] != $t['ehpadPrice'][$k2]){$tarifsModifies['c'][$cnid][$k]=[$tarifs[$k][$cnid],$t['ehpadPrice'][$k2]];}
@@ -357,21 +358,54 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
         $t=null;
     }unset($t);
     $a=1;
-    $took=time()-$starts;
+    $took=time()-$starts;$starts=time();
     $msg="\n\ninsert : résidences:".count($__inserts['residences']).';chambres:'.count($__inserts['chambre'])."\nupdates:r:".count($__updates['residences']).';c:'.count($__updates['chambres'])."\nnotModified:r:".count($notModified['residence']).';c:'.count($notModified['chambre'])."\nTook: $took seconds\n";
+    file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-chambreResidencesInserted.json',json_encode(compact('msg','__inserts','__updates','notModified')));
+    #print_r($__inserts);print_r($__updates);
+    if(isset($_ENV['loggedSql']) and $_ENV['loggedSql']){file_put_contents('sqInserts.log',implode("\n",$_ENV['loggedSql']));}
     if($tarifsModifies){
         file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-tarifsModifies.json',json_encode($tarifsModifies));
         $a=1;
     }
 
-    file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-chambreResidencesInserted.json',json_encode(compact('msg','__inserts','__updates','notModified')));
-    #print_r($__inserts);print_r($__updates);
-    if(isset($_ENV['loggedSql']) and $_ENV['loggedSql']){file_put_contents('sqInserts.log',implode("\n",$_ENV['loggedSql']));}
     echo $msg;###<<<  $_ENV['loggedSql']
+    unset($msg,$__inserts,$__updates,$notModified,$_c,$tarifs);
+    $_mem[__line__]=memory_get_usage(1);
+    if($tarifsModifies){
+        $_inserts=[];
+        foreach($tarifsModifies as $type=>$t){
+            if($type=='c'){
+                foreach($t as $cid=>$chambre2prix){
+                    $rid=$c2r[$cid];
+                    foreach($chambre2prix as $chambre=>$prix0){
+                        foreach($prix0 as $k=>$prix){
+                            $_inserts[$rid][$chambre.'_'.$k]=$prix;
+                        }
+                    }
+                }
+                #remonter à la résidence
+            }elseif($type=='r'){
+                foreach($t as $rid=>$chambre2prix) {
+                    foreach ($chambre2prix as $chambre => $prix0) {
+                        foreach ($prix0 as $k => $prix) {
+                            $_inserts[$rid][$chambre.'_'.$k] = $prix;
+                        }
+                    }
+                }
+            }
+        }#end foreach tarif modifié
+        $now=time();
+        foreach($_inserts as $rid=>$k2v){
+            Alptech\Wip\fun::insert4values($k2v);
+        }
+    }
+    $took=time()-$starts;$starts=time();
+    echo"\n\nTook:$took";
 
     if($__inserts['residences']){#do the geo recoding
 
     }
+    $took=time()-$starts;$starts=time();
     die;
 }
 

@@ -1,5 +1,5 @@
 packages:
-    alptech/wip: 'dev-master:22153315102a83ad25a6fed4963472e3ed25e5d2'
+    alptech/wip: '9999999-dev:22153315102a83ad25a6fed4963472e3ed25e5d2'
     drush/drush: 6.0.0
     markbaker/complex: 1.5.0
     markbaker/matrix: 1.2.1

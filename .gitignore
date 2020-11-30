@@ -2,4 +2,5 @@
 *.log
 *.jpg
 *.png
-curlcache/*.json
+app/z/curlcache/*.json
+app/z/updated/*.json

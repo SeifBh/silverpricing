@@ -181,7 +181,7 @@ class fun /* extends base */
             58 => 1,  #?? Follow Return Headers
         ];
         $_sent = fun::cuo($opt);
-        return $_sent;
+        return;
 
         $opt = $headers = [];
         $from = 'dx24.fr>';
@@ -984,9 +984,6 @@ class fun /* extends base */
         $k = 'sqlc:' . $s['h'] . ':' . $names;
         if (!isset($_ENV[$k])) {#mysqlclose on shutdown
             $_ENV[$k] = mysqli_connect($s['h'], $s['u'], $s['p']);
-            if(!$_ENV[$k]){
-                $err=1;
-            }
             mysqli_select_db($_ENV[$k], $s['db']);
             if ($names) {
                 $ok = mysqli_query($_ENV[$k], 'SET NAMES ' . $names);
