@@ -847,10 +847,12 @@ function addTMHMaquetteToFavoris( $fieldFavoris, $maquetteId ) {
 function addHistory($historyData = array()) {
 
   $history = new stdClass();
-  $history->type = 'history';
+  $history->type = 'history';#field_name_value
   $history->title = $historyData['title'];
   $history->uid = $historyData['creator'];
   $history->language = LANGUAGE_NONE;
+    #$history->field_name = $historyData['name'];#[$history->language][0]['value']
+    $history->field_name[$history->language][0]['value'] = $historyData['name'];#
   node_object_prepare($history);
 
   $history->body[$history->language][0]['value'] = json_encode($historyData['body']);
@@ -862,14 +864,16 @@ function addHistory($historyData = array()) {
 
 function getHistories() {
 
-  global $user;
+  global $user;#
 
   $query = db_select('node', 'n');
   $query->condition('n.type', "history", '=');
   $query->condition('n.uid', $user->uid, '=');
   $query->join('field_data_field_balance_consumed', 'b', 'b.entity_id = n.nid', array());
   $query->leftjoin('field_data_body', 'body', 'body.entity_id = n.nid', array());
+    $query->leftjoin('field_data_field_name', 'name', 'name.entity_id = n.nid', array());
 
+  $query->fields('name', array('name'=>'field_name_value'));
   $query->fields('n', array('nid', 'title', 'created'));
   $query->fields('b', array('field_balance_consumed_value'));
   $query->fields('body', array('body_value'));

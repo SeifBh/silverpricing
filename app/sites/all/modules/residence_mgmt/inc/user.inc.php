@@ -135,14 +135,13 @@ function residence_mgmt_has_enough_user_balance( $pageRequest, $options = array(
  * UPDATE USER BALANCE
  */
 
-function residence_mgmt_update_user_balance( $pageRequest, $options = array(), $request = array(), $response = array() ) {
+function residence_mgmt_update_user_balance( $pageRequest, $options = array(), $request = array(), $response = array() ,$name='') {
 
   if (user_is_logged_in()) {
 
       global $user;
 
-      $history = array( 'title' => $pageRequest, 'creator' => $user->uid );
-      $history['body'] = array( 'request' => $request, 'response' => $response );
+      $history = array('title' => $pageRequest, 'name' => $name, 'creator' => $user->uid, 'body' => array('request' => $request, 'response' => $response));
       $account = user_load($user->uid);
       $plan = taxonomy_term_load($account->field_plan['und'][0]['target_id']);
       $balance = $account->field_balance['und'][0]['value'];
