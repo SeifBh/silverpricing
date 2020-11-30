@@ -106,11 +106,16 @@ foreach( $tarifTable->find('tr') as $tarif ) {
 /*php -l sites/all/modules/residence_mgmt/templates/scrapping.php
 Drupal 7 new route to module action ..
 
-my -u a -pb silverpricing_db < silverpricing_db.sql;
+my -u a -pb silverpricing_db < ../db/silverpricing_db.sql;
 a;cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) ';b;say done;
 on second update shall stop uneccessary updates
 */
 function updateAll(){
+#todo:lock
+    $lf=__file__.__function__.'.lock';if(is_file($lf) and filemtime($lf)>time()-70000)die("locked:$lf");touch($lf);
+    register_shutdown_function(function()use($lf){
+        $a=1;
+        unlink($lf);});
     ini_set('max_execution_time',-1);
     ini_set('memory_limit',-1);
     $starts=time();
