@@ -1,4 +1,9 @@
+./app/sites/all/modules/residence_mgmt/ben.notes.php
+./app/sites/all/modules/residence_mgmt/inc/config.inc.php
 ./app/sites/all/modules/residence_mgmt/inc/database.inc.php
-./app/sites/all/modules/residence_mgmt/inc/user.inc.php
 ./app/sites/all/modules/residence_mgmt/templates/histories.php
+./app/sites/all/modules/residence_mgmt/templates/layouts/default.pdf.php
+./app/sites/all/modules/residence_mgmt/templates/layouts/default.php
+./app/sites/all/modules/residence_mgmt/templates/partial/pdf/residences_request.php
+./app/sites/all/modules/residence_mgmt/templates/search.php
 ./ehpad.notes.php

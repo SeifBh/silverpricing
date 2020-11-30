@@ -1,3 +1,4 @@
+<?php $a=1;?>
 <section class="section-residences">
 
     <div class="row">
@@ -134,9 +135,9 @@
     </div>
         </div>
     </div>
-
-
-
-
-
 </section>
+<script>
+if(typeof post['latitude']!='undefined'){
+    defer(captureMap);
+}
+</script>

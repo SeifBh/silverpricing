@@ -859,7 +859,9 @@ function addHistory($historyData = array()) {
   $history->field_balance_consumed[$history->language][0]['value'] = $historyData['balance_consumed'];
 
   node_save($history);#£
-
+    $_SESSION['public']=['hid'=>$history->nid];
+    $_SESSION['hid']=$history->nid;
+    $a=1;
 }
 
 function getHistories() {

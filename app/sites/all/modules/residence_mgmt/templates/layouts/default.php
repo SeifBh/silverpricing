@@ -1,6 +1,17 @@
 <?php define("MODULE_PATH", "/sites/all/modules/residence_mgmt"); ?>
 <!DOCTYPE html>
-<html lang="fr" id="a">
+<html lang="fr" id="a"><head>
+<script type="text/javascript"><?php
+    $json=[];
+    if(isset($user)){$json=array_merge($json,['uid'=>$user->uid,'uname'=>$user->name]);}
+    if(isset($_POST)){$json=array_merge($json,['post'=>$_POST]);}
+    if(isset($_GET)){$json=array_merge($json,['get'=>$_GET]);}
+    if(isset($_SESSION['public'])){$json=array_merge($json,['session'=>$_SESSION['public']]);}
+
+    echo "var json=".json_encode($json).";for(var i in json){window[i]=json[i];}";
+    $a=$user->uid.'-'.$user->name;
+?>
+</script>
 <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -1975,17 +1986,7 @@
           });
 
   <?php endif;
-$json=[];
-if(isset($user)){$json=array_merge($json,['uid'=>$user->uid,'uname'=>$user->name]);}
-if(isset($_POST)){$json=array_merge($json,['post'=>$_POST]);}
-if(isset($_GET)){$json=array_merge($json,['get'=>$_GET]);}
-
-echo "var json=".json_encode($json).";for(var i in json){window[i]=json[i];}cl(json);";
-
-
-$a=$user->uid.'-'.$user->name;
   ?>
-
     </script>
   </body>
 </html>

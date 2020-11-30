@@ -17,4 +17,8 @@ define("RESIDENCE_MGMT_DATA", "/sites/all/modules/residence_mgmt/data");
 
 // define("RESIDENCE_MGMT_WKHTMLTOPDF", "C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe");
 
-define("RESIDENCE_MGMT_WKHTMLTOPDF", "/home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/sites/all/modules/residence_mgmt/wkhtmltox/bin/wkhtmltopdf");
+$x = "/home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/sites/all/modules/residence_mgmt/wkhtmltox/bin/wkhtmltopdf";
+if (strpos($_SERVER['HTTP_HOST'], '.home')) {
+    $x="C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf";#C:\Program Files\wkhtmltopdf
+}
+define("RESIDENCE_MGMT_WKHTMLTOPDF", $x);

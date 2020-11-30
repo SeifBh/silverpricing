@@ -2,7 +2,7 @@
 
 history
 find . -type f -mmin -30 | grep .php | grep -v .jpg | grep -v data/cache | grep -v ~lock | grep -v .idea|  grep -v .git |  grep -v /framework/sessions/ | tee modified.list
-    x=`cat modified.list`;for i in $x; do git add $i -f;done;
+x=`cat modified.list`;for i in $x; do git add $i -f;done;
 
 
 
@@ -35,3 +35,24 @@ $_a=Alptech\Wip\fun::cup(['url'=>'https://www.pour-les-personnes-agees.gouv.fr/a
 file_put_contents(date('ymdHis').'toutesRésidences.json',$_a['contents']);
 
 cuj "https://ehpad.home/dashboard?xhp=trace" '' '[]' 0 "has_js=1;SESS02da88e2f02ccdeaa197b0dcdf4d100a=y-i9JGchnQTmin20XM0bOx6gEK6mB942fHOWpfIqyIM;SSESS02da88e2f02ccdeaa197b0dcdf4d100a=wNz6DGQ1m45ecM2E18vwm1ERJwt490dRJmiSg215Z4o"
+
+<?die;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+return;?>
+C:\Users\ben\home\ehpad\app\sites\all\modules\residence_mgmt
+
+
+obj.canvas.setViewBox(0, 0, 200, 150, true);
+
+var canvas = document.querySelectorAll('canvas')[0]
+var img    = canvas.toDataURL("image/jpeg");
+//var img    = canvas.toDataURL("image/png");
+var w=window.open('about:blank','image from canvas');
+w.document.write("<img src='"+d+"' alt='from canvas'/>");
+
+nécessite un récepteur
+https://developer.here.com/documentation/maps/3.1.20.0/api_reference/H.util.ICapturable.html
+
+here_library.js

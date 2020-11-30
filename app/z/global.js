@@ -1,13 +1,23 @@
 var mapName='map',cl=console.log,nf=function(){return;};
 if(location.host.indexOf('.home')<0)cl=nf;//neutralisation
 /*var hereMap = initHereMap(*/
+function defer(method, timeout) {
+    var timeout = timeout || 200;
+    if (window.jQuery) {
+        method();
+    } else {
+        setTimeout(function () {
+            defer(method)
+        }, timeout);
+    }
+}
 
 //map-recherche-silverex
 //captureMap(0,cl); works !
 async function captureMap(el,callback){
     var styleback,datasize,cap,b64img,r;
     el=el||'.heremap';callback=callback||nf;
-    r=$('#dashCap')[0];
+    r=document.querySelector('#dashCap');
     styleback=$(el).attr('style');
 /*could be even wider than ever .... */
     $(el).attr('style','').addClass('fullScreen');
@@ -18,6 +28,7 @@ async function captureMap(el,callback){
 
         //$('#adresse').val()
         _mapName='';
+        if(typeof session['hid']!='undefined')_mapName+='-hid='+session['hid'];
         if(typeof uid!='undefined')_mapName+='-uid='+uid;
         if(typeof post['adresse']!='undefined')_mapName+='-adress='+post['adresse'];
         if(typeof post['perimetre']!='undefined')_mapName+='-perimetre='+post['perimetre'];

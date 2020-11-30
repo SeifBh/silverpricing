@@ -2149,8 +2149,9 @@ function loadDepartementChartData($departementId = null) {
 
 function residence_mgmt_generate_document( $userId, $historyId ) {
   global $user;
-
-  if( $userId != $user->uid  ) {
+#https://ehpad.home/ged/1/document/46771
+#if(defined('DEV'))
+  if($userId != $user->uid  ) {
       return header("Location: " . $_SERVER['HTTP_REFERER']);
   }
 
