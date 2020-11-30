@@ -138,6 +138,6 @@
 </section>
 <script>
 if(typeof post['latitude']!='undefined'){
-    defer(captureMap);
+    defer(captureMap,function(){return window['hereMap'] && typeof  window['jQuery']=='function';});
 }
 </script>

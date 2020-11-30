@@ -15,7 +15,18 @@ require_once __DIR__ . "/inc/user.inc.php";
 function residence_mgmt_yo(){
     updateAll();
 }
-function residence_mgmt_url_inbound_alter(&$path, $original_path, $path_language) {
+#https://ehpad.home/updateHistory
+function updateHistory(){
+    /* excel, history, map from history*/
+    $a=1;
+    if(isset($_POST['mapName']) and $_POST['mapName']){
+        $history = node_load($_POST['hid']);
+        $history->field_map[$history->language][0]['value'] =  $_POST['mapName'];#
+        node_save($history);#£
+        return 1;
+    }
+}
+function __residence_mgmt_url_inbound_alter(&$path, $original_path, $path_language) {
     $a=1;
 }
 
@@ -24,8 +35,8 @@ function residence_mgmt_url_inbound_alter(&$path, $original_path, $path_language
 * create menu residences
 */
 function residence_mgmt_menu() {
-
     $items = array();
+    $items['updateHistory'] = array('title' => 'updateHistory', 'access callback' => true, 'page callback' => 'updateHistory',);
     $items['yo'] = array(
         'title'             =>  'yo',
         'access callback'   =>  true,
