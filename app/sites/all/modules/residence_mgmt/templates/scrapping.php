@@ -111,8 +111,11 @@ a;cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) ';b
 on second update shall stop uneccessary updates
 */
 function updateAll(){
+    ini_set('max_execution_time',-1);
+    ini_set('memory_limit',-1);
+    $starts=time();
 /* Attention : ce ne sont pas toutes des Ehpad .. */
-    $ch2date=$res2date=$__inserts=$__updates=[];
+    $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=[];
     $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';
     $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
     if(is_file($f)){
@@ -127,7 +130,6 @@ function updateAll(){
     }
 
     if('indexes'){
-        $chambreIdtoResId=$resFit2Id=$ch2date=$res2date=[];
         $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b,nr.timestamp as date FROM field_revision_field_finess t inner join node_revision nr on nr.nid=t.entity_id  where t.bundle='residence' group by entity_id order by revision_id desc");
         foreach($x as $t){$resFit2Id[$t['b']]=$t['a'];$res2date[$t['a']]=$t['date'];}
         $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_residence_target_id as b,nr.timestamp as date FROM field_revision_field_residence t inner join node_revision nr on nr.nid=t.entity_id where t.bundle='chambre' group by entity_id order by revision_id desc");
@@ -144,7 +146,7 @@ function updateAll(){
         $rid=$cnid=$chambre=$residence=$modifRes=$modifCh=$data=0;$chambres=[];
         $lastmod=strtotime($t["updatedAt"]);
         $finess=ltrim($t['noFinesset'],0);
-        file_put_contents('current.log',$k.'/'.$finess);
+        #file_put_contents('current.log',$k.'/'.$finess);#todo apcu / memcached / redis ?
         if(isset($resFit2Id[$finess])){#at 698
             $rid=$resFit2Id[$finess];
             if($res2date[$rid]){
@@ -157,6 +159,8 @@ function updateAll(){
                             $modifCh=$ch2date[$cnid];
                             if($lastmod<=$modifRes and $lastmod<=$modifCh){#ne nécessite pas de modification :: si deux runs successifs ...
                                 #not modified,
+                                $notModified['residence'][]=$rid;
+                                $notModified['chambre'][]=$cnid;
                                 continue;
                             }
                             $a='chambre existe avec date';
@@ -195,11 +199,15 @@ $b=node_save($residence);
 $a=1;
                     $__updates['residences'][]=$finess;
                     #update residence data
+                }else{
+                    $notModified['residence'][]=$rid;
                 }
                 $a='résidence a date de dernière modification';
             }
 
-            if(!$residence)$residence= node_load($rid);
+            if(!$residence){#not modified
+                $residence= node_load($rid);
+            }
             $a=1;
         } else{#y'à pas cette résidence, on la crée
             $a=1;#$residenceData from ça
@@ -259,13 +267,18 @@ if($t['ehpadPrice']){
                 $__updates['chambres'][]=$cnid;
             }#+ finess
             $a='inserée';
+        }else{#no room updates
+            $notModified['chambre'][]=$cnid;
         }
         $t=null;
     }unset($t);
     $a=1;
-    file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-chambreResidencesInserted.json',json_encode(compact('__inserts','__updates')));
-    print_r($__inserts);
-    print_r($__updates);
+    $took=time()-$starts;
+    $msg="\n\ninsert : résidences:".count($__inserts['residences']).';chambres:'.count($__inserts['chambre'])."\nupdates:r:".count($__updates['residences']).';c:'.count($__updates['chambres'])."\nnotModified:r:".count($notModified['residence']).';c:'.count($notModified['chambre'])."\nTook: $took seconds\n";
+    file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-chambreResidencesInserted.json',json_encode(compact('msg','__inserts','__updates','notModified')));
+    #print_r($__inserts);print_r($__updates);
+    if(isset($_ENV['loggedSql']) and $_ENV['loggedSql'])file_put_contents('sqInsertsl.log',json_encode($_ENV['loggedSql']));
+    echo $msg;###<<<  $_ENV['loggedSql']
     die;
 }
 
