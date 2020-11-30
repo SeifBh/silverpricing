@@ -23,6 +23,7 @@ function updateHistory(){
         $history = node_load($_POST['hid']);
         $history->field_map[$history->language][0]['value'] =  $_POST['mapName'];#
         node_save($history);#£
+        die($_POST['mapName']);
         return 1;
     }
 }

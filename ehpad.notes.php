@@ -56,3 +56,5 @@ nécessite un récepteur
 https://developer.here.com/documentation/maps/3.1.20.0/api_reference/H.util.ICapturable.html
 
 here_library.js
+
+~/SilverPricing/public_html/app.silverpricing.fr$ php7.1 vendor/drush/drush/drush.php cc all

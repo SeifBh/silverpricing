@@ -1,7 +1,7 @@
 <?php
 $map=$history->field_map["und"][0]["value"];
 if($map){
-    $map="<img src='".$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST']."/z/".$map."'/>";
+    $map="<img src='".$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$map."'/>";
     $a=1;
 }
 $a=1;
