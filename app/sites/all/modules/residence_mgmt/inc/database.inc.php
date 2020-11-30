@@ -381,7 +381,7 @@ function synchronizeChambre( $entityId, $data,$finess=null) {
 
         $chambre->field_tarif_chambre_simple_tempo[LANGUAGE_NONE][0]['value'] = ( is_numeric($data->tarif[1]['chambre-seule']) ) ? $data->tarif[1]['chambre-seule'] : "NA";
         $chambre->field_tarif_chambre_double_tempo[LANGUAGE_NONE][0]['value'] = ( is_numeric($data->tarif[1]['chambre-double']) ) ? $data->tarif[1]['chambre-double'] : "NA";
-
+#$lmod=$chambre->field_date_de_modification[LANGUAGE_NONE][0]['value'];$ltime=strtotime($chambre->field_date_de_modification[LANGUAGE_NONE][0]['value']);
         // Date de modification
         if( empty($chambre->field_date_de_modification[LANGUAGE_NONE][0]['value']) || (!empty($data->modificationDate) && (strtotime($data->modificationDate) >= strtotime($chambre->field_date_de_modification[LANGUAGE_NONE][0]['value']))) ) {
 

@@ -107,7 +107,7 @@ foreach( $tarifTable->find('tr') as $tarif ) {
 Drupal 7 new route to module action ..
 
 my -u a -pb silverpricing_db < silverpricing_db.sql;
-a;cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) ';b
+a;cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) ';b;say done;
 on second update shall stop uneccessary updates
 */
 function updateAll(){
@@ -130,10 +130,16 @@ function updateAll(){
     }
 
     if('indexes'){
-        $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b,nr.timestamp as date FROM field_revision_field_finess t inner join node_revision nr on nr.nid=t.entity_id  where t.bundle='residence' group by entity_id order by revision_id desc");
+#$x2=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b,nr.timestamp as date FROM field_revision_field_finess t inner join node_revision nr on nr.nid=t.entity_id  where t.bundle='residence' group by entity_id order by revision_id desc");
+$x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b,n.changed as date FROM field_revision_field_finess t inner join node n on n.nid=t.entity_id where t.bundle='residence' group by entity_id order by revision_id desc");
         foreach($x as $t){$resFit2Id[$t['b']]=$t['a'];$res2date[$t['a']]=$t['date'];}
-        $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_residence_target_id as b,nr.timestamp as date FROM field_revision_field_residence t inner join node_revision nr on nr.nid=t.entity_id where t.bundle='chambre' group by entity_id order by revision_id desc");
-        foreach($x as $t){$res2chambre[$t['b']][]=$t['a'];$ch2date[$t['a']]=$t['date'];}
+
+        #select entity_id,max(field_date_de_modification_value)as dat from field_data_field_date_de_modification where bundle='chambre' group by entity_id order by field_date_de_modification_value desc
+#dernière date de révision de l'association ..
+#$x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,nr.timestamp as date,max(dm.field_date_de_modification_value) as date2 FROM field_revision_field_residence t inner join node_revision nr on nr.nid=t.entity_id inner join field_data_field_date_de_modification dm on dm.entity_id=t.entity_id where t.bundle='chambre' group by t.entity_id order by t.revision_id desc");#field_date_de_modification ..
+#$x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,max(dm.field_date_de_modification_value) as date2 FROM field_revision_field_residence t inner join field_data_field_date_de_modification dm on dm.entity_id=t.entity_id where t.bundle='chambre' group by t.entity_id order by t.revision_id desc");#field_date_de_modification ..
+$x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,n.changed as date FROM field_revision_field_residence t inner join node n on n.nid=t.entity_id where t.bundle='chambre' group by t.entity_id order by t.revision_id desc");#field_date_de_modification ..
+        foreach($x as $t){$res2chambre[$t['b']][]=$t['a'];$ch2date[$t['a']]=$t['date'];}#strtotime($t['date2'])
         $a=1;
     }
 #+ todo :: catch all mysql insertions
@@ -170,6 +176,9 @@ function updateAll(){
                 }#array_keys($chambreIdtoResId,$rid);
                 if($lastmod>$modifRes){
                     $residence = node_load($rid);
+                    if($residence->revision_timestamp>=$modifRes or $residence->revision_timestamp>=$lastmod){
+                        $err=1;
+                    }
 if(0){
 #$residence->type = 'residence';$residence->body = '';$residence->language = LANGUAGE_NONE;
 #if($residenceData->finess){$residence->field_finess[$residence->language][0]['value'] = $residenceData->finess;}
@@ -263,6 +272,7 @@ if($t['ehpadPrice']){
     #puis données ordinaires ..
             if($cnid){#si chambre trouvée ( avec des tarifs ) ..
                 if(!$data)$data=_data2object($t,null);
+                #$residence->modificationDate = date('YmdHis',$lastmod);
                 synchronizeChambre($cnid,$data,$finess);
                 $__updates['chambres'][]=$cnid;
             }#+ finess
