@@ -13,7 +13,7 @@ require_once __DIR__ . "/inc/user.inc.php";
 
 #https://ehpad.home/yo
 function residence_mgmt_yo(){
-    updateAll();
+    updateAll(210007159,['tarifGir12'=>60+date('s'),'prixHebPermCs'=>date('s'),'prixHebPermCd'=>100-date('s'),'prixHebTempCd'=>99-date('s')]);#.
 }
 #https://ehpad.home/updateHistory
 function updateHistory(){
@@ -27,6 +27,7 @@ function updateHistory(){
         return 1;
     }
 }
+
 function __residence_mgmt_url_inbound_alter(&$path, $original_path, $path_language) {
     $a=1;
 }
@@ -41,7 +42,7 @@ function residence_mgmt_menu() {
     $items['yo'] = array(
         'title'             =>  'yo',
         'access callback'   =>  true,
-        'page callback'     =>  'updateAll',#residence_mgmt_yo
+        'page callback'     =>  'residence_mgmt_yo',#residence_mgmt_yo,#drushy cc all
         #'access arguments'  => array(array('administrator')),
     );
 

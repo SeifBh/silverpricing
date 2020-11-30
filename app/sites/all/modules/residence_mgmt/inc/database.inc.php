@@ -373,8 +373,8 @@ function synchronizeChambre( $entityId, $data,$finess=null) {
     $chambre = node_load($entityId);
     if( !empty($data) ) {
         // Tarifs
-        if(isset($data->tarif['csa']))$chambre->field_tarif_cs_aide_sociale[LANGUAGE_NONE][0]['value'] = $data->tarif['csa'];
-        if(isset($data->tarif['cda']))$chambre->field_tarif_cd_aide_sociale[LANGUAGE_NONE][0]['value'] = $data->tarif['cda'];
+        #if(isset($data->tarif['csa']))$chambre->field_tarif_cs_aide_sociale[LANGUAGE_NONE][0]['value'] = $data->tarif['csa'];
+        #if(isset($data->tarif['cda']))$chambre->field_tarif_cd_aide_sociale[LANGUAGE_NONE][0]['value'] = $data->tarif['cda'];
 
         $chambre->field_tarif_chambre_simple[LANGUAGE_NONE][0]['value'] = ( is_numeric($data->tarif[0]['chambre-seule']) ) ? $data->tarif[0]['chambre-seule'] : "NA";
         $chambre->field_tarif_chambre_double[LANGUAGE_NONE][0]['value'] = ( is_numeric($data->tarif[0]['chambre-double']) ) ? $data->tarif[0]['chambre-double'] : "NA";

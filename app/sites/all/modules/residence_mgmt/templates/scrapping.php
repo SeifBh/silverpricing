@@ -71,13 +71,14 @@ $a=1;
     $residence->phone =$_c['coordinates']['phone'];
     $residence->email =$_c['coordinates']['emailContact'];
     $residence->website =$_c['coordinates']['website'];
-
-    if($_c['ehpadPrice']['prixHebPermCd'])$residence->tarif[0]['chambre-double']=$_c['ehpadPrice']['prixHebPermCd'];
-    if($_c['ehpadPrice']['prixHebTempCd'])$residence->tarif[1]['chambre-double']=$_c['ehpadPrice']['prixHebTempCd'];
-    if($_c['ehpadPrice']['prixHebPermCs'])$residence->tarif[0]['chambre-simple']=$_c['ehpadPrice']['prixHebPermCs'];
-    if($_c['ehpadPrice']['prixHebTempCs'])$residence->tarif[1]['chambre-simple']=$_c['ehpadPrice']['prixHebTempCs'];
-    if($_c['ehpadPrice']['prixHebPermCda'])$residence->tarif['cda']=$_c['ehpadPrice']['prixHebPermCda'];
-    if($_c['ehpadPrice']['prixHebPermCsa'])$residence->tarif['csa']=$_c['ehpadPrice']['prixHebPermCsa'];
+    if ($_c['ehpadPrice']) {
+        if($_c['ehpadPrice']['prixHebPermCd'])$residence->tarif[0]['chambre-double']=$_c['ehpadPrice']['prixHebPermCd'];
+        if($_c['ehpadPrice']['prixHebTempCd'])$residence->tarif[1]['chambre-double']=$_c['ehpadPrice']['prixHebTempCd'];
+        if($_c['ehpadPrice']['prixHebPermCs'])$residence->tarif[0]['chambre-seule']=$_c['ehpadPrice']['prixHebPermCs'];
+        if($_c['ehpadPrice']['prixHebTempCs'])$residence->tarif[1]['chambre-seule']=$_c['ehpadPrice']['prixHebTempCs'];
+        if($_c['ehpadPrice']['prixHebPermCda'])$residence->tarif['cda']=$_c['ehpadPrice']['prixHebPermCda'];
+        if($_c['ehpadPrice']['prixHebPermCsa'])$residence->tarif['csa']=$_c['ehpadPrice']['prixHebPermCsa'];
+    }
     /*
     cuj "https://ehpad.home/dashboard?xhp=trace" '' 0 'SSESS02da88e2f02ccdeaa197b0dcdf4d100a=wNz6DGQ1m45ecM2E18vwm1ERJwt490dRJm iSg215Z4o;SESS02da88e2f02ccdeaa197b0dcdf4d100a=y-i9JGchnQTmin20XM0bOx6gEK6mB942fHOWpfIqyIM'
      $chambre->field_tarif_cs_aide_sociale[LANGUAGE_NONE][0]['value'] = $data['tarif_chambre_simple_aide_sociale'];
@@ -110,7 +111,7 @@ my -u a -pb silverpricing_db < ../db/silverpricing_db.sql;drushy cc all;
 a;cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) ';b;say done;
 on second update shall stop uneccessary updates
 */
-function updateAll(){
+function updateAll($forceFiness=null,$tarifsForces=null){
 #todo:lock
     if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE){
         $lf=__file__.__function__.'.lock';#if(is_file($lf) and filemtime($lf)>time()-70000)die("locked:$lf");touch($lf);
@@ -122,25 +123,46 @@ function updateAll(){
     ini_set('memory_limit',-1);
     $starts=time();
 /* Attention : ce ne sont pas toutes des Ehpad .. */
-    $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=$fin2rid=[];
+    $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=$fin2rid=$tarifsModifies=[];
     $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';
     $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
     if(is_file($f)){
         $_a=['contents'=>file_get_contents($f)];#cached
     }else{
         $_a=Alptech\Wip\fun::cup(['url'=>$url,'timeout'=>1600]);
-        if(!$_a['contents'] or $_a["info"]["http_code"]!=200 or $_a['error']){
+        if(!$_a['contents'] or $_a['info']['http_code']!=200 or $_a['error']){
             \Alptech\Wip\fun::dbm([__FILE__.__line__,'scrappingError:'.$currentUrl,$_a],'php500');
             return null;
         }
         $_written=file_put_contents($f,$_a['contents']);#
     }
     $_c=json_decode($_a['contents'],1);unset($_a);
-    $_mem=memory_get_usage(1);
+    $_mem[__line__]=memory_get_usage(1);
     foreach($_c as $k=>&$t){
         $finesses[]=ltrim($t['noFinesset'],0);
     }
     $finesses=array_unique($finesses);
+
+if('memTarif'){
+    $tarifs=['cs'=>[],'cst'=>[],'cd'=>[],'cdt'=>[],'gir12'=>[],'gir34'=>[],'gir56'=>[]];
+    $x=Alptech\Wip\fun::sql("select field_tarif_chambre_simple_value as v,entity_id as id from field_data_field_tarif_chambre_simple where field_tarif_chambre_simple_value<>'NA'");#where entity_id in array_keys($__updates['chambre']);
+    foreach($x as $t){$tarifs['cs'][$t['id']]=$t['v'];}
+    $x=Alptech\Wip\fun::sql("select field_tarif_chambre_double_value as v,entity_id as id from field_data_field_tarif_chambre_double where field_tarif_chambre_double_value<>'NA'");
+    foreach($x as $t){$tarifs['cd'][$t['id']]=$t['v'];}
+    $x=Alptech\Wip\fun::sql("select field_tarif_chambre_simple_tempo_value as v,entity_id as id from field_data_field_tarif_chambre_simple_tempo where field_tarif_chambre_simple_tempo_value<>'NA'");
+    foreach($x as $t){$tarifs['cst'][$t['id']]=$t['v'];}
+    $x=Alptech\Wip\fun::sql("select field_tarif_chambre_double_tempo_value as v,entity_id as id from field_data_field_tarif_chambre_double_tempo where field_tarif_chambre_double_tempo_value<>'NA'");
+    foreach($x as $t){$tarifs['cdt'][$t['id']]=$t['v'];}
+    $x=Alptech\Wip\fun::sql("select field_tarif_gir_1_2_value as v,entity_id as id from field_data_field_tarif_gir_1_2 where field_tarif_gir_1_2_value<>'NA'");
+    foreach($x as $t){$tarifs['gir12'][$t['id']]=$t['v'];}
+    $x=Alptech\Wip\fun::sql("select field_tarif_gir_3_4_value as v,entity_id as id from field_data_field_tarif_gir_3_4 where field_tarif_gir_3_4_value<>'NA'");
+    foreach($x as $t){$tarifs['gir34'][$t['id']]=$t['v'];}
+    $x=Alptech\Wip\fun::sql("select field_tarif_gir_5_6_value as v,entity_id as id from field_data_field_tarif_gir_5_6 where field_tarif_gir_5_6_value<>'NA'");
+    foreach($x as $t){$tarifs['gir56'][$t['id']]=$t['v'];}
+    $_mem[__line__]=memory_get_usage(1);
+    $a=1;
+}
+
     $sql="SELECT entity_id as a,field_finess_value as b FROM field_revision_field_finess t where t.bundle='residence' and t.field_finess_value in ('".implode("','",$finesses)."') group by field_finess_value,entity_id order by revision_id desc";
     $x=Alptech\Wip\fun::sql($sql);
     foreach($x as $t){$fin2rid[$t['b']]=$t['a'];}
@@ -161,13 +183,21 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
 #+ todo :: catch all mysql insertions
 
     $a=1;
-    foreach($_c as $k=>&$t){#10899 valeurs
-        if(!isset($t['ehpadPrice'])){#Marpa & Autres ...
+    foreach($_c as $k=>&$t){#10899 valeurs / 7400 ehpad
+        if($forceFiness) {#Marpa & Autres ...
+            if($t['noFinesset']!=$forceFiness){
+                continue;
+            }
+            $t['ehpadPrice']=array_merge($t['ehpadPrice'],$tarifsForces);#sinon magie !!2
+        }
+        if(!isset($t['ehpadPrice']) and !$t['IsEHPAD']){#Marpa & Autres ...
             continue;
         }
+        #210007159,3979,33980
         $rid=$cnid=$chambre=$residence=$modifRes=$modifCh=$data=0;$chambres=[];
         $lastmod=strtotime($t["updatedAt"]);
-        $finess=ltrim($t['noFinesset'],0);
+        #$finess=ltrim($t['noFinesset'],0);#<== Surtout pas
+        $finess=$t['noFinesset'];
         #file_put_contents('current.log',$k.'/'.$finess);#todo apcu / memcached / redis ?
         if(isset($fin2rid[$finess])){
             $a='has';
@@ -177,6 +207,7 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
                 $whut=1;
             }
         }
+
         if(isset($resFit2Id[$finess])){#at 698
             $rid=$resFit2Id[$finess];
             if($res2date[$rid]){
@@ -187,7 +218,10 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
                         $cnid = reset($chambres);
                         if($ch2date[$cnid]){#compare $lastmod avec
                             $modifCh=$ch2date[$cnid];
-                            if($lastmod<=$modifRes and $lastmod<=$modifCh){#ne nécessite pas de modification :: si deux runs successifs ...
+                            if($forceFiness and $finess==$forceFiness and 'dérogation'){
+                                $t['ehpadPrice'];
+                                $modifCh=0;
+                            } elseif($lastmod<=$modifRes and $lastmod<=$modifCh){#ne nécessite pas de modification :: si deux runs successifs ...
                                 #not modified,
                                 $notModified['residence'][]=$rid;
                                 $notModified['chambre'][]=$cnid;
@@ -197,7 +231,22 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
                         }
                         $a='chambre existe';
                     }
-                }#array_keys($chambreIdtoResId,$rid);
+                }
+
+if($rid and isset($t['ehpadPrice']) and 'alertes Modification de prix lorsque résidence et chambre trouvée -- et pour une nouvelle résidence ?'){
+    if(isset($tarifs['gir12'][$rid]) and $tarifs['gir12'][$rid] != $t['ehpadPrice']['tarifGir12']){$tarifsModifies['r'][$rid]['gir12']=[$tarifs['gir12'][$rid],$t['ehpadPrice']['tarifGir12']];}
+    if(isset($tarifs['gir34'][$rid]) and $tarifs['gir34'][$rid] != $t['ehpadPrice']['tarifGir34']){$tarifsModifies['r'][$rid]['gir34']=[$tarifs['gir34'][$rid],$t['ehpadPrice']['tarifGir34']];}
+    if(isset($tarifs['gir56'][$rid]) and $tarifs['gir56'][$rid] != $t['ehpadPrice']['tarifGir56']){$tarifsModifies['r'][$rid]['gir56']=[$tarifs['gir56'][$rid],$t['ehpadPrice']['tarifGir56']];}
+    #cs,cd,cdt,
+    if($cnid){
+        $k='cs';$k2='prixHebPermCs';if(isset($tarifs[$k][$cnid]) and $tarifs[$k][$cnid] != $t['ehpadPrice'][$k2]){$tarifsModifies['c'][$cnid][$k]=[$tarifs[$k][$cnid],$t['ehpadPrice'][$k2]];}
+        $k='cst';$k2='prixHebTempCs';if(isset($tarifs[$k][$cnid]) and $tarifs[$k][$cnid] != $t['ehpadPrice'][$k2]){$tarifsModifies['c'][$cnid][$k]=[$tarifs[$k][$cnid],$t['ehpadPrice'][$k2]];}
+        $k='cd';$k2='prixHebPermCd';if(isset($tarifs[$k][$cnid]) and $tarifs[$k][$cnid] != $t['ehpadPrice'][$k2]){$tarifsModifies['c'][$cnid][$k]=[$tarifs[$k][$cnid],$t['ehpadPrice'][$k2]];}
+        $k='cdt';$k2='prixHebTempCd';if(isset($tarifs[$k][$cnid]) and $tarifs[$k][$cnid] != $t['ehpadPrice'][$k2]){$tarifsModifies['c'][$cnid][$k]=[$tarifs[$k][$cnid],$t['ehpadPrice'][$k2]];}
+    }
+}
+
+#array_keys($chambreIdtoResId,$rid);
                 if($lastmod>$modifRes){
                     $residence = node_load($rid);
                     $rtt=$residence->revision_timestamp;#[$residence->revision_timestamp,$modifRes,$lastmod]
@@ -221,15 +270,19 @@ $residence->field_email =$t['coordinates']['emailContact'];
 $residence->field_site =$t['coordinates']['website'];
 $residence->field_departement =$t['coordinates']['deptcode'];
 #if(isset($residenceData->address))$residence->field_address[$residence->language][0]['value'] = $residenceData->address;
-$residence->field_tarif_gir_1_2['und'][0]['value'] = $t['ehpadPrice']['tarifGir12'];
-$residence->field_tarif_gir_3_4['und'][0]['value'] = $t['ehpadPrice']['tarifGir34'];
-$residence->field_tarif_gir_5_6['und'][0]['value'] = $t['ehpadPrice']['tarifGir56'];
+if(isset($t['ehpadPrice'])){
+    if($t['ehpadPrice']['tarifGir12'])$residence->field_tarif_gir_1_2['und'][0]['value'] = $t['ehpadPrice']['tarifGir12'];
+    if($t['ehpadPrice']['tarifGir34'])$residence->field_tarif_gir_3_4['und'][0]['value'] = $t['ehpadPrice']['tarifGir34'];
+    if($t['ehpadPrice']['tarifGir56'])$residence->field_tarif_gir_5_6['und'][0]['value'] = $t['ehpadPrice']['tarifGir56'];
+    #$tarifs=['cs'=>[],'cst'=>[],'cd'=>[],'cdt'=>[],'gir12'=>[],'gir34'=>[],'gir56'=>[]];
+}
 // $residence->field_groupe[$residence->language][0]['value'] = "";
 $residence->field_location['und'][0]['locality'] = $t['coordinates']['city'];
 $residence->field_location['und'][0]['postal_code'] = $t['coordinates']['postcode'];
 $residence->field_latitude['und'][0]['value'] =  $t['coordinates']['latitude'];
 $residence->field_longitude['und'][0]['value'] =  $t['coordinates']['longitude'];
 $b=node_save($residence);
+$rid=$residence->nid;
 $a=1;
                     $__updates['residences'][]=$finess;
                     #update residence data
@@ -263,11 +316,10 @@ elseif(preg_match('~public~i',$t['legal_status']))$status='Public';
 $a=1;
 $residenceData->status=$status;#privé non lucratif #<== todo conversion????
 $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'=>0]];
-if($t['ehpadPrice']){
-    $a=1;
-}
+
             $residence=addResidence($residenceData,$t['coordinates']['deptcode']);
-            $__inserts['residences'][$finess]=$resFit2Id[$finess]=intval($residence->nid);
+            $rid=$residence->nid;
+            $__inserts['residences'][$finess]=$resFit2Id[$finess]=intval($rid);
             $a=1;
         }#array_keys($chambreIdtoResId,31210)[0] == 31209
 
@@ -275,22 +327,19 @@ if($t['ehpadPrice']){
             if(isset($res2chambre[$rid])) {
                 $chambres = $res2chambre[$rid];#$chambres=array_keys($chambreIdtoResId,$residence->nid);x
                 $cnid = reset($chambres);
-            } elseif ($t['ehpadPrice']) {
-                if($t['ehpadPrice']['prixHebPermCd'])$chambreData[0]['chambre-double']=$t['ehpadPrice']['prixHebPermCd'];
-                if($t['ehpadPrice']['prixHebTempCd'])$chambreData[1]['chambre-double']=$t['ehpadPrice']['prixHebTempCd'];
-                if($t['ehpadPrice']['prixHebPermCs'])$chambreData[0]['chambre-seule']=$t['ehpadPrice']['prixHebPermCs'];
-                if($t['ehpadPrice']['prixHebTempCs'])$chambreData[1]['chambre-seule']=$t['ehpadPrice']['prixHebTempCs'];
-                $chambre=addChambre($chambreData, $residence);
-                $chambreIdtoResId[$chambre->nid]=$residence->nid;
-                $__inserts['chambre'][$finess]=$cnid=intval($chambre->nid);
-                $a=1;
-            }else{#no tarifs
+
+#$x=Alptech\Wip\fun::sql("select nr.timestamp,field_tarif_chambre_simple_value as v from node_revision nr inner join field_revision_field_tarif_chambre_simple cs on cs.revision_id=nr.vid where nid=$cnid order by timestamp desc limit 2");
+#Mettre tous les tarifs dans une matrice et stocker les variations, ici, à la source !!
+#select nr.timestamp,field_tarif_chambre_simple_value as v from node_revision nr inner join field_revision_field_tarif_chambre_simple cs on cs.revision_id=nr.vid where nid=33980 order by timestamp desc limit 20
+
+            }else{#création de chambre, sans tarifs, afin de la lier
                 $chambreData[0]['chambre-double']='NA';
                 $chambreData[1]['chambre-double']='NA';
                 $chambreData[0]['chambre-seule']='NA';
                 $chambreData[1]['chambre-seule']='NA';
                 $chambre=addChambre($chambreData, $residence);
-                $chambreIdtoResId[$chambre->nid]=$residence->nid;
+                $cnid=$chambre->nid;
+                $chambreIdtoResId[$cnid]=$residence->nid;
                 $__inserts['chambre'][$finess]=$cnid=intval($chambre->nid);
             }
     #todo : get chambre nodeId per Residence fitness Number ( might not exists !//// )
@@ -310,10 +359,19 @@ if($t['ehpadPrice']){
     $a=1;
     $took=time()-$starts;
     $msg="\n\ninsert : résidences:".count($__inserts['residences']).';chambres:'.count($__inserts['chambre'])."\nupdates:r:".count($__updates['residences']).';c:'.count($__updates['chambres'])."\nnotModified:r:".count($notModified['residence']).';c:'.count($notModified['chambre'])."\nTook: $took seconds\n";
+    if($tarifsModifies){
+        file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-tarifsModifies.json',json_encode($tarifsModifies));
+        $a=1;
+    }
+
     file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-chambreResidencesInserted.json',json_encode(compact('msg','__inserts','__updates','notModified')));
     #print_r($__inserts);print_r($__updates);
     if(isset($_ENV['loggedSql']) and $_ENV['loggedSql']){file_put_contents('sqInserts.log',implode("\n",$_ENV['loggedSql']));}
     echo $msg;###<<<  $_ENV['loggedSql']
+
+    if($__inserts['residences']){#do the geo recoding
+
+    }
     die;
 }
 
