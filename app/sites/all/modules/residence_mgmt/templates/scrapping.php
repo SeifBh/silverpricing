@@ -137,13 +137,13 @@ function updateAll(){
     $_c=json_decode($_a['contents'],1);unset($_a);
     $_mem=memory_get_usage(1);
     foreach($_c as $k=>&$t){
-        file_put_contents('current.log',$k);
         if(!isset($t['ehpadPrice'])){#Marpa & Autres ...
             continue;
         }
         $rid=$cnid=$chambre=$residence=0;
         $lastmod=strtotime($t["updatedAt"]);
-        $finess=$t['noFinesset'];
+        $finess=ltrim($t['noFinesset'],0);
+        file_put_contents('current.log',$k.'/'.$finess);
         if(isset($resFit2Id[$finess])){#at 698
             $rid=$resFit2Id[$finess];
             if($res2date[$rid]){
