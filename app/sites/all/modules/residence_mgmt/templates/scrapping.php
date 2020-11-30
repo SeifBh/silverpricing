@@ -53,8 +53,9 @@ function residence_mgmt_page_scrapping($departmentNumber = null) {
     return $residences;
 }
 
-function _data2object($_c,$currentUrl=null){
-    $residence = new StdClass();#noFinesset
+function _data2object($_c, $currentUrl = null, $residence = null)
+{
+    if(!$residence) $residence = new StdClass();#noFinesset
     if($currentUrl)$residence->urlSource = $currentUrl;
     $residence->modificationDate = date('YmdHis',strtotime($_c['updatedAt']));
     $residence->title = $_c['title'];#$title->getNode()->nodeValue;
@@ -111,7 +112,7 @@ on second update shall stop uneccessary updates
 */
 function updateAll(){
 /* Attention : ce ne sont pas toutes des Ehpad .. */
-    $ch2date=$res2date=$__inserts=[];
+    $ch2date=$res2date=$__inserts=$__updates=[];
     $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';
     $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
     if(is_file($f)){
@@ -140,7 +141,7 @@ function updateAll(){
         if(!isset($t['ehpadPrice'])){#Marpa & Autres ...
             continue;
         }
-        $rid=$cnid=$chambre=$residence=$modifRes=$modifCh=0;$chambres=[];
+        $rid=$cnid=$chambre=$residence=$modifRes=$modifCh=$data=0;$chambres=[];
         $lastmod=strtotime($t["updatedAt"]);
         $finess=ltrim($t['noFinesset'],0);
         file_put_contents('current.log',$k.'/'.$finess);
@@ -163,9 +164,42 @@ function updateAll(){
                         $a='chambre existe';
                     }
                 }#array_keys($chambreIdtoResId,$rid);
-                $a='résidence a date de dernière modifiecation';
+                if($lastmod>$modifRes){
+                    $residence = node_load($rid);
+if(0){
+#$residence->type = 'residence';$residence->body = '';$residence->language = LANGUAGE_NONE;
+#if($residenceData->finess){$residence->field_finess[$residence->language][0]['value'] = $residenceData->finess;}
+#$residence->field_location[$residence->language][0]['country'] = "FR";
+}
+$residence->modificationDate = date('YmdHis',$lastmod);
+$residence->title = $t['title'];#$title->getNode()->nodeValue;
+$residence->field_gestionnaire = $t['coordinates']['gestionnaire'];#trim(str_replace('Gestionnaire :', '', $itemLeft->first('.fiche-box .cnsa_search_item-statut')->getNode()->nodeValue));
+$status='Privé';    if(preg_match('~assoc~i',$t['legal_status']))$status='Associatif'; elseif(preg_match('~public~i',$t['legal_status']))$status='Public';
+$residence->field_statut=$status;#privé non lucratif #<== todo conversion????
+#$residence->statut = $_c['legal_status'];#trim(str_replace('Statut juridique :', '', $it1emLeft->first('.fiche-box .cnsa_search_item-statut2')->getNode()->nodeValue));
+$residence->address = trim(preg_replace('/\s+/', ' ', $t['coordinates']['title'].' '.$t['coordinates']['street'].' '.$t['coordinates']['postcode'].' '.$t['coordinates']['city']));#not exists !!!!
+$residence->field_telephone =$t['coordinates']['phone'];
+$residence->field_email =$t['coordinates']['emailContact'];
+$residence->field_site =$t['coordinates']['website'];
+$residence->field_departement =$t['coordinates']['deptcode'];
+#if(isset($residenceData->address))$residence->field_address[$residence->language][0]['value'] = $residenceData->address;
+$residence->field_tarif_gir_1_2['und'][0]['value'] = $t['ehpadPrice']['tarifGir12'];
+$residence->field_tarif_gir_3_4['und'][0]['value'] = $t['ehpadPrice']['tarifGir34'];
+$residence->field_tarif_gir_5_6['und'][0]['value'] = $t['ehpadPrice']['tarifGir56'];
+// $residence->field_groupe[$residence->language][0]['value'] = "";
+$residence->field_location['und'][0]['locality'] = $t['coordinates']['city'];
+$residence->field_location['und'][0]['postal_code'] = $t['coordinates']['postcode'];
+$residence->field_latitude['und'][0]['value'] =  $t['coordinates']['latitude'];
+$residence->field_longitude['und'][0]['value'] =  $t['coordinates']['longitude'];
+$b=node_save($residence);
+$a=1;
+                    $__updates['residences'][]=$finess;
+                    #update residence data
+                }
+                $a='résidence a date de dernière modification';
             }
-            $residence= node_load($rid);
+
+            if(!$residence)$residence= node_load($rid);
             $a=1;
         } else{#y'à pas cette résidence, on la crée
             $a=1;#$residenceData from ça
@@ -195,39 +229,44 @@ if($t['ehpadPrice']){
             $a=1;
         }#array_keys($chambreIdtoResId,31210)[0] == 31209
 
-        if(isset($res2chambre[$rid])) {
-            $chambres = $res2chambre[$rid];#$chambres=array_keys($chambreIdtoResId,$residence->nid);x
-            $cnid = reset($chambres);
-        } elseif ($t['ehpadPrice']) {
-            if($t['ehpadPrice']['prixHebPermCd'])$chambreData[0]['chambre-double']=$t['ehpadPrice']['prixHebPermCd'];
-            if($t['ehpadPrice']['prixHebTempCd'])$chambreData[1]['chambre-double']=$t['ehpadPrice']['prixHebTempCd'];
-            if($t['ehpadPrice']['prixHebPermCs'])$chambreData[0]['chambre-seule']=$t['ehpadPrice']['prixHebPermCs'];
-            if($t['ehpadPrice']['prixHebTempCs'])$chambreData[1]['chambre-seule']=$t['ehpadPrice']['prixHebTempCs'];
-            $chambre=addChambre($chambreData, $residence);
-            $chambreIdtoResId[$chambre->nid]=$residence->nid;
-            $__inserts['chambre'][$finess]=$cnid=intval($chambre->nid);
-            $a=1;
-        }else{#no tarifs
-            $chambreData[0]['chambre-double']='NA';
-            $chambreData[1]['chambre-double']='NA';
-            $chambreData[0]['chambre-seule']='NA';
-            $chambreData[1]['chambre-seule']='NA';
-            $chambre=addChambre($chambreData, $residence);
-            $chambreIdtoResId[$chambre->nid]=$residence->nid;
-            $__inserts['chambre'][$finess]=$cnid=intval($chambre->nid);
+        if($lastmod>$modifCh){#room needs update
+            if(isset($res2chambre[$rid])) {
+                $chambres = $res2chambre[$rid];#$chambres=array_keys($chambreIdtoResId,$residence->nid);x
+                $cnid = reset($chambres);
+            } elseif ($t['ehpadPrice']) {
+                if($t['ehpadPrice']['prixHebPermCd'])$chambreData[0]['chambre-double']=$t['ehpadPrice']['prixHebPermCd'];
+                if($t['ehpadPrice']['prixHebTempCd'])$chambreData[1]['chambre-double']=$t['ehpadPrice']['prixHebTempCd'];
+                if($t['ehpadPrice']['prixHebPermCs'])$chambreData[0]['chambre-seule']=$t['ehpadPrice']['prixHebPermCs'];
+                if($t['ehpadPrice']['prixHebTempCs'])$chambreData[1]['chambre-seule']=$t['ehpadPrice']['prixHebTempCs'];
+                $chambre=addChambre($chambreData, $residence);
+                $chambreIdtoResId[$chambre->nid]=$residence->nid;
+                $__inserts['chambre'][$finess]=$cnid=intval($chambre->nid);
+                $a=1;
+            }else{#no tarifs
+                $chambreData[0]['chambre-double']='NA';
+                $chambreData[1]['chambre-double']='NA';
+                $chambreData[0]['chambre-seule']='NA';
+                $chambreData[1]['chambre-seule']='NA';
+                $chambre=addChambre($chambreData, $residence);
+                $chambreIdtoResId[$chambre->nid]=$residence->nid;
+                $__inserts['chambre'][$finess]=$cnid=intval($chambre->nid);
+            }
+    #todo : get chambre nodeId per Residence fitness Number ( might not exists !//// )
+    #puis données ordinaires ..
+            if($cnid){#si chambre trouvée ( avec des tarifs ) ..
+                if(!$data)$data=_data2object($t,null);
+                synchronizeChambre($cnid,$data,$finess);
+                $__updates['chambres'][]=$cnid;
+            }#+ finess
+            $a='inserée';
         }
-#todo : get chambre nodeId per Residence fitness Number ( might not exists !//// )
-#puis données ordinaires ..
-        if($cnid){#si chambre trouvée ( avec des tarifs ) ..
-            $data=_data2object($t,null);
-            synchronizeChambre($cnid,$data,$finess);
-        }#+ finess
-        $a='inserée';
         $t=null;
     }unset($t);
     $a=1;
-    file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-chambreResidencesInserted.json',json_encode($__inserts));
-    print_r($__inserts);die;
+    file_put_contents($_SERVER['DOCUMENT_ROOT'].'z/updated/'.date('ymdHis').'-chambreResidencesInserted.json',json_encode(compact('__inserts','__updates')));
+    print_r($__inserts);
+    print_r($__updates);
+    die;
 }
 
 #cuj "https://ehpad.home/admin/config/content/residences_management" '' '{"residence_mgmt_department_select":["74"],"op":"Importation","form_build_id":"form-UygdJ54Z6PbVEJE1miIAremWXumjzAbzdRP_vXVOTus","form_token":"5niaHCGX4qiMShE7xcxzD1_lmJFRzoV6Gylwa0HJH0g","form_id":"residence_mgmt_admin_form"}' 1 "SESS02da88e2f02ccdeaa197b0dcdf4d100a=y-i9JGchnQTmin20XM0bOx6gEK6mB942fHOWpfIqyIM;SSESS02da88e2f02ccdeaa197b0dcdf4d100a=wNz6DGQ1m45ecM2E18vwm1ERJwt490dRJmiSg215Z4o;XDEBUG_SESSION=XDEBUG_ECLIPSE"
