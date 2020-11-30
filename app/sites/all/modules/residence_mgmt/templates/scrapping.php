@@ -106,7 +106,7 @@ foreach( $tarifTable->find('tr') as $tarif ) {
 Drupal 7 new route to module action ..
 
 my -u a -pb silverpricing_db < silverpricing_db.sql;
-cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) '
+a;cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) ';b
 on second update shall stop uneccessary updates
 */
 function updateAll(){
@@ -130,7 +130,7 @@ function updateAll(){
         $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b,nr.timestamp as date FROM field_revision_field_finess t inner join node_revision nr on nr.nid=t.entity_id  where t.bundle='residence' group by entity_id order by revision_id desc");
         foreach($x as $t){$resFit2Id[$t['b']]=$t['a'];$res2date[$t['a']]=$t['date'];}
         $x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_residence_target_id as b,nr.timestamp as date FROM field_revision_field_residence t inner join node_revision nr on nr.nid=t.entity_id where t.bundle='chambre' group by entity_id order by revision_id desc");
-        foreach($x as $t){$chambreIdtoResId[$t['b']]=$t['a'];$ch2date[$t['a']]=$t['date'];}
+        foreach($x as $t){$res2chambre[$t['b']][]=$t['a'];$ch2date[$t['a']]=$t['date'];}
         $a=1;
     }
 #+ todo :: catch all mysql insertions
@@ -140,7 +140,7 @@ function updateAll(){
         if(!isset($t['ehpadPrice'])){#Marpa & Autres ...
             continue;
         }
-        $rid=$cnid=$chambre=$residence=0;
+        $rid=$cnid=$chambre=$residence=$modifRes=$modifCh=0;$chambres=[];
         $lastmod=strtotime($t["updatedAt"]);
         $finess=ltrim($t['noFinesset'],0);
         file_put_contents('current.log',$k.'/'.$finess);
@@ -148,19 +148,21 @@ function updateAll(){
             $rid=$resFit2Id[$finess];
             if($res2date[$rid]){
                 $modifRes=$res2date[$rid];
-                $chambres=array_keys($chambreIdtoResId,$rid);
-                if($chambres) {
-                    $cnid = reset($chambres);
-                    if($ch2date[$cnid]){#compare $lastmod avec
-                        $modifCh=$ch2date[$cnid];
-                        if($lastmod<=$modifRes and $lastmod<=$modifCh){#ne nécessite pas de modification :: si deux runs successifs ...
-                            #not modified,
-                            continue;
+                if(isset($res2chambre[$rid])){
+                    $chambres=$res2chambre[$rid];
+                    if($chambres) {
+                        $cnid = reset($chambres);
+                        if($ch2date[$cnid]){#compare $lastmod avec
+                            $modifCh=$ch2date[$cnid];
+                            if($lastmod<=$modifRes and $lastmod<=$modifCh){#ne nécessite pas de modification :: si deux runs successifs ...
+                                #not modified,
+                                continue;
+                            }
+                            $a='chambre existe avec date';
                         }
-                        $a='chambre existe avec date';
+                        $a='chambre existe';
                     }
-                    $a='chambre existe';
-                }
+                }#array_keys($chambreIdtoResId,$rid);
                 $a='résidence a date de dernière modifiecation';
             }
             $residence= node_load($rid);
@@ -192,10 +194,11 @@ if($t['ehpadPrice']){
             $__inserts['residences'][$finess]=$resFit2Id[$finess]=intval($residence->nid);
             $a=1;
         }#array_keys($chambreIdtoResId,31210)[0] == 31209
-        $chambres=array_keys($chambreIdtoResId,$residence->nid);
-        if($chambres) {
-            $cnid= reset($chambres);
-        }elseif($t['ehpadPrice']){
+
+        if(isset($res2chambre[$rid])) {
+            $chambres = $res2chambre[$rid];#$chambres=array_keys($chambreIdtoResId,$residence->nid);x
+            $cnid = reset($chambres);
+        } elseif ($t['ehpadPrice']) {
             if($t['ehpadPrice']['prixHebPermCd'])$chambreData[0]['chambre-double']=$t['ehpadPrice']['prixHebPermCd'];
             if($t['ehpadPrice']['prixHebTempCd'])$chambreData[1]['chambre-double']=$t['ehpadPrice']['prixHebTempCd'];
             if($t['ehpadPrice']['prixHebPermCs'])$chambreData[0]['chambre-seule']=$t['ehpadPrice']['prixHebPermCs'];
