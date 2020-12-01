@@ -5,6 +5,9 @@ id2latlon:7522
 processed in Time::::219(base)
  */
 namespace Alptech\Wip;
+if(!isset($argv) or !isset($_SESSION)){
+    die('#'.__line__);
+}
 chdir(__DIR__);
 $a=getcwd();
 require_once'../autoload.php';
@@ -31,6 +34,9 @@ foreach($x as $t){
 }
 echo"\nid2latlon:".count($id2latlon);
 $closests=[];$cfound=0;
+
+$x=fun::sql("truncate table z_geo");
+
 foreach($id2latlon as $kId=>$latlon){
     $x1=$x2=$i=0;$j++;
     $found=$searched=[];
@@ -71,11 +77,9 @@ foreach($id2latlon as $kId=>$latlon){
         ksort($closests[$kId]);
         $a=1;
     }
+    $x=fun::sql('insert into z_geo (rid,closest)values('.$kId.',\''.json_encode($closests[$kId]).'\')');
     continue;
-
-
-
-
+/*
     while(count($found)<$maxFound and $i<$maxKmSearch){
         $i++;
         if('recherche en croix'){
@@ -98,6 +102,7 @@ foreach($id2latlon as $kId=>$latlon){
         }
         $a=1;
     }
+*/
 }
 
 ksort($closests);

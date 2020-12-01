@@ -404,12 +404,22 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
         }
     }
     $took=time()-$starts;$starts=time();
-    echo"\n\nTook:$took";
+    echo"\n\nAlertsTook:$took";#
+
+    require_once $_SERVER['DOCUMENT_ROOT'].'z/geo.php';
+    $took=time()-$starts;$starts=time();
+    echo"\n\nGeodingTook:$took";#
 
     if($__inserts['residences']){#do the geo recoding
 
     }
-    $took=time()-$starts;$starts=time();
+    /*
+    #A) rid from alert last timestamp
+    #B) Rids from alerts
+    #C) from z_geo where rid in($rids) closest like '%"$rid"%'
+    #
+    #$took=time()-$starts;$starts=time();
+    */
     die;
 }
 
