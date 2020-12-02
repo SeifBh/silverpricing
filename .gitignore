@@ -2,6 +2,13 @@
 *.log
 *.jpg
 *.png
+*.gif
+*.json
 app/z/curlcache/*.json
 app/z/updated/*.json
 data/*
+*.gz
+*.tgz
+*.sql
+*.txt
+release/*
