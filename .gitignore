@@ -4,3 +4,4 @@
 *.png
 app/z/curlcache/*.json
 app/z/updated/*.json
+data/*

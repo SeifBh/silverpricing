@@ -414,12 +414,19 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
 
     }
     /*
-    #A) rid from alert last timestamp
-    #B) Rids from alerts
-    #C) from z_geo where rid in($rids) closest like '%"$rid"%'
-    #
+    #A) Get aRids from alert last timestamp
+    #B) uRids from registred alerts ( user inner join residences )
+    #C) Intersections geographiques
+    #D) => from z_geo where rid in($uRids) and list like '%$aRid,%'
     #$took=time()-$starts;$starts=time();
+
+my -u a -pb silverpricing_db < ../db/silverpricing_db.sql;drushy cc all;
+a;cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) ';b;say done;
+
+Une alerte peut être identifiée par date ! Les interceptions donnent z_variations.id
+select * from z_geo where list like'%,33979,%' -- 40 ehpads l'ayant dans ses coordonnées les plus proches
     */
+    print_r($_mem);
     die;
 }
 

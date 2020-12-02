@@ -3,9 +3,10 @@
 id2latlon:7522
 7517 having total found 154250 with 20.520154316882
 processed in Time::::219(base)
+php z/geo.php reindex
  */
 namespace Alptech\Wip;
-if(!isset($argv) or !isset($_SESSION)){
+if(!isset($GLOBALS['argv']) and !isset($_SESSION)){
     die('#'.__line__);
 }
 chdir(__DIR__);
@@ -77,7 +78,7 @@ foreach($id2latlon as $kId=>$latlon){
         ksort($closests[$kId]);
         $a=1;
     }
-    $x=fun::sql('insert into z_geo (rid,closest)values('.$kId.',\''.json_encode($closests[$kId]).'\')');
+    $x=fun::sql('insert into z_geo (rid,list,closest)values('.$kId.',",'.implode(',',$found).',",\''.json_encode($closests[$kId]).'\')');
     continue;
 /*
     while(count($found)<$maxFound and $i<$maxKmSearch){
@@ -109,7 +110,7 @@ ksort($closests);
 file_put_contents('closests.json',json_encode($closests));
 $a2=time();
 $ratio=$cfound/count($closests);
-echo"\n".count($closests)." having total found $cfound with $ratio\nprocessed in Time::::".($a2-$a1);
+echo"\n".count($closests)." having total found $cfound with $ratio\nprocessed in :".($a2-$a1).' seconds';
 return;
 
 
