@@ -1,7 +1,7 @@
 /*
 #a #b #c
  */
-
+.svgpointer{cursor:pointer}
 .heremap{height:350px}
 #dashCap{
     position:fixed;top:0;left:0;z-index:-1;overflow:hidden;/*width:100vw;height:100vh;*/

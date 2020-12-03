@@ -1,21 +1,42 @@
 <?php
-
 require_once __DIR__ . "/vendor/autoload.php";
+require_once __DIR__ . "/inc/config.inc.php";
+require_once __DIR__ . "/inc/http_client.inc.php";
+require_once __DIR__ . "/inc/cnsa_connector.inc.php";
+require_once __DIR__ . "/inc/tools.inc.php";
+require_once __DIR__ . "/inc/database.inc.php";
+require_once __DIR__ . "/inc/geocoding.inc.php";
+require_once __DIR__ . "/inc/math.inc.php";
+require_once __DIR__ . "/inc/excel.inc.php";
+require_once __DIR__ . "/templates/scrapping.php";
+require_once __DIR__ . "/inc/polygon.php";
+require_once __DIR__ . "/inc/theme.inc.php";
+require_once __DIR__ . "/inc/user.inc.php";
+require_once __DIR__ . "/inc/routing.inc.php";
 
-require __DIR__ . "/inc/config.inc.php";
-require __DIR__ . "/inc/http_client.inc.php";
-require __DIR__ . "/inc/cnsa_connector.inc.php";
-require __DIR__ . "/inc/tools.inc.php";
-require __DIR__ . "/inc/database.inc.php";
-require __DIR__ . "/inc/geocoding.inc.php";
-require __DIR__ . "/inc/math.inc.php";
-require __DIR__ . "/inc/excel.inc.php";
-require __DIR__ . "/templates/scrapping.php";
-require __DIR__ . "/inc/polygon.php";
-require __DIR__ . "/inc/theme.inc.php";
-require __DIR__ . "/inc/user.inc.php";
-require __DIR__ . "/inc/routing.inc.php";
+#https://ehpad.home/yo
+function residence_mgmt_yo(){
+    updateAll(210007159,['tarifGir12'=>60+date('s'),'prixHebPermCs'=>date('s'),'prixHebPermCd'=>100-date('s'),'prixHebTempCd'=>99-date('s')]);#.
+}
+#cuj https://ehpad.home/updateHistory?opc;           https://ehpad.home/updateHistory
+#cuj "https://ehpad.home/updateHistory" '' '{"hid":"","mapName":"\/z\/genmaps\/201203144358--hid=null-adress=paris-perimetre=5.jpg"}' 1 "has_js=1;ben=1;Drupal_toolbar_collapsed=0;XDEBUG_SESSION=XDEBUG_ECLIPSE;SESS02da88e2f02ccdeaa197b0dcdf4d100a=gfAt1ljHWtGbMd0_77Z2BCSVaGYNOtd49_glJkpAJbY;SSESS02da88e2f02ccdeaa197b0dcdf4d100a=rVW6y734nmhBIH_ydjf7LgnqkK6CsvRoO-MlK43j9H0;sql=history;Drupal_tableDrag_showWeight=0;siteDisabled=1"
+function updateHistory(){
+    /* excel, history, map from history*/
+    $a=1;
+    if(isset($_POST['mapName']) and $_POST['mapName'] and $_POST['hid']){
+        $history = node_load($_POST['hid']);#$history->language#
+        /* Missing bundle property on entity of type node.*/
+        $history->field_map['und'][0]['value'] =  $_POST['mapName'];#
+        node_save($history);#£
+        die($_POST['mapName']);
+        return 1;
+    }
+    die('#params!');
+}
 
+function __residence_mgmt_url_inbound_alter(&$path, $original_path, $path_language) {
+    $a=1;
+}
 
 function residence_mgmt_profile( $uid ) {
 
@@ -143,16 +164,16 @@ function residence_mgmt_admin_form_submit($form, &$form_state) {
                 $finessValue = (  strlen($residence->field_finess_value) == 9 ) ? $residence->field_finess_value : "0" . $residence->field_finess_value;
 
                 if( $residence->field_url_source_value != null && !empty($residence->field_url_source_value) ) {
-                    $dataScrapped = residence_mgmt_page_detail_scrapping($residence->field_url_source_value);
+                    $dataScrapped = residence_mgmt_page_detail_scrapping($residence->field_url_source_value,$finessValue);
                 } else if( !empty($residence->field_finess_value) && strlen($finessValue) == 9 ) {
                     $urlSource = "https://www.pour-les-personnes-agees.gouv.fr/fiche-annuaire/hebergement/" . $finessValue . "/0";
-                    $dataScrapped = residence_mgmt_page_detail_scrapping($urlSource);
+                    $dataScrapped = residence_mgmt_page_detail_scrapping($urlSource,$finessValue);
                 }
 
                 if( $dataScrapped != null ) {
                     synchronizeChambre($residence->c_nid, $dataScrapped);
                 }
-
+$a=1;
                 $dataScrapped = null;
             }
 
@@ -189,14 +210,18 @@ function residence_mgmt_user_login(&$edit, $account) {
 }
 
 function residence_mgmt_dashboard() {
-
     $currentMenu = "dashboard";
 
     // ALL DEPARTMENTS
     $departements = getAllDepartments();
 
     global $user;
-
+    if(0){#maybe déplacé dans getresidencesByUser
+        define('DRUPAL_RESIDENCE_CACHE', __DIR__ . "/data/cache");
+        if( !file_exists(DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard") ) {
+            mkdir( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard", 0777, true);
+        }
+    }
     // if( !file_exists(DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard") ) {
     //     mkdir( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard", 0777, true);
     // }
@@ -640,7 +665,7 @@ function residence_mgmt_residences($departementId = null) {
     /* CUSTOM */
     if( !empty($_POST) && residence_mgmt_has_enough_user_balance('DEPARTMENT_REQUEST') ) {
         $response = array( 'residences' => $residences, 'statistique_globale' => $statistique_globale, 'requete_statistique' => $requete_statistique );
-        residence_mgmt_update_user_balance( "DEPARTMENT_REQUEST", array(), $_POST, $response);
+        residence_mgmt_update_user_balance( "DEPARTMENT_REQUEST", array(), $_POST, $response,$name);
     }
 
     ob_start();
@@ -827,7 +852,7 @@ function residence_mgmt_get_groupe_details( $groupeId = null ) {
 
 
     if( !empty($_POST) && residence_mgmt_has_enough_user_balance('GROUP_REQUEST') ) {
-        residence_mgmt_update_user_balance( "GROUP_REQUEST", array(), $_POST, $residencesFiltered);
+        residence_mgmt_update_user_balance( "GROUP_REQUEST", array(), $_POST, $residencesFiltered,$name);
     }
 
     ob_start();
@@ -1182,7 +1207,7 @@ function residence_mgmt_get_geojson_of_cities_by_department() {
       $response = new stdClass();
       $response->communesParsed = $communesParsed;
       $response->dvf = postRequest( BASE_API_URL . "/api/property_values/year-and-cities", array( 'year' => 2019, 'cities' => $citiesPosted ));
-      residence_mgmt_update_user_balance( "DEVELOPMENT_TOOLS_REQUEST", array(), $_POST, $response);
+      residence_mgmt_update_user_balance( "DEVELOPMENT_TOOLS_REQUEST", array(), $_POST, $response,$name);
   }
 
   echo json_encode($communesParsed);
@@ -1408,16 +1433,22 @@ function residence_mgmt_recherche_silverex() {
     if( !empty($_POST) && residence_mgmt_has_enough_user_balance('RESIDENCES_REQUEST', array( "perimetre" => $_POST['perimetre'] )) ) {
 
         if( isset($_POST['latitude']) && isset($_POST['longitude']) && isset($_POST['perimetre'])) {
-            $selectedStatut = ($_POST['statut'] != "aucun") ? $_POST['statut'] : null;
+            $adr=$_POST['adresse'];
+            if(!$adr)$adr=$_POST['latitude'].'-'.$_POST['longitude'];
+
+            $selectedStatut = ($_POST['statut'] != "aucun") ? $_POST['statut'] : null;#
             $residences = getResidencesConcurrentesOnAddress($_POST['latitude'], $_POST['longitude'], $_POST['perimetre'], $selectedStatut);
+
+            $name = trim($selectedStatut.' '.$_POST['categories'].' '.$_POST['perimetre'] . 'km autour de ' . $adr);
+
             if( !empty($_POST['categories']) ){
                 $healthOrganizations = json_decode(postRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], array( 'categories' => $_POST['categories'] ) ));
             }
         }
 
-        $requete_statistiques = get_requete_statistique($residences);
+        $requete_statistiques = get_requete_statistique($residences,$name);
 
-        residence_mgmt_update_user_balance( "RESIDENCES_REQUEST", array( "perimetre" => $_POST['perimetre'] ), $_POST, $residences);
+        residence_mgmt_update_user_balance( "RESIDENCES_REQUEST", array( "perimetre" => $_POST['perimetre'] ), $_POST, $residences,$name);
     }
 
     ob_start();
@@ -1614,7 +1645,7 @@ function get_statistique_globale($departementId = null, $ajax = false) {
 
 }
 
-function get_requete_statistique($residences = array()) {
+function get_requete_statistique($residences = array(), $name = '') {
     $requete_statistique = array(
         "Nbre de maisons" => 0,
         "Privé" => 0,
@@ -1783,7 +1814,8 @@ function loadDepartementChartData($departementId = null) {
  */
 function residence_mgmt_generate_document( $userId, $historyId ) {
   global $user;
-
+#https://ehpad.home/ged/1/document/46771
+#if(defined('DEV'))
   if( $userId != $user->uid  ) {
       return header("Location: " . $_SERVER['HTTP_REFERER']);
   }

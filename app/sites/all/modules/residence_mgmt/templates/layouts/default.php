@@ -32,7 +32,7 @@
     <?php require RESIDENCE_MGMT_PATH . "/templates/partial/header.inc.php"; ?>
 
   </head>
-  <body>
+  <body id="b"><div id="dashCap"></div>
 
     <aside class="aside aside-fixed minimize">
         <?php require RESIDENCE_MGMT_PATH . "/templates/partial/aside.inc.php"; ?>

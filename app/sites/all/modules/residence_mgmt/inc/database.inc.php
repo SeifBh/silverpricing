@@ -274,7 +274,9 @@ function addResidence($residenceData = null, $departmentNumber) {
     $newResidence->body = "";
     $newResidence->language = LANGUAGE_NONE;
     node_object_prepare($newResidence);
-
+    if($residenceData->finess){
+        $newResidence->field_finess[$newResidence->language][0]['value'] = $residenceData->finess;
+    }
     //$newResidence->field_finess[$newResidence->language][0]['value'] = "";
     $newResidence->field_email[$newResidence->language][0]['value'] = $residenceData->email;
     $newResidence->field_site[$newResidence->language][0]['value'] = $residenceData->website;
@@ -365,12 +367,15 @@ function updateChambre($entityId = null, $data) {
 
 }
 
-function synchronizeChambre( $entityId, $data) {
-
+function synchronizeChambre( $entityId, $data,$finess=null) {
+    $residence=null;
     $chambre = node_load($entityId);
 
     if( !empty($data) ) {
         // Tarifs
+        #if(isset($data->tarif['csa']))$chambre->field_tarif_cs_aide_sociale[LANGUAGE_NONE][0]['value'] = $data->tarif['csa'];
+        #if(isset($data->tarif['cda']))$chambre->field_tarif_cd_aide_sociale[LANGUAGE_NONE][0]['value'] = $data->tarif['cda'];
+
         $chambre->field_tarif_chambre_simple[LANGUAGE_NONE][0]['value'] = ( is_numeric($data->tarif[0]['chambre-seule']) ) ? $data->tarif[0]['chambre-seule'] : "NA";
         $chambre->field_tarif_chambre_double[LANGUAGE_NONE][0]['value'] = ( is_numeric($data->tarif[0]['chambre-double']) ) ? $data->tarif[0]['chambre-double'] : "NA";
 
@@ -388,7 +393,7 @@ function synchronizeChambre( $entityId, $data) {
             node_save($chambre);
 
             $residence = node_load($chambre->field_residence[LANGUAGE_NONE][0]['target_id']);
-            if( empty($residence->field_url_source[LANGUAGE_NONE][0]['value']) ) {
+            if( empty($residence->field_url_source[LANGUAGE_NONE][0]['value']) and isset($data->urlSource) ) {
                 $residence->field_url_source[LANGUAGE_NONE][0]['value'] = $data->urlSource;
                 node_save($residence);
             }
@@ -396,7 +401,8 @@ function synchronizeChambre( $entityId, $data) {
         }
 
     }
-
+    return;
+    #return [$chambre,$residence];
 }
 
 // function getResidencesConcurrentes($currentLatitude, $currentLongitude, $currentResidenceId, $currentStatut = NULL) {
@@ -428,6 +434,7 @@ function synchronizeChambre( $entityId, $data) {
 //     return $residences;
 
 // }
+function getRankingResidenceConcurrente($residenceId) {return getRankingOfResidence($residenceId);}
 
 function getRankingOfResidence( $residenceNid, $rankingTypes = array() ) {
 
@@ -886,19 +893,20 @@ function addTMHMaquetteToFavoris( $fieldFavoris, $maquetteId ) {
  */
 
 function addHistory($historyData = array()) {
+      $history = new stdClass();
+      $history->type = 'history';
+      $history->title = $historyData['title'];
+      $history->uid = $historyData['creator'];
+      $history->language = LANGUAGE_NONE;
+        #$history->field_name = $historyData['name'];#[$history->language][0]['value']
+        $history->field_name[$history->language][0]['value'] = $historyData['name'];#
+      node_object_prepare($history);
 
-  $history = new stdClass();
-  $history->type = 'history';
-  $history->title = $historyData['title'];
-  $history->uid = $historyData['creator'];
-  $history->language = LANGUAGE_NONE;
-  node_object_prepare($history);
-
-  $history->body[$history->language][0]['value'] = json_encode($historyData['body']);
-  $history->field_balance_consumed[$history->language][0]['value'] = $historyData['balance_consumed'];
-
-  node_save($history);
-
+      $history->body[$history->language][0]['value'] = json_encode($historyData['body']);
+      $history->field_balance_consumed[$history->language][0]['value'] = $historyData['balance_consumed'];
+    node_save($history);
+    $_SESSION['public']=['hid'=>$history->nid];
+    $_SESSION['hid']=$history->nid;
 }
 
 function getHistories() {
@@ -914,6 +922,15 @@ function getHistories() {
   $query->fields('n', array('nid', 'title', 'created'));
   $query->fields('b', array('field_balance_consumed_value'));
   $query->fields('body', array('body_value'));
+
+    $query->leftjoin('field_data_field_name', 'name', 'name.entity_id = n.nid', array());
+    $query->leftjoin('field_data_field_map', 'map', 'map.entity_id = n.nid', array());
+    $query->leftjoin('field_data_field_excel', 'excel', 'excel.entity_id = n.nid', array());
+
+    $query->fields('excel', array('excel'=>'field_excel_value'));
+    $query->fields('map', array('name'=>'field_map_value'));
+    $query->fields('name', array('name'=>'field_name_value'));
+
   $query->orderBy('n.created', 'DESC');
 
   $histories = $query->execute()->fetchAll();

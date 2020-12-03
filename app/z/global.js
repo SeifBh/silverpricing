@@ -14,15 +14,15 @@ function defer(method, which, timeout) {
 //map-recherche-silverex
 //captureMap(0,cl); works !
 async function captureMap(el,callback){
-    var styleback,datasize,cap,b64img,r;
+    var styleback,datasize,cap,b64img,r,necessaires=2;
     el=el||'.heremap';callback=callback||nf;
     r=document.querySelector('#dashCap');
     styleback=$(el).attr('style');
 /*could be even wider than ever .... */
-    $(el).attr('style','').addClass('fullScreen');
-    hereMap.map.getViewPort().resize();
+    $(el).attr('style','').addClass('fullScreen');//Passée derrière
     hereMap.map.getEngine().addEventListener('render',function(){renderingSteps++;cl(renderingSteps);});//It renders 2 time, then 2 more for copy
-    while(renderingSteps<2) {await new Promise(r => setTimeout(r,300));}  renderingSteps = 0;//Wais a little
+    //hereMap.map.getViewPort().resize();//So we get the second rendering en mode FullScreen, de toutes façons 2 car on doit attendre que la copie soit rendue
+    while(renderingSteps<necessaires || document.querySelectorAll('canvas').length<1) {await new Promise(r => setTimeout(r,300));}  renderingSteps = 0;//Wais a little
 // rendered maps
 //await new Promise(r => setTimeout(r,4000));
 //wait a little , nope ? surveiller les chargements réseau du navigateur ?
@@ -46,7 +46,7 @@ async function captureMap(el,callback){
         //console.log(datasize);
         $.ajax({"url":"/z/receptor.php","method":"POST","data":{"name":_mapName,"img":b64img}}).done(function(e) {
             $.ajax({"url":"/updateHistory","method":"POST","data":{"hid":session['hid'],"mapName":e}}).done(function(e) {
-                cl(e);
+                cl('updated',e);
             });
             callback(e);cl(e);
         });
