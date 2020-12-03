@@ -1,6 +1,20 @@
+<?php
+#define("MODULE_PATH", "/sites/all/modules/residence_mgmt"); ?>
 <!DOCTYPE html>
-<html lang="fr">
-  <head>
+<html lang="fr" id="a"><head>
+    <script type="text/javascript"><?php
+        $json=[];
+        if(isset($user)){$json=array_merge($json,['uid'=>$user->uid,'uname'=>$user->name]);}
+        if(isset($_POST)){$json=array_merge($json,['post'=>$_POST]);}
+        if(isset($_GET)){$json=array_merge($json,['get'=>$_GET]);}
+        if(isset($_SESSION['public'])){$json=array_merge($json,['session'=>$_SESSION['public']]);}
+
+        echo "var json=".json_encode($json).";for(var i in json){window[i]=json[i];}";
+        $a=$user->uid.'-'.$user->name;
+        ?>
+    </script>
+    <link id="gcss" rel="stylesheet" href="/z/global.css?a=<?=filemtime($_SERVER['DOCUMENT_ROOT'].'z/global.css')?>" title="/z/global.css" />
+    <script id="gjs" src="/z/global.js?a=<?=filemtime($_SERVER['DOCUMENT_ROOT'].'z/global.js')?>" title="/z/global.js" ></script>
 
     <!-- Required meta tags -->
     <meta charset="utf-8">
