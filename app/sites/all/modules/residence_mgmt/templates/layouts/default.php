@@ -269,12 +269,6 @@ markerObject=new H.map.DomMarker({lat:"48.86",lng:"2.35"},{icon:new H.map.DomIco
               var markerObject = null;
 
               <?php
-
-
-
-              ?>
-
-              <?php
                   $groupeLogo = "";
                   if( isset($dataMarker->field_logo_fid) ) {
                       $groupeLogo = "<img src='" . file_create_url(file_load($dataMarker->field_logo_fid)->uri) . "' width='24' alt='' />";
