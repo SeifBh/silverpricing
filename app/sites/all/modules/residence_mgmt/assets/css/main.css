@@ -1,0 +1,201 @@
+/* BODY */
+body {
+    font-size: 0.8rem;
+    background-color: #ffffff;
+}
+
+/* TYPOGRAPHY */
+.tx-8rem {
+    font-size: 0.8rem;
+}
+
+/* lEFT SIDE MENU */
+.aside-fixed {
+    z-index: 1010;
+}
+
+/* INFO BOX */
+.info-box {
+    display: block;
+    min-height: 80px;
+    background: #fff;
+    width: 100%;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    border-radius: 2px;
+    margin-bottom: 15px;
+}
+
+.info-box-icon {
+    border-top-left-radius: 2px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 2px;
+    display: block;
+    float: left;
+    height: 80px;
+    width: 70px;
+    text-align: center;
+    font-size: 30px;
+    line-height: 80px;
+}
+
+.info-box-content {
+    padding: 5px 10px;
+    margin-left: 70px;
+}
+
+.info-box-text {
+    text-transform: uppercase;
+    white-space: initial;
+}
+.progress-description, .info-box-text {
+    display: block;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.info-box-number {
+    display: block;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.info-box small {
+    font-size: 14px;
+}
+
+/* NEW CHARTS */
+
+.tarif-evolution-chart {
+  display: block;
+  min-height: 60px;
+  background: #ffffff;
+  width: 100%;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+  border-radius: 2px;
+  background: linear-gradient(90deg, #FF0000, #4ead4f);
+  -webkit-clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+/* FORM */
+
+/* SLIDER INPUT */
+
+.slider-container .label {
+  font-size: 0.9em;
+}
+
+#tmh_slider .slider-track {
+    height: 5px;
+    margin-top: -2.5px;
+}
+
+#tmh_slider .slider-handle {
+    background: #b0b0b0;
+}
+
+#tmh_slider .slider-selection {
+	  background: #585858;
+}
+
+/* COMPONENT */
+
+.slider-container {
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+.tmh-wrapper {
+    margin-top: 25px;
+}
+
+.tmh-circle {
+    width: 100px;
+    height: 100px;
+    padding: 10px;
+    margin: 10px auto;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+    box-sizing: border-box;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.tmh-circle-default {
+    background: #8bc34a;
+    color: #ffffff;
+}
+
+.btn-100 {
+  width: 100px;
+}
+
+/* MAP wrapper */
+
+.map-wrapper ul.legend .label {
+    margin: 0px;
+}
+
+.map-wrapper ul.legend li.label span {
+    padding: 5px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* MAP */
+/* HERE MAP */
+
+.custom-control .H_overlay::before, .custom-control .H_overlay::after {
+  display: none;
+}
+
+.custom-control .custom-panel {
+  box-shadow: none;
+  background: transparent;
+  min-width: auto;
+  bottom: 0px;
+}
+
+.custom-control .custom-panel .H_btn {
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  padding: 5px;
+  font-size: 20px;
+}
+
+/* INFO BUBBLE */
+
+.infoBubble-wrapper .H_ib_content {
+    min-width: 12em;
+}
+
+/* TABLE STYLE */
+
+table.dataTable thead .sorting_asc,
+table.dataTable thead .sorting_desc {
+  background-color: transparent;
+}
+
+table.dataTable tbody td.sorting_1 {
+  background-color: transparent;
+}
+
+table.dataTable.no-footer {
+    border-right: none;
+    border-left: none;
+}
+
+/* SELECT2 CONTAINER */
+.select2-container {
+  max-width: 100%;
+}
+
+.select2-dropdown {
+  z-index: 1000;
+}
