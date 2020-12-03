@@ -12,7 +12,7 @@
   <div class="aside-loggedin">
 
     <div class="d-flex align-items-center justify-content-start">
-      <a href="" class="avatar"><img src="<?php echo MODULE_PATH; ?>/assets/img/user-default.png" class="rounded-circle" alt=""></a>
+      <a href="" class="avatar"><img src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/img/user-default.png" class="rounded-circle" alt=""></a>
       <div class="aside-alert-link">
           <a href="/user/logout" data-toggle="tooltip" title="Sign out"><i data-feather="log-out"></i></a>
       </div>

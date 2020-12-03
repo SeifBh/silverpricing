@@ -17,6 +17,8 @@ return array(
     'GuzzleHttp\\Psr7\\' => array($vendorDir . '/guzzlehttp/psr7/src'),
     'GuzzleHttp\\Promise\\' => array($vendorDir . '/guzzlehttp/promises/src'),
     'GuzzleHttp\\' => array($vendorDir . '/guzzlehttp/guzzle/src'),
+    'GO\\' => array($vendorDir . '/peppeocchi/php-cron-scheduler/src/GO'),
     'DiDom\\' => array($vendorDir . '/imangazaliev/didom/src/DiDom'),
+    'Cron\\' => array($vendorDir . '/dragonmantank/cron-expression/src/Cron'),
     'Complex\\' => array($vendorDir . '/markbaker/complex/classes/src'),
 );

@@ -97,6 +97,7 @@ class ComposerStaticInit9bfd264fc80b97d0b90afacb6725891f
             'GuzzleHttp\\Psr7\\' => 16,
             'GuzzleHttp\\Promise\\' => 19,
             'GuzzleHttp\\' => 11,
+            'GO\\' => 3,
         ),
         'D' => 
         array (
@@ -104,6 +105,7 @@ class ComposerStaticInit9bfd264fc80b97d0b90afacb6725891f
         ),
         'C' => 
         array (
+            'Cron\\' => 5,
             'Complex\\' => 8,
         ),
     );
@@ -153,9 +155,17 @@ class ComposerStaticInit9bfd264fc80b97d0b90afacb6725891f
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/guzzle/src',
         ),
+        'GO\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/peppeocchi/php-cron-scheduler/src/GO',
+        ),
         'DiDom\\' => 
         array (
             0 => __DIR__ . '/..' . '/imangazaliev/didom/src/DiDom',
+        ),
+        'Cron\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron',
         ),
         'Complex\\' => 
         array (
@@ -163,11 +173,16 @@ class ComposerStaticInit9bfd264fc80b97d0b90afacb6725891f
         ),
     );
 
+    public static $classMap = array (
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+    );
+
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit9bfd264fc80b97d0b90afacb6725891f::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit9bfd264fc80b97d0b90afacb6725891f::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit9bfd264fc80b97d0b90afacb6725891f::$classMap;
 
         }, null, ClassLoader::class);
     }

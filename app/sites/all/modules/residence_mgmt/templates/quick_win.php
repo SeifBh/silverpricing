@@ -29,7 +29,8 @@
                                     <td><?php echo number_format( $residence->difference, 2 ); ?> €</td>
                                     <td>
                                       <!-- ( (b-a)/6 or (b+5a)/6 ) -->
-                                      <?php echo number_format( ($residence->tarif_concurrence_direct + 5 * $residence->field_tarif_chambre_simple_value ) / 6, 2 ); ?> €
+                                      <?php $priceSuggested = ($residence->tarif_concurrence_direct + 5 * $residence->field_tarif_chambre_simple_value ) / 6;  ?>
+                                      <?php echo number_format( $priceSuggested, 2 ); ?> €
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

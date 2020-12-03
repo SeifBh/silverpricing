@@ -1,14 +1,14 @@
 <?php
 
-define('DRUPAL_RESIDENCE_DATA_SCRAPPING', 50);
-define('DRUPAL_RESIDENCE_DATA', __DIR__ . "/residences");
-define('DRUPAL_RESIDENCE_DATA_OUTPUT', __DIR__ . "/output");
-define('DRUPAL_RESIDENCE_DATA_QUEUE', __DIR__ . "/cron_config");
-// define('DRUPAL_ROOT', "C:\laragon\www\\residence-management\\");
-define('DRUPAL_ROOT', "/home/ubuntu/SilverPricing/public_html/app.silverpricing.fr");
+require_once __DIR__ . "/../vendor/autoload.php";
+
+require_once __DIR__ . "/data_config.php";
 
 require_once __DIR__ . "/../inc/tools.inc.php";
+require_once __DIR__ . "/../inc/http_client.inc.php";
+require_once __DIR__ . "/../inc/cnsa_connector.inc.php";
 require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
+
 drupal_bootstrap(DRUPAL_BOOTSTRAP_DATABASE);
 
 $queue = file_get_contents(DRUPAL_RESIDENCE_DATA_QUEUE . "/data_queue.json");
@@ -29,34 +29,37 @@ if( empty($queue) ) {
     $queue = $allResidences;
 }
 
-$residences = array_slice($queue, 0, DRUPAL_RESIDENCE_DATA_SCRAPPING);
+// $residences = array_slice($queue, 0, DRUPAL_RESIDENCE_DATA_SCRAPPING);
+$residences = $queue;
+$totalCount = count($residences);
 
-//varDebug($residences);
+// varDebug($residences);
 // echo "LENGTH : " . count($queue) . "\n";
 // echo "DATE : " . date("Y-m-d") . "\n";
 // exit();
 
-define("BASE_URL_TARGET", "https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/");
-
 echo "------------------------ START ---------------------- \n";
 
-foreach( $residences as $residence) {
+$errors = array(); 
+
+foreach( $residences as $k => $residence) {
+    echo "COUNT : " . $k . "/" . $totalCount . "\n";
+    echo "FINESS : " . $residence->field_finess_value . "\n";
 
     $finess = ( strlen($residence->field_finess_value) == 9 ) ? $residence->field_finess_value : "0" . $residence->field_finess_value;
 
-    $urlTarget = BASE_URL_TARGET . $finess;
-
-    echo $urlTarget . "\n\n";
-
     try {
 
-        $result = getRequest( $urlTarget );
+        $result = getEstablishementByFiness($finess); 
 
         if( $result != null ) {
             file_put_contents( DRUPAL_RESIDENCE_DATA . "/$finess.json", $result);
+        } else {
+            echo "RESULT IS EMPTY \n";
         }
 
     } catch( Exception $e ) {
+        $errors[] = $residence;
         echo "Error extracting the content json \n";
         continue;
     }
@@ -66,6 +69,7 @@ foreach( $residences as $residence) {
 
 $updateQueue = array_slice($queue, DRUPAL_RESIDENCE_DATA_SCRAPPING);
 file_put_contents( DRUPAL_RESIDENCE_DATA_QUEUE . "/data_queue.json", json_encode($updateQueue));
+file_put_contents( DRUPAL_RESIDENCE_DATA_QUEUE . "/data_error.json", json_encode($errors));
 
 echo "------------------------- END ----------------------- \n";
 

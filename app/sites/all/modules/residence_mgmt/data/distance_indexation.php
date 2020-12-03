@@ -1,14 +1,8 @@
 <?php
-#£ phpx "C:\Users\ben\home\ehpad\app\sites\all\modules\residence_mgmt\data\distance_indexation.php"
-// $_SERVER['REMOTE_ADDR'] = "https://residence-management.dev";
-$_SERVER['REMOTE_ADDR'] = "http://ehpad.silverpricing.fr";
 
-define('DRUPAL_RESIDENCE_DATA', __DIR__ . "/residences");
-define('DRUPAL_RESIDENCE_DATA_OUTPUT', __DIR__ . "/output");
-// define('DRUPAL_ROOT', "C:\laragon\www\\residence-management\\");
-define('DRUPAL_ROOT', "/home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/");
+include __DIR__ . "/data_config.php";
 
-require_once DRUPAL_ROOT . 'includes/bootstrap.inc';
+require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
 drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
 
 $start = microtime(true);
@@ -26,9 +20,11 @@ $query->orderBy('n.nid', 'ASC');
 $residences = $query->execute()->fetchAll();
 
 $totalResidences = count($residences);
-#£
+
 for( $m = 0 ; $m < $totalResidences ; $m++ ) {
     for( $i = 0 ; $i < $totalResidences ; $i++ ) {
+
+        echo "Distance between : " . $residences[$m]->nid . " and " . $residences[$i]->nid . " \n";
 
         if( $residences[$m]->nid == $residences[$i]->nid ) {
             continue;
@@ -47,20 +43,20 @@ for( $m = 0 ; $m < $totalResidences ; $m++ ) {
 
         try {
 
-          db_insert('distance_indexation')
-            ->fields(array('primary_nid', 'secondary_nid', 'distance'))
-            ->values(array(
-                'primary_nid' => $residences[$m]->nid,
-                'secondary_nid' => $residences[$i]->nid,
-                'distance' => $distance
-                ))
-            ->execute();
+            db_insert('distance_indexation')
+                ->fields(array('primary_nid', 'secondary_nid', 'distance'))
+                ->values(array(
+                    'primary_nid' => $residences[$m]->nid,
+                    'secondary_nid' => $residences[$i]->nid,
+                    'distance' => $distance
+                    ))
+                ->execute();
 
         } catch( Exception $e ) {
             echo "Error : " . $e->getMessage() . "\n";
         }
 
-        echo "Distance between : " . $residences[$m]->nid . " and " . $residences[$i]->nid . " \n";
+        echo "Distance : " . $distance . " \n";
 
     }
 

@@ -96,16 +96,16 @@
               </div>
               <div class="col-md-6">
                 <div class="info-box">
-                  <?php if( $residenceRanking['concurrence_direct'] <= 3 ): ?>
+                  <?php if( $residenceRanking['concurrence_directe'] <= 3 ): ?>
                     <span class="info-box-icon bg-success"><i class="fa fa-trophy tx-white"></i></span>
-                  <?php elseif( $residenceRanking['concurrence_direct'] <= 7 ): ?>
+                  <?php elseif( $residenceRanking['concurrence_directe'] <= 7 ): ?>
                     <span class="info-box-icon bg-orange"><i class="fa fa-trophy tx-white"></i></span>
                   <?php else: ?>
                     <span class="info-box-icon bg-danger"><i class="fa fa-trophy tx-white"></i></span>
                   <?php endif; ?>
                   <div class="info-box-content">
                     <span class="info-box-text">Position concurrence direct</span>
-                    <span class="info-box-number"><?php echo $residenceRanking['concurrence_direct']; ?></span>
+                    <span class="info-box-number"><?php echo $residenceRanking['concurrence_directe']; ?></span>
                   </div>
                 </div>
               </div>

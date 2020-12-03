@@ -1,19 +1,17 @@
 <?php
 
-// $_SERVER['REMOTE_ADDR'] = "https://residence-management.dev";
-$_SERVER['REMOTE_ADDR'] = "http://ehpad.silverpricing.fr";
+include __DIR__ . "/data_config.php";
 
-define('DRUPAL_RESIDENCE_DATA', __DIR__ . "/residences");
-define('DRUPAL_RESIDENCE_DATA_OUTPUT', __DIR__ . "/output");
-// define('DRUPAL_ROOT', "C:\laragon\www\\residence-management\\");
-define('DRUPAL_ROOT', "/home/ubuntu/SilverPricing/public_html/app.silverpricing.fr");
-
-require_once DRUPAL_ROOT . 'includes/bootstrap.inc';
+require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
 drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
 
 echo "------------------------ START ---------------------- \n";
 
 $residenceList =  array_diff(scandir(DRUPAL_RESIDENCE_DATA), array('..', '.'));
+
+
+// varDebug($residenceList);
+// exit();
 
 foreach( $residenceList as $residenceFileName ) {
 
@@ -32,9 +30,10 @@ foreach( $residenceList as $residenceFileName ) {
 
     $chambre = node_load($node->entity_id);
 
-    // var_dump($residenceData);
-    // var_dump($node);
-    // die();
+    // varDebug($residenceData);
+    // varDebug($node);
+    // varDebug($chambre);
+    // exit();
 
     if( !empty($chambre) ) {
 
@@ -63,7 +62,7 @@ foreach( $residenceList as $residenceFileName ) {
         //     )
         //   ) {
 
-          if( $oldPrice != $newPrice ) {
+          if( !empty($newPrice) && $oldPrice != $newPrice ) {
 
             echo "Saved \n";
 

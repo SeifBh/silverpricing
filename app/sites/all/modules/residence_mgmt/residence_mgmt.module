@@ -1,331 +1,21 @@
 <?php
 
-require_once __DIR__ . "/inc/config.inc.php";
-require_once __DIR__ . "/inc/tools.inc.php";#has getRequest
-require_once __DIR__ . "/inc/database.inc.php";
-require_once __DIR__ . "/inc/geocoding.inc.php";
-require_once __DIR__ . "/inc/math.inc.php";
-require_once __DIR__ . "/inc/excel.inc.php";
-require_once __DIR__ . "/templates/scrapping.php";
-require_once __DIR__ . "/inc/polygon.php";
-require_once __DIR__ . "/inc/theme.inc.php";
-require_once __DIR__ . "/inc/user.inc.php";
+require_once __DIR__ . "/vendor/autoload.php";
 
-#https://ehpad.home/yo
-function residence_mgmt_yo(){
-    updateAll(210007159,['tarifGir12'=>60+date('s'),'prixHebPermCs'=>date('s'),'prixHebPermCd'=>100-date('s'),'prixHebTempCd'=>99-date('s')]);#.
-}
-#https://ehpad.home/updateHistory
-function updateHistory(){
-    /* excel, history, map from history*/
-    $a=1;
-    if(isset($_POST['mapName']) and $_POST['mapName']){
-        $history = node_load($_POST['hid']);
-        $history->field_map[$history->language][0]['value'] =  $_POST['mapName'];#
-        node_save($history);#£
-        die($_POST['mapName']);
-        return 1;
-    }
-}
+require __DIR__ . "/inc/config.inc.php";
+require __DIR__ . "/inc/http_client.inc.php";
+require __DIR__ . "/inc/cnsa_connector.inc.php";
+require __DIR__ . "/inc/tools.inc.php";
+require __DIR__ . "/inc/database.inc.php";
+require __DIR__ . "/inc/geocoding.inc.php";
+require __DIR__ . "/inc/math.inc.php";
+require __DIR__ . "/inc/excel.inc.php";
+require __DIR__ . "/templates/scrapping.php";
+require __DIR__ . "/inc/polygon.php";
+require __DIR__ . "/inc/theme.inc.php";
+require __DIR__ . "/inc/user.inc.php";
+require __DIR__ . "/inc/routing.inc.php";
 
-function __residence_mgmt_url_inbound_alter(&$path, $original_path, $path_language) {
-    $a=1;
-}
-
-/**
-* implement hook_menu()
-* create menu residences
-*/
-function residence_mgmt_menu() {
-    $items = array();
-    $items['updateHistory'] = array('title' => 'updateHistory', 'access callback' => true, 'page callback' => 'updateHistory',);
-    $items['yo'] = array(
-        'title'             =>  'yo',
-        'access callback'   =>  true,
-        'page callback'     =>  'residence_mgmt_yo',#residence_mgmt_yo,#drushy cc all
-        #'access arguments'  => array(array('administrator')),
-    );
-
-    $items['profile/%'] = array(
-        'title'             =>  'Profile',
-        'page callback'     =>  'residence_mgmt_profile',
-        'page arguments'    => array( 1 ),
-        'access callback'   =>  true,
-    );
-
-    $items['dashboard'] = array(
-        'title'             =>  'Dashboard',
-        'page callback'     =>  'residence_mgmt_dashboard',
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_DASHBOARD'),
-    );
-
-    $items['quick_win'] = array(
-        'title'             =>  'Quick win',
-        'page callback'     =>  'residence_mgmt_get_quick_win',
-        'access callback'   =>  true,
-    );
-
-    $items['mes_maquettes'] = array(
-        'title'             =>  'Mes maquettes',
-        'page callback'     =>  'residence_mgmt_get_mes_maquettes',
-        'access callback'   =>  true,
-    );
-
-    $items['maquette/%'] = array(
-        'title'             =>  'Ma maquette',
-        'page callback'     =>  'residence_mgmt_get_ma_maquette',
-        'page arguments'    => array( 1 ),
-        'access callback'   =>  true,
-    );
-
-    $items['departements'] = array(
-        'title'             =>  'Departements',
-        'page callback'     =>  'residence_mgmt_departements',
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_DEPARTEMENTS'),
-    );
-
-    $items['departement/%'] = array(
-        'title'             =>  'Département',
-        'page callback'     =>  'residence_mgmt_residences',
-        'page arguments'    => array( 1 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_DEPARTEMENT'),
-    );
-
-    $items['groupes'] = array(
-        'title'             =>  'Groupes',
-        'page callback'     =>  'residence_mgmt_get_groupes',
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_GROUPES'),
-    );
-
-    $items['groupe/%'] = array(
-        'title'             =>  'Groupe',
-        'page callback'     =>  'residence_mgmt_get_groupe_details',
-        'page arguments'    => array( 1 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_GROUPE'),
-    );
-
-    $items['residence/%'] = array(
-        'title'             =>  'Residence',
-        'page callback'     =>  'residence_mgmt_get_residence_details',
-        'page arguments'    => array( 1 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_DETAIL_RESIDENCE'),
-    );
-
-    $items['mes-residences'] = array(
-        'title'             =>  'Residence',
-        'page callback'     =>  'residence_mgmt_get_my_residences',
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_MES_RESIDENCES'),
-    );
-
-    $items['edit-residence/%'] = array(
-        'title'             =>  'Modifier la résidence',
-        'page callback'     =>  'residence_mgmt_edit_residence',
-        'page arguments'    => array( 1 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_MES_RESIDENCES'),
-    );
-
-    $items['mes-groupes'] = array(
-        'title'             =>  'Mes Groupes',
-        'page callback'     =>  'residence_mgmt_get_my_groups',
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_MES_GROUPES'),
-    );
-
-    $items['edit-groupe/%'] = array(
-        'title'             =>  'Modifier le groupe',
-        'page callback'     =>  'residence_mgmt_edit_groupe',
-        'page arguments'    => array( 1 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_MES_GROUPES'),
-    );
-
-    $items['development-tools'] = array(
-        'title'             =>  'Développement tools',
-        'page callback'     =>  'residence_mgmt_development_tools',
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_DEVELOPPEMENT_TOOLS'),
-    );
-
-    $items['recherche-silverex'] = array(
-        'title'             =>  'Recherche SilverPricing',
-        'page callback'     =>  'residence_mgmt_recherche_silverex',
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_RESIDENCES'),
-    );
-
-    $items['histories'] = array(
-        'title'             =>  'Historiques',
-        'page callback'     =>  'residence_mgmt_get_my_histories',
-        'access callback'   =>  true,
-    );
-
-    $items['history/%'] = array(
-        'title'             =>  'Historique',
-        'page callback'     =>  'residence_mgmt_get_history',
-        'page arguments'    => array( 1 ),
-        'access callback'   => true
-    );
-
-    // AJAX
-
-    $items['ajax/geocoding-silverex'] = array(
-        'title'             =>  'Geocoding Silverex',
-        'page callback'     =>  'residence_mgmt_geocoding_silverex',
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_RESIDENCES'),
-    );
-
-    $items['ajax/departement-info/%'] = array(
-        'title'             =>  'Departement Info',
-        'page callback'     =>  'residence_mgmt_departement_info',
-        'page arguments'    => array( 2 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_DEPARTEMENTS'),
-    );
-
-    $items['ajax/add-tmh-maquette/%'] = array(
-        'title'             =>  'TMH Maquette',
-        'page callback'     =>  'residence_mgmt_add_tmh_maquette',
-        'page arguments'    => array( 2 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('OPTIMISATION_RESIDENCE_TMH'),
-    );
-
-    $items['ajax/remove-tmh-maquette/%'] = array(
-        'title'             =>  'TMH Maquette',
-        'page callback'     =>  'residence_mgmt_remove_tmh_maquette',
-        'page arguments'    => array( 2 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('OPTIMISATION_RESIDENCE_TMH'),
-    );
-
-    $items['ajax/historique-maquettes/%'] = array(
-        'title'             =>  'Historique des maquettes',
-        'page callback'     =>  'residence_mgmt_get_historique_maquettes',
-        'page arguments'    => array( 2 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('OPTIMISATION_RESIDENCE_TMH'),
-    );
-
-    $items['ajax/nbre-maquettes/%'] = array(
-        'title'             =>  'Count des maquettes',
-        'page callback'     =>  'residence_mgmt_nbre_maquettes',
-        'page arguments'    => array( 2 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('OPTIMISATION_RESIDENCE_TMH'),
-    );
-
-    $items['ajax/add-maquette-to-favoris/%'] = array(
-        'title'             =>  'TMH Maquette',
-        'page callback'     =>  'residence_mgmt_add_maquette_to_favoris',
-        'page arguments'    => array( 2 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('OPTIMISATION_RESIDENCE_TMH'),
-    );
-
-    $items['ajax/get-evolution-menusuelle-des-tarifs/%'] = array(
-        'title'             =>  'Evolution Mensuelle des tarifs',
-        'page callback'     =>  'residence_mgmt_get_evolution_menusuelle_des_tarifs',
-        'page arguments'    => array( 2 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_DETAIL_RESIDENCE'),
-    );
-
-    // $items['ajax/get-geojson-of-cities-by-department/%/%'] = array(
-    //     'title'             =>  'Geojson de communes par département',
-    //     'page callback'     =>  'residence_mgmt_get_geojson_of_cities_by_department',
-    //     'page arguments'    => array( 2, 3 ),
-    //     'access callback'   => 'residence_mgmt_user_plan_has_access',
-    //     'access arguments' => array('PAGE_DEVELOPPEMENT_TOOLS'),
-    // );
-
-    $items['ajax/get-geojson-of-cities-by-department'] = array(
-        'title'             =>  'Geojson de communes par département',
-        'page callback'     =>  'residence_mgmt_get_geojson_of_cities_by_department',
-        'page arguments'    => array(),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_DEVELOPPEMENT_TOOLS'),
-    );
-
-    $items['ajax/get-dvf-of-commune/%'] = array(
-        'title'             =>  'DVF de commune',
-        'page callback'     =>  'residence_mgmt_get_dvf_of_commune',
-        'page arguments'    => array( 2 ),
-        'access callback'   => 'residence_mgmt_user_plan_has_access',
-        'access arguments' => array('PAGE_DEVELOPPEMENT_TOOLS'),
-    );
-
-    // GED
-
-    $items['ged/%/document/%'] = array(
-        'title'             =>  'SilverPricing Documents',
-        'page callback'     =>  'residence_mgmt_generate_document',
-        'page arguments'    => array( 1, 3 ),
-        'access callback'   => true,
-    );
-
-    // TOOLS
-
-    $items['scrapping'] = array(
-        'title'             =>  'Scrapping',
-        'page callback'     =>  'residence_mgmt_scrapping',
-        // 'access callback'   => 'residence_mgmt_user_has_role',
-        'access arguments'  => array(array('administrator')),
-    );
-
-    $items['importation_excel'] = array(
-        'title'             =>  'Importation Excel',
-        'page callback'     =>  'residence_mgmt_import_residence_xls',
-        // 'access callback'   => 'residence_mgmt_user_has_role',
-        'access arguments'  => array(array('administrator')),
-    );
-
-    // CONFIGURATION
-
-    $items['admin/config/content/residences_management'] = array(
-        'title' => t('Residence Management Configuration'),
-        'description' => t('La configuration du module residence management.'),
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array('residence_mgmt_admin_form'),
-        'access arguments' => array('administer users'),
-        'type' => MENU_NORMAL_ITEM,
-    );
-
-    $items['admin/config/content/import_residence_by_finess'] = array(
-        'title' => t('Import residence by Finess'),
-        'description' => t('This feature give you the possibility to import a new single residence with just finess.'),
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array('residence_mgmt_get_residence_by_finess'),
-        'access arguments' => array('administer users'),
-        'type' => MENU_NORMAL_ITEM,
-    );
-
-    // METHOD FOR TEST
-
-    $items['test'] = array(
-        'title'             =>  'Residences',
-        'page callback'     =>  'update_residences_latlong',
-        'access callback'   =>  true,
-    );
-
-    // METHOD FOR DISTANCE INDEXATION
-
-    $items['distance-indexation'] = array(
-        'title'             =>  'Distance Indexation',
-        'page callback'     =>  'residence_mgmt_distance_indexation',
-        'access callback'   =>  true,
-    );
-
-    return $items;
-}
 
 function residence_mgmt_profile( $uid ) {
 
@@ -388,11 +78,9 @@ function residence_mgmt_get_residence_by_finess_submit($form, &$form_state) {
 
     if( !empty($_POST["residence_mgmt_finess_number"])) {
 
-        $urlTarget = "https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/" . $_POST["residence_mgmt_finess_number"];
-        $result = getRequest( $urlTarget );
-        $residenceData = json_decode($result);
-        $residenceData = $residenceData[0];
-        addResidenceByJsonObject($residenceData);
+        $residenceData = getEstablishementByFiness( $_POST["residence_mgmt_finess_number"] );
+        $residenceDataDecoded = json_decode($residenceData);
+        addResidenceByJsonObject($residenceDataDecoded[0]);
 
         drupal_set_message("Importation terminée");
     } else {
@@ -455,16 +143,16 @@ function residence_mgmt_admin_form_submit($form, &$form_state) {
                 $finessValue = (  strlen($residence->field_finess_value) == 9 ) ? $residence->field_finess_value : "0" . $residence->field_finess_value;
 
                 if( $residence->field_url_source_value != null && !empty($residence->field_url_source_value) ) {
-                    $dataScrapped = residence_mgmt_page_detail_scrapping($residence->field_url_source_value,$finessValue);
+                    $dataScrapped = residence_mgmt_page_detail_scrapping($residence->field_url_source_value);
                 } else if( !empty($residence->field_finess_value) && strlen($finessValue) == 9 ) {
                     $urlSource = "https://www.pour-les-personnes-agees.gouv.fr/fiche-annuaire/hebergement/" . $finessValue . "/0";
-                    $dataScrapped = residence_mgmt_page_detail_scrapping($urlSource,$finessValue);
+                    $dataScrapped = residence_mgmt_page_detail_scrapping($urlSource);
                 }
 
                 if( $dataScrapped != null ) {
                     synchronizeChambre($residence->c_nid, $dataScrapped);
                 }
-$a=1;
+
                 $dataScrapped = null;
             }
 
@@ -504,43 +192,32 @@ function residence_mgmt_dashboard() {
 
     $currentMenu = "dashboard";
 
-    define('DRUPAL_RESIDENCE_CACHE', __DIR__ . "/data/cache");
+    // ALL DEPARTMENTS
+    $departements = getAllDepartments();
 
     global $user;
 
-    if( !file_exists(DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard") ) {
-        mkdir( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard", 0777, true);
-    }
+    // if( !file_exists(DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard") ) {
+    //     mkdir( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard", 0777, true);
+    // }
 
     $residences = array();
-    $account = user_load($user->uid);
-    $groupes = array('-1');
-    $residenceIds = array(('-1'));
 
-    foreach($account->field_acces_groupes['und'] as $groupe) { $groupes[] = $groupe['target_id']; }
-    foreach($account->field_acces_residences['und'] as $residence) { $residenceIds[] = $residence['target_id']; }
-
-    $query = db_select('node', 'n');
-    $query->condition('n.type', "residence", '=');
-    $query->join('field_data_field_groupe', 'grp', 'grp.entity_id = n.nid', array());
-    $query->where('grp.field_groupe_tid IN (:groupes)', array( ':groupes' => $groupes ));
-    $query->fields('n', array('nid', 'title'));
-    $result = $query->execute()->fetchAll();
-
-    foreach($result as $r) { $residenceIds[] = $r->nid; }
+    $residenceIds = getResidencesByUser($user->uid);
 
     // QUICK WINS
     $cache_file = "quick_wins_" . date('Y-m-d') . ".json";
     $quickWins = null;
-    if( file_exists(DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file) ) {
+    // if( false && file_exists(DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file) ) {
 
-      $quickWins = file_get_contents( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file);
-      $quickWins = json_decode($quickWins);
+    //   $quickWins = file_get_contents( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file);
+    //   $quickWins = json_decode($quickWins);
 
-    } else {
+    // } else {
 
         $query = db_select('node', 'n');
         $query->condition('n.type', "residence", '=');
+        $query->condition('n.nid', $residenceIds, "IN");
         $query->join('field_data_field_statut', 's', 's.entity_id = n.nid', array());
         $query->join('field_data_field_capacite', 'c', 'c.entity_id = n.nid', array());
         $query->join('field_data_field_groupe', 'gr', 'gr.entity_id = n.nid', array());
@@ -554,39 +231,39 @@ function residence_mgmt_dashboard() {
         $query->fields('c', array('field_capacite_value'));
         $query->fields('lat', array('field_latitude_value'));
         $query->fields('lng', array('field_longitude_value'));
-        $query->where("n.nid IN (:residenceIds)", array( ':residenceIds' => $residenceIds ));
+        $query->orderBy("cs.field_tarif_chambre_simple_value", "DESC");
+        $query->range(0, 5);
         $quickWins = $query->execute()->fetchAll();
 
         foreach( $quickWins as $key => $r ) {
 
-            $ranking = getRankingResidenceConcurrente($r->nid);
+            $ranking = getRankingOfResidence( $r->nid, array( "CONCURRENCE_DIRECTE" ) );
             $residencesConcurrentes = getResidencesProchesByStatus( $r->nid, $statuses = array( $r->field_statut_value ), $limit = 10);
 
-            $residencesConcurrentesTarif = [];
-            foreach( $residencesConcurrentes  as $rc ) {
-                $residencesConcurrentesTarif[] = $rc->field_tarif_chambre_simple_value;
-            }
+            $residencesConcurrentesTarif = array_map(function( $residenceConcurrente ) {
+                return $residenceConcurrente->field_tarif_chambre_simple_value;
+            }, $residencesConcurrentes);
 
             $tarifMoyenConcurrence = moyen($residencesConcurrentesTarif);
 
             // FIELDS
 
             $quickWins[$key]->tarif_concurrence_direct = round($tarifMoyenConcurrence, 2);
-            $quickWins[$key]->ranking_direct = $ranking['concurrence_direct'];
+            $quickWins[$key]->ranking_direct = $ranking['concurrence_directe'];
 
             $quickWins[$key]->difference = round($quickWins[$key]->tarif_concurrence_direct - $quickWins[$key]->field_tarif_chambre_simple_value, 2);
 
         }
 
-        file_put_contents( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file, json_encode($quickWins));
+        // file_put_contents( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file, json_encode($quickWins));
 
-    }
+    // }
 
     usort($quickWins, function($first, $second) {
         return $second->difference - $first->difference;
     });
 
-    $quickWins = array_slice($quickWins, 0, 5, true);
+    // $quickWins = array_slice($quickWins, 0, 5, true);
     // varDebug($quickWins);
     // exit();
 
@@ -594,13 +271,13 @@ function residence_mgmt_dashboard() {
     //$maquettes = getMaquettesOfResidences( $residenceIds );
 
     $maquettes = null;
-    $cache_file = "all_maquettes_" . date('Y-m-d') . ".json";
-    if( false && file_exists(DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file) ) {
+    // $cache_file = "all_maquettes_" . date('Y-m-d') . ".json";
+    // if( false && file_exists(DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file) ) {
 
-        $maquettes = file_get_contents( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file);
-        $maquettes = json_decode($maquettes);
+    //     $maquettes = file_get_contents( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file);
+    //     $maquettes = json_decode($maquettes);
 
-    } else {
+    // } else {
 
         $query = db_select('node', 'n');
         $query->condition('n.type', "tmh_maquette", '=');
@@ -626,9 +303,9 @@ function residence_mgmt_dashboard() {
         $query->range(0, 5);
         $maquettes = $query->execute()->fetchAll();
 
-        file_put_contents( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file, json_encode($maquettes));
+        // file_put_contents( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file, json_encode($maquettes));
 
-    }
+    // }
 
     // varDebug($maquettes);
     // exit();
@@ -638,9 +315,9 @@ function residence_mgmt_dashboard() {
 
         $query = db_select('node', 'n');
         $query->condition('n.type', "residence", '=');
+        $query->condition('n.nid', $residenceIds, 'IN');
         $query->join('field_data_field_departement', 'd', 'd.entity_id = n.nid', array());
         $query->fields('n', array('nid', 'title'));
-        $query->condition('n.nid', $residenceIds, 'IN');
 
         if( isset($_POST['residence']) && !empty($_POST['residence']) ) {
             $query->condition('n.title', '%' . $_POST['residence'] . '%', 'LIKE');
@@ -649,16 +326,10 @@ function residence_mgmt_dashboard() {
         if( isset($_POST['departements']) && !empty($_POST['departements']) ) {
             $query->condition('d.field_departement_tid', $_POST['departements'], 'IN');
         }
-
-        $result = $query->execute()->fetchAll();
-
-        $residenceIds = ['-1'];
-        foreach($result as $r) { $residenceIds[] = $r->nid; }
+        
+        $residenceIds = $query->execute()->fetchCol('n.nid');
 
     }
-
-    // ALL DEPARTMENTS
-    $departements = getAllDepartments();
 
     // STATISTIQUES
     $dashboardStatistics = array(
@@ -672,13 +343,13 @@ function residence_mgmt_dashboard() {
 
     $query = db_select('node', 'n');
     $query->condition('n.type', "residence", '=');
+    $query->condition('n.nid', $residenceIds, 'IN');
     $query->join('field_data_field_statut', 's', 's.entity_id = n.nid', array());
     $query->join('field_data_field_departement', 'd', 'd.entity_id = n.nid', array());
     $query->join('taxonomy_term_data', 't', 't.tid = d.field_departement_tid', array());
     $query->leftjoin('field_data_field_capacite', 'c', 'c.entity_id = n.nid', array());
     $query->leftjoin('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
     $query->leftjoin('field_data_field_tarif_chambre_simple', 'tarif', 'tarif.entity_id = rc.entity_id and tarif.field_tarif_chambre_simple_value != :tarif', array( ':tarif' => 'NA' ));
-    $query->where("n.nid IN (:residenceIds)", array( ':residenceIds' => $residenceIds ));
     $query->addExpression('count(nid)', 'count');
     $query->addExpression('GROUP_CONCAT(s.field_statut_value)', 'statuses');
     $query->addExpression('GROUP_CONCAT(tarif.field_tarif_chambre_simple_value)', 'tarifs');
@@ -692,45 +363,27 @@ function residence_mgmt_dashboard() {
     $dashboardStatistics["Tarif plus haut"] = max($residenceTarifs);
     $dashboardStatistics["Tarif médian"] = round(median($residenceTarifs), 2);
 
-    // DATA MAPS
-    $query = db_select('node', 'n');
-    $query->condition('n.type', "residence", '=');
-    $query->join('field_data_field_finess', 'ff', 'ff.entity_id = n.nid', array());
-    $query->join('field_data_field_statut', 's', 's.entity_id = n.nid', array());
-    $query->join('field_data_field_longitude', 'lng', 'lng.entity_id = n.nid', array());
-    $query->join('field_data_field_latitude', 'lat', 'lat.entity_id = n.nid', array());
-    $query->join('field_data_field_departement', 'd', 'd.entity_id = n.nid', array());
-    $query->join('field_data_field_location', 'l', 'l.entity_id = n.nid', array());
-    $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
-    $query->innerjoin('node', 'c', 'rc.entity_id = c.nid', array());
-    $query->join('field_data_field_tarif_chambre_simple', 't', 't.entity_id = c.nid and t.field_tarif_chambre_simple_value != :tarif', array( ':tarif' => 'NA' ));
-    $query->leftjoin('field_data_field_groupe', 'g', 'g.entity_id = n.nid', array());
-    $query->leftjoin('taxonomy_term_data', 'grp', 'g.field_groupe_tid = grp.tid', array());
-    $query->leftjoin('field_data_field_logo', 'logo', 'logo.entity_id = grp.tid', array());
-    $query->where("n.nid IN (:residenceIds)", array( ':residenceIds' => $residenceIds ));
-    $query->fields('n', array('nid', 'title'));
-    $query->fields('ff', array('field_finess_value'));
-    $query->fields('s', array('field_statut_value'));
-    $query->fields('lng', array('field_longitude_value'));
-    $query->fields('lat', array('field_latitude_value'));
-    $query->fields('l', array('field_location_locality', 'field_location_postal_code'));
-    $query->fields('t', array('field_tarif_chambre_simple_value'));
-    $query->fields('logo', array('field_logo_fid'));
-    $dataMarkers = $query->execute()->fetchAll();
-
     // ALL RESIDENCES
+    $residences = [];
     $query = db_select('node', 'n');
     $query->condition('n.type', "residence", '=');
+    $query->condition('n.nid', $residenceIds, 'IN');
+
+    $query->join('field_data_field_finess', 'ff', 'ff.entity_id = n.nid', array());
     $query->join('field_data_field_statut', 's', 's.entity_id = n.nid', array());
     $query->join('field_data_field_location', 'l', 'l.entity_id = n.nid', array());
     $query->join('field_data_field_longitude', 'lng', 'lng.entity_id = n.nid', array());
     $query->join('field_data_field_latitude', 'lat', 'lat.entity_id = n.nid', array());
     $query->join('field_data_field_gestionnaire', 'g', 'g.entity_id = n.nid', array());
     $query->join('field_data_field_capacite', 'c', 'c.entity_id = n.nid', array());
-    $query->join('field_data_field_groupe', 'gr', 'gr.entity_id = n.nid', array());
     $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
     $query->join('field_data_field_tarif_chambre_simple', 'cs', 'cs.entity_id = rc.entity_id', array());
+    $query->join('field_data_field_groupe', 'gr', 'gr.entity_id = n.nid', array());
+    $query->leftjoin('taxonomy_term_data', 'grp', 'gr.field_groupe_tid = grp.tid', array());
+    $query->leftjoin('field_data_field_logo', 'logo', 'logo.entity_id = grp.tid', array());
+
     $query->fields('n', array('nid', 'title'));
+    $query->fields('ff', array('field_finess_value'));
     $query->fields('s', array('field_statut_value'));
     $query->fields('l', array('field_location_locality', 'field_location_postal_code'));
     $query->fields('lng', array('field_longitude_value'));
@@ -738,8 +391,16 @@ function residence_mgmt_dashboard() {
     $query->fields('cs', array('field_tarif_chambre_simple_value'));
     $query->fields('g', array('field_gestionnaire_value'));
     $query->fields('c', array('field_capacite_value'));
-    $query->where("n.nid IN (:residenceIds)", array( ':residenceIds' => $residenceIds ));
+    $query->fields('logo', array('field_logo_fid'));
+
     $residences = $query->execute()->fetchAll();
+
+    // DATA MAPS
+    $dataMarkers = $residences;
+
+    // varDebug(count($dataMarkers));
+    // varDebug(count($residences));
+    // exit();
 
     ob_start();
 
@@ -757,33 +418,17 @@ function residence_mgmt_get_quick_win() {
 
     global $user;
 
-    $residences = array();
-    $account = user_load($user->uid);
-    $groupes = array('-1');
-    $residenceIds = array(('-1'));
-
-    foreach($account->field_acces_groupes['und'] as $groupe) { $groupes[] = $groupe['target_id']; }
-    foreach($account->field_acces_residences['und'] as $residence) { $residenceIds[] = $residence['target_id']; }
-
-    $query = db_select('node', 'n');
-    $query->condition('n.type', "residence", '=');
-    $query->join('field_data_field_groupe', 'grp', 'grp.entity_id = n.nid', array());
-    $query->where('grp.field_groupe_tid IN (:groupes)', array( ':groupes' => $groupes ));
-    $query->fields('n', array('nid', 'title'));
-    $result = $query->execute()->fetchAll();
-
-    foreach($result as $r) { $residenceIds[] = $r->nid; }
+    $residenceIds = getResidencesByUser($user->uid);
 
     // QUICK WINS
     $query = db_select('node', 'n');
     $query->condition('n.type', "residence", '=');
+    $query->condition('n.nid', $residenceIds, 'IN');
     $query->join('field_data_field_statut', 's', 's.entity_id = n.nid', array());
     $query->join('field_data_field_departement', 'dep', 'dep.entity_id = n.nid', array());
     $query->join('taxonomy_term_data', 'd', 'd.tid = dep.field_departement_tid', array());
     $query->join('field_data_field_capacite', 'c', 'c.entity_id = n.nid', array());
     $query->join('field_data_field_groupe', 'gr', 'gr.entity_id = n.nid', array());
-    $query->join('field_data_field_latitude', 'lat', 'lat.entity_id = n.nid', array());
-    $query->join('field_data_field_longitude', 'lng', 'lng.entity_id = n.nid', array());
     $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
     $query->join('field_data_field_tarif_chambre_simple', 'cs', 'cs.entity_id = rc.entity_id', array());
     $query->fields('n', array('nid', 'title'));
@@ -791,27 +436,27 @@ function residence_mgmt_get_quick_win() {
     $query->fields('s', array('field_statut_value'));
     $query->fields('cs', array('field_tarif_chambre_simple_value'));
     $query->fields('c', array('field_capacite_value'));
-    $query->fields('lat', array('field_latitude_value'));
-    $query->fields('lng', array('field_longitude_value'));
-    $query->where("n.nid IN (:residenceIds)", array( ':residenceIds' => $residenceIds ));
+    // $query->range(0, 10);
     $quickWins = $query->execute()->fetchAll();
 
     foreach( $quickWins as $key => $r ) {
 
-        $ranking = getRankingResidenceConcurrente($r->nid);
+        $ranking = getRankingOfResidence( $r->nid, array( "CONCURRENCE_DIRECTE" ) );
         $residencesConcurrentes = getResidencesProchesByStatus( $r->nid, $statuses = array( $r->field_statut_value ), $limit = 10);
 
-        $residencesConcurrentesTarif = [];
-        foreach( $residencesConcurrentes  as $rc ) {
-            $residencesConcurrentesTarif[] = $rc->field_tarif_chambre_simple_value;
-        }
+        $residencesConcurrentesTarif = array_map(function( $residenceConcurrente ) {
+            return $residenceConcurrente->field_tarif_chambre_simple_value;
+        }, $residencesConcurrentes);
+        // foreach( $residencesConcurrentes  as $rc ) {
+        //     $residencesConcurrentesTarif[] = $rc->field_tarif_chambre_simple_value;
+        // }
 
         $tarifMoyenConcurrence = moyen($residencesConcurrentesTarif);
 
         // FIELDS
 
         $quickWins[$key]->tarif_concurrence_direct = round($tarifMoyenConcurrence, 2);
-        $quickWins[$key]->ranking_direct = $ranking['concurrence_direct'];
+        $quickWins[$key]->ranking_direct = $ranking['concurrence_directe'];
 
         $quickWins[$key]->difference = round($quickWins[$key]->tarif_concurrence_direct - $quickWins[$key]->field_tarif_chambre_simple_value, 2);
 
@@ -840,22 +485,7 @@ function residence_mgmt_get_mes_maquettes() {
 
     global $user;
 
-    $residences = array();
-    $account = user_load($user->uid);
-    $groupes = array('-1');
-    $residenceIds = array(('-1'));
-
-    foreach($account->field_acces_groupes['und'] as $groupe) { $groupes[] = $groupe['target_id']; }
-    foreach($account->field_acces_residences['und'] as $residence) { $residenceIds[] = $residence['target_id']; }
-
-    $query = db_select('node', 'n');
-    $query->condition('n.type', "residence", '=');
-    $query->join('field_data_field_groupe', 'grp', 'grp.entity_id = n.nid', array());
-    $query->where('grp.field_groupe_tid IN (:groupes)', array( ':groupes' => $groupes ));
-    $query->fields('n', array('nid', 'title'));
-    $result = $query->execute()->fetchAll();
-
-    foreach($result as $r) { $residenceIds[] = $r->nid; }
+    $residenceIds = getResidencesByUser($user->uid);
 
     // MES MAQUETTES
     $query = db_select('node', 'n');
@@ -869,8 +499,8 @@ function residence_mgmt_get_mes_maquettes() {
     $query->leftjoin('field_data_field_residence', 'rc', 'rc.field_residence_target_id = r.nid and rc.bundle = \'chambre\'', array());
     $query->leftjoin('field_data_field_tarif_chambre_simple', 'ch', 'ch.entity_id = rc.entity_id and ch.field_tarif_chambre_simple_value != :tarif', array( ':tarif' => 'NA' ));
     $query->leftjoin('field_data_field_favoris', 'f', 'f.entity_id = n.nid', array());
-
     $query->where('r.nid IN (:residenceIds)', array( ':residenceIds' => $residenceIds ));
+
     $query->fields('r', array('nid', 'title'));
     $query->fields('t', array('name'));
     $query->fields('ch', array('field_tarif_chambre_simple_value'));
@@ -991,7 +621,7 @@ function residence_mgmt_residences($departementId = null) {
 
     // POPULATION
     $numDepartment = substr($departement->name, 0, stripos($departement->name, " - "));
-    $population = json_decode(getRequest( BASE_API_URL . "/api/populations/" . $numDepartment . "/2020"));###
+    $population = json_decode(getRequest( BASE_API_URL . "/api/populations/" . $numDepartment . "/2020"));
     $ages = array("75 à 79 ans","80 à 84 ans","85 à 89 ans","90 à 94 ans","95 ans et plus");
 
     $totalPopulation = 0;
@@ -1334,7 +964,8 @@ function residence_mgmt_get_residence_details($residenceId = null) {
         // exit();
     }
 
-    $residenceRanking = getRankingResidenceConcurrente($residenceId);
+    $residenceRanking = getRankingOfResidence( $residenceId, array("CONCURRENCE_DIRECTE", "DEPARTEMENT") );
+
     $residencesConcurrentes['direct'] = getResidencesProchesByStatus( $residenceId, $statuses = array( $residence->field_statut['und'][0]['value'] ), $limit = 10);
     $residencesConcurrentes['indirect'] = getResidencesProchesByStatus( $residenceId, $statuses = array(), $limit = 10);
 
@@ -1493,9 +1124,9 @@ function residence_mgmt_get_geojson_of_cities_by_department() {
   $cities = [];
 
   if( !empty($postData['cities']) ) {
-      $cities = postRequest( BASE_API_URL . "/api/cities/codes", $postData);#####
+      $cities = postRequest( BASE_API_URL . "/api/cities/codes", $postData);
   } else {
-      $cities = getRequest( BASE_API_URL . "/api/cities/department/" . $postData["department"]);#####
+      $cities = getRequest( BASE_API_URL . "/api/cities/department/" . $postData["department"]);
   }
 
   $cities = json_decode($cities);
@@ -1550,7 +1181,7 @@ function residence_mgmt_get_geojson_of_cities_by_department() {
       foreach( $cities as $city ) { $citiesPosted[] = $city->code; }
       $response = new stdClass();
       $response->communesParsed = $communesParsed;
-      $response->dvf = postCurlRequest( BASE_API_URL . "/api/property_values/year-and-cities", array( 'year' => 2019, 'cities' => $citiesPosted ));#todo:Y-1
+      $response->dvf = postRequest( BASE_API_URL . "/api/property_values/year-and-cities", array( 'year' => 2019, 'cities' => $citiesPosted ));
       residence_mgmt_update_user_balance( "DEVELOPMENT_TOOLS_REQUEST", array(), $_POST, $response);
   }
 
@@ -1770,30 +1401,23 @@ function residence_mgmt_recherche_silverex() {
     $currentMenu = "recherche-silverex";
 
     $residences = array();
-    $categories = json_decode(getRequest( BASE_API_URL . "/api/health-organizations/categories/list" ));##
+    $categories = json_decode(getRequest( BASE_API_URL . "/api/health-organizations/categories/list" ));
     $healthOrganizations = array();
     $requete_statistiques = null;
 
     if( !empty($_POST) && residence_mgmt_has_enough_user_balance('RESIDENCES_REQUEST', array( "perimetre" => $_POST['perimetre'] )) ) {
 
         if( isset($_POST['latitude']) && isset($_POST['longitude']) && isset($_POST['perimetre'])) {
-
-            $adr=$_POST['adresse'];
-            if(!$adr)$adr=$_POST['latitude'].'-'.$_POST['longitude'];
-
             $selectedStatut = ($_POST['statut'] != "aucun") ? $_POST['statut'] : null;
             $residences = getResidencesConcurrentesOnAddress($_POST['latitude'], $_POST['longitude'], $_POST['perimetre'], $selectedStatut);
-
-            $name = trim($selectedStatut.' '.$_POST['categories'].' '.$_POST['perimetre'] . 'km autour de ' . $adr);
-
             if( !empty($_POST['categories']) ){
-                $healthOrganizations = json_decode(postCurlRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], array( 'categories' => $_POST['categories'] ) ));####
+                $healthOrganizations = json_decode(postRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], array( 'categories' => $_POST['categories'] ) ));
             }
         }
 
-        $requete_statistiques = get_requete_statistique($residences,$name);
+        $requete_statistiques = get_requete_statistique($residences);
 
-        residence_mgmt_update_user_balance( "RESIDENCES_REQUEST", array( "perimetre" => $_POST['perimetre'] ), $_POST, $residences,$name);
+        residence_mgmt_update_user_balance( "RESIDENCES_REQUEST", array( "perimetre" => $_POST['perimetre'] ), $_POST, $residences);
     }
 
     ob_start();
@@ -1990,8 +1614,7 @@ function get_statistique_globale($departementId = null, $ajax = false) {
 
 }
 
-function get_requete_statistique($residences = array(), $name = '')
-{
+function get_requete_statistique($residences = array()) {
     $requete_statistique = array(
         "Nbre de maisons" => 0,
         "Privé" => 0,
@@ -2138,7 +1761,6 @@ function residence_mgmt_get_history( $historyId ) {
 /**
  * LOAD CHART DATA
  */
-
 function loadDepartementChartData($departementId = null) {
     $query = db_select('node', 'n');
     $query->condition('n.type', "residence", '=');
@@ -2159,12 +1781,10 @@ function loadDepartementChartData($departementId = null) {
 /**
  * GENERATE DOCUMENT
  */
-
 function residence_mgmt_generate_document( $userId, $historyId ) {
   global $user;
-#https://ehpad.home/ged/1/document/46771
-#if(defined('DEV'))
-  if($userId != $user->uid  ) {
+
+  if( $userId != $user->uid  ) {
       return header("Location: " . $_SERVER['HTTP_REFERER']);
   }
 
@@ -2194,38 +1814,8 @@ function residence_mgmt_generate_document( $userId, $historyId ) {
 
   $generatedFile = $history->title . "_" . $history->nid;
 
-  // varDebug($historyResult->response->communesParsed->features[1]->properties);
-  // exit();
-
   include __DIR__ . "/templates/layouts/default.pdf.php";
 
-}
-
-
-/**
- * Test and updating data
- */
-
-function residence_mgmt_test() {
-
-  // $ids = array(3824, 13164, 13180, 10414, 9036, 9042, 11910, 9322, 6428, 6852, 9048, 10396, 6600, 7834, 13098, 13106);
-
-  // $query = db_select('node', 'n');
-  // $query->condition('n.type', "residence", '=');
-  // $query->condition('n.nid', $ids, 'IN');
-  // $query->fields('n', array('nid', 'title'));
-  // $nodes = $query->execute()->fetchAll();
-
-  // foreach( $nodes as $node ) {
-  //     $n = node_load($node->nid);
-  //     $n->field_groupe[$n->language][0]['tid'] = 103;
-  //     node_save($n);
-  // }
-
-  // varDebug($nodes);
-  // exit();
-
-  include_once __DIR__ . "/templates/test.php";
 }
 
 function updateDepartements() {
@@ -2352,4 +1942,80 @@ function residence_mgmt_distance_indexation() {
 
     // indexDistanceBetweenTwoPoints( $primaryNid, $secondaryNid )
 
+}
+
+function residence_mgmt_nearby_residences_updated( $SchedulingType ) {
+    
+    $currentMenu = "nearby-residences";
+    $SchedulingTypes = array( "DAILY" => 1, "WEEKLY" => 7, "MONTHLY" => 30, "QUARTERLY" => 90 );
+    
+    $updatedDate = new DateTime();
+    $updatedDate->sub(new DateInterval("P" . $SchedulingTypes[strtoupper($SchedulingType)] . "D"));
+    
+    // echo $updatedDate->format("Y-m-d H:m:s") . "\n";
+    // exit();
+
+    global $user;
+
+    // GET ALL MY RESIDENCES 
+    $queryAccessResidence = db_select('node', 'r');
+    $queryAccessResidence->condition('r.type', 'residence', '=');    
+    $queryAccessResidence->join('field_data_field_acces_residences', 'ar', 'ar.field_acces_residences_target_id = r.nid and ar.entity_id = :currentUser', array( ':currentUser' => $user->uid ));
+    $queryAccessResidence->fields('r', array('nid', 'title'));
+
+    $query = db_select('node', 'r');
+    $query->condition('r.type', 'residence', '=');    
+    $query->join('field_data_field_acces_groupes', 'ag', 'ag.entity_id = :currentUser', array( ':currentUser' => $user->uid ));
+    $query->join('field_data_field_groupe', 'g', 'g.field_groupe_tid = ag.field_acces_groupes_target_id and g.entity_id = r.nid', array());
+    $query->fields('r', array('nid', 'title'));
+    $query->union($queryAccessResidence);
+
+    $allResidences = $query->execute()->fetchCol("nid");
+    
+    // varDebug($allResidences);
+    // exit();
+
+    $nearbyResidencesUpdated = array();
+
+    foreach( $allResidences as $rnid ) {
+
+        $nearbyResidences =  db_select('distance_indexation', 'di')
+            ->fields('di', array( 'secondary_nid'))
+            ->condition('primary_nid', $rnid)
+            ->orderBy('distance', "ASC")
+            ->range(0, 5)->execute()->fetchCol("secondary_nid");
+
+        $query = db_select('residence_pricing_updates', 'rpu');
+        $query->condition('rpu.status', 'NEW');
+        $query->condition('rpu.created_at', $updatedDate->format("Y-m-d H:m:s"), '>=');
+        $query->condition('residence_nid', $nearbyResidences, 'IN');
+        $query->join('node', 'r', 'r.type = :type and r.nid = rpu.residence_nid', array( ':type' => 'residence' ));
+        $query->join('distance_indexation', 'di', 'di.primary_nid = :rnid and di.secondary_nid = r.nid', array( ':rnid' => $rnid ));
+        $query->join('node', 'pr', 'pr.type = :type and pr.nid = di.primary_nid', array( ':type' => 'residence' ));
+        $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = di.primary_nid', array());
+        $query->join('field_data_field_tarif_chambre_simple', 't', 't.entity_id = rc.entity_id', array());
+        $query->join('field_data_field_departement', 'd', 'd.entity_id = r.nid', array());
+        $query->join('taxonomy_term_data', 'department', 'department.tid = d.field_departement_tid', array());
+        $query->addField('r', 'title', 'concurrent_residence_name');
+        $query->addField('department', 'name', 'department_name');
+        $query->fields('rpu', array('residence_nid', 'old_price', 'new_price', 'created_at'));
+        $query->fields('di', array('primary_nid', 'distance'));
+        $query->addField('pr', 'title', 'notre_residence_name');
+        $query->addField('t', 'field_tarif_chambre_simple_value', 'notre_tarif');
+        $result = $query->execute()->fetchAll();
+
+        $nearbyResidencesUpdated = array_merge($nearbyResidencesUpdated, $result);
+
+    }
+
+    // varDebug($nearbyResidencesUpdated);
+    // exit();
+    
+    ob_start();
+
+    include_once __DIR__ . "/templates/nearby_residences_updated.php";
+
+    $content = ob_get_clean();
+
+    include_once __DIR__ . "/templates/layouts/default.php";
 }

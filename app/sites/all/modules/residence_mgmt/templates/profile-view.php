@@ -1,10 +1,9 @@
-<?php define("MODULE_PATH", "/sites/all/modules/residence_mgmt"); ?>
 <div class="media d-block d-lg-flex">
     <div class="profile-sidebar pd-lg-r-25">
         <div class="row">
             <div class="col-sm-3 col-md-2 col-lg">
                 <div class="avatar avatar-xxl avatar-online"><img
-                        src="<?php echo MODULE_PATH; ?>/assets/img/user-default.png" class="rounded-circle" alt="">
+                        src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/img/user-default.png" class="rounded-circle" alt="">
                 </div>
             </div><!-- col -->
             <div class="col-sm-8 col-md-7 col-lg mg-t-20 mg-sm-t-0 mg-lg-t-25">
