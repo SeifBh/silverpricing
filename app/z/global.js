@@ -29,7 +29,8 @@ window.addEventListener('load', function(e){document.body.parentNode.className+=
 /*}90:functions{*/
 /*var hereMap = initHereMap(*/
 //defer(,function(){return window[hereMap] && window[jQuery];});
-function defer(method, which, timeout) {
+//captureMap(0,cl); works !
+async function defer(method, which, timeout) {
     var timeout = timeout || 200,which=which || function(){return typeof (window['jQuery']=='function');};
     if (which()) {
         return method();
