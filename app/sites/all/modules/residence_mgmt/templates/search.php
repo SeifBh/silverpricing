@@ -1,4 +1,37 @@
-<?php $a=1;?>
+<?php
+$hist=[];
+$a='recher-silverex';
+if($GLOBALS['user']->uid){
+    $uid=intval($GLOBALS["user"]->uid);
+    $x=Alptech\Wip\fun::sql("select nid,b.body_value from node n inner join field_data_body b on n.nid=b.entity_id where type='history' and uid=".$uid." order by nid desc");
+    foreach($x as $t){
+        $params=json_decode($t['body_value'],1)['request'];
+        unset($params['latitude'],$params['longitude']);
+        $imp=trim(preg_replace('~[^a-z0-9\-_]~is','',strtolower(implode('-_-',$params))));
+        $hist[$imp][]=$t['nid'];
+    }
+}
+/*
+#
+*/?><script>
+var historique=<?=json_encode($hist)?>;
+function historyCheck(el){
+    if(Object.keys(historique).length==0)return true;
+    var st=$('#status option:selected').text();if(st=='')st='aucun';
+    var sign=$('#adresse').val()+'-_-'+st+'-_-'+$('#perimetre').val();
+    sign=sign.toLowerCase().replace(/[^a-z0-9_\-]/gi,'')
+    //cl(sign,historique[sign]);
+    if(typeof(historique[sign]) != 'undefined'){
+        //cl(sign,historique[sign]);
+        nb=historique[sign].length;
+        x=confirm('Une recherche correspondante existe déjà ('+nb+'), êtes vous certain de vouloir poursuivre ?');
+        return x;
+    }
+    return false;
+    /*dqs('#latitude');dqs('#longitude');*/
+}
+</script>
+
 <section class="section-residences">
 
     <div class="row">
@@ -9,7 +42,7 @@
                     <h5 class="tx-8rem tx-uppercase tx-bold lh-5 mg-b-0">Recherche</h5>
                 </div>
                 <div class="card-body pd-y-15 pd-x-10">
-                    <form method="POST" id="search-form" >
+                    <form method="POST" id="search-form" onsubmit="return historyCheck(this);">
 
                         <div class="form-group col-md-12">
                             <div class="input-group">

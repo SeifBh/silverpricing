@@ -4,7 +4,7 @@
 <html lang="fr" id="a"><head>
     <script type="text/javascript"><?php
         $json=[];
-        if(isset($user)){$json=array_merge($json,['uid'=>$user->uid,'uname'=>$user->name]);}
+        if(isset($GLOBALS['user']->uid)){$json=array_merge($json,['uid'=>$GLOBALS['user']->uid,'uname'=>$GLOBALS['user']->name]);}
         if(isset($_POST)){$json=array_merge($json,['post'=>$_POST]);}
         if(isset($_GET)){$json=array_merge($json,['get'=>$_GET]);}
         if(isset($_SESSION['public'])){$json=array_merge($json,['session'=>$_SESSION['public']]);}

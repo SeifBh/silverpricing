@@ -1569,6 +1569,7 @@ ajax('/z/ajax.php?markers=1','GET','',function(r){pngMarkers=JSON.parse(r);/*cl(
 <?php
 $a='https://ehpad.home/recherche-silverex';#rechercher
 foreach( $residences as $k=>$residence ){
+    $k2=$k+1;
     $a=1;
     switch($residence->field_statut_value) {
         case "Associatif":$color='EB9B6C';$txtcolor='000';$b='FFF';break;
@@ -1586,7 +1587,7 @@ foreach( $residences as $k=>$residence ){
 markerObject = null,marker = { lat: <?php echo $residence->field_latitude_value; ?>, lng: <?php echo $residence->field_longitude_value; ?> };
 markers.push(marker);
 
-k=<?=$k+1?>;bgColor='<?=$color?>';txtColor='<?=$txtcolor?>';border='<?=$b?>';w=<?=$w?>;h=<?=$h?>;zoom=<?=$zoom?>;
+k=<?=$k2?>;bgColor='<?=$color?>';txtColor='<?=$txtcolor?>';border='<?=$b?>';w=<?=$w?>;h=<?=$h?>;zoom=<?=$zoom?>;
 pngFileName=k+'-'+bgColor+'-'+txtColor+'-'+border+'-'+w+'-'+h+'-'+zoom;
 var final=pngFileName+'.png';
 
@@ -1596,7 +1597,7 @@ img.onload=function(a,b,c){/*cl({a,b,c});*/toload.remove(a);}.bind(this,final);/
 markerObject = new H.map.Marker(marker, { icon: new H.map.Icon('/z/markers/'+final) });
 addInfoBubble(hereMap, markerObject,
     "<?php
-        echo " #$k <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
+        echo " #$k2 <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
         echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
         echo "<strong>$residence->field_tarif_chambre_simple_value €</strong>";
         ?>");
