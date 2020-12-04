@@ -1562,9 +1562,9 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
             }
         });
 
-var markers = [],markerObject;
+toload=[];markers = [];
 needSvgToCanvas();
-ajax('/z/ajax.php?markers=1','GET','',function(r){pngMarkers=JSON.parse(r);cl(pngMarkers);});
+ajax('/z/ajax.php?markers=1','GET','',function(r){pngMarkers=JSON.parse(r);/*cl(pngMarkers);*/});
 
 <?php
 $a='https://ehpad.home/recherche-silverex';#rechercher
@@ -1586,9 +1586,12 @@ foreach( $residences as $k=>$residence ){
 markerObject = null,marker = { lat: <?php echo $residence->field_latitude_value; ?>, lng: <?php echo $residence->field_longitude_value; ?> };
 markers.push(marker);
 
-k=<?=$k?>;bgColor='<?=$color?>';txtColor='<?=$txtcolor?>';border='<?=$b?>';w=<?=$w?>;h=<?=$h?>;zoom=<?=$zoom?>;
+k=<?=$k+1?>;bgColor='<?=$color?>';txtColor='<?=$txtcolor?>';border='<?=$b?>';w=<?=$w?>;h=<?=$h?>;zoom=<?=$zoom?>;
 pngFileName=k+'-'+bgColor+'-'+txtColor+'-'+border+'-'+w+'-'+h+'-'+zoom;
 var final=pngFileName+'.png';
+
+img = new Image();img.src = '/z/markers/'+final;toload.push(final);//[final]=1;
+img.onload=function(a,b,c){/*cl({a,b,c});*/toload.remove(a);}.bind(this,final);//1st bind Is "This"
 
 markerObject = new H.map.Marker(marker, { icon: new H.map.Icon('/z/markers/'+final) });
 addInfoBubble(hereMap, markerObject,
@@ -1597,13 +1600,27 @@ addInfoBubble(hereMap, markerObject,
         echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
         echo "<strong>$residence->field_tarif_chambre_simple_value €</strong>";
         ?>");
+//function(final .. ){}.bind(0,final,pngFileName, k, bgColor, txtColor, border, w, h, zoom)
+//(function(final,pngFileName, k, bgColor, txtColor, border, w, h, zoom) {//Closure passes arguments    })();
+    //cl('defer', final,pngFileName, k, bgColor, txtColor, border, w, h, zoom);
+defer(
+    function(final,pngFileName, k, bgColor, txtColor, border, w, h, zoom){//Peuvent être générés après
+// cl('defer', final, pngMarkers.indexOf(final),zoom);
+//undefined -1
 
-defer(function(){//Peuvent être générés après
-    if(pngMarkers.indexOf(final)==-1){//Génération
-        document.querySelector('#svgC').innerHTML=genSvg(k,bgColor,txtColor,border,w,h,zoom);
+    if (pngMarkers.indexOf(final) == -1) {//Génération
+        cl('defer',pngFileName, k, bgColor, txtColor, border, w, h, zoom);
+        document.querySelector('#svgC').innerHTML = genSvg(k, bgColor, txtColor, border, w, h, zoom);
         svg2png(pngFileName);
     }
-},function(){return ( typeof svg2png == 'function' && typeof document.body =='object' && typeof pngMarkers =='object' && typeof Canvas2Image =='object' && typeof RGBColor=='function' && typeof jQuery=='function'  && typeof $=='function'  && typeof canvg=='function');});
+}.bind(0,final,pngFileName, k, bgColor, txtColor, border, w, h, zoom)
+,function (){
+    x= (typeof svg2png == 'function' && typeof document.body == 'object' && typeof pngMarkers == 'object' && typeof Canvas2Image == 'object' && typeof RGBColor == 'function' && typeof jQuery == 'function' && typeof $ == 'function' && typeof canvg == 'function');
+    //cl(final,pngFileName,x);
+    return x;
+});
+//})(final,pngFileName, k, bgColor, txtColor, border, w, h, zoom);
+
 <?php
 }
         foreach( $healthOrganizations as $healthOrganization ): ?>
@@ -1646,10 +1663,7 @@ defer(function(){//Peuvent être générés après
 
         // MAP
 
-        var hereMap = initHereMap(
-            "XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8",
-            document.getElementById('map-recherche-silverex')
-        );
+        var hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('map-recherche-silverex'));
 
         addFullScreenUIControl(hereMap);
 

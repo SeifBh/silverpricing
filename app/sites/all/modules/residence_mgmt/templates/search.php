@@ -104,8 +104,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php $rows = 0; ?>
-                            <?php foreach( $residences as $residence ): ?>
+                            <?php $rows = 0;
+                            foreach( $residences as $k=>$residence ): ?>
                             <tr>
                                 <td>
                                     <?php
@@ -118,7 +118,7 @@
                                     ?>
                                     <a href="<?php echo '/residence/' . $residence->nid; ?>"><?php echo $residence->title ?></a>
                                 </td>
-                                <td><?php echo $residence->grp_term_name; ?></td>
+                                <td>#<?php echo ($k+1).' '.$residence->grp_term_name; ?></td>
                                 <td><?php echo $residence->field_location_postal_code; ?></td>
                                 <td><?php echo $residence->field_location_locality; ?></td>
                                 <td><?php echo $residence->name; ?></td>
@@ -138,6 +138,6 @@
 </section>
 <script>
 if(typeof post['latitude']!='undefined'){
-    defer(captureMap,function(){return window['hereMap'] && typeof  window['jQuery']=='function';});
+    defer(captureMap,function(){return (toload.length==0 && typeof window['hereMap']=='object' && typeof  window['jQuery']=='function');});
 }
 </script>

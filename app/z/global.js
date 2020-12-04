@@ -4,6 +4,7 @@ var pngMarkers,
     pngFileName,k,bgColor,txtColor,border,w,h,zoom,
     svg,canvasOriginal,ctxOriginal,canvasComputed,ctxConverted,emptySvgDeclarationComputed,allElements,i,image,len,image_data,
     cap,currentMap,hereMap,rendered=0,renderingSteps=0,mapName='map',
+    toload=[],markers = [],markerObject,
     cl=console.log,nf=function(){return;}
     ;
 
@@ -51,7 +52,8 @@ async function captureMap(el,callback){
     //here map capture map and markers
 //$(el).attr('style','').addClass('fullScreen');hereMap.map.getViewPort().resize();necessaires=2;//Passée derrière
 //So we get the second rendering en mode FullScreen, de toutes façons 2 car on doit attendre que la copie soit rendue
-    while(!rendered || document.querySelectorAll('canvas').length<1) {waits+=ms;await new Promise(r => setTimeout(r,ms));}//cl(rendered,renderingSteps,necessaires,document.querySelectorAll('canvas').length);
+    $(el).attr('style','').addClass('hidden');
+    while(toload.length!=0 || !rendered || document.querySelectorAll('canvas').length<1) {waits+=ms;await new Promise(r => setTimeout(r,ms));}//cl(rendered,renderingSteps,necessaires,document.querySelectorAll('canvas').length);
     cl('waited:',waits,',rendering steps:',renderingSteps);
 
     //while(renderingSteps<necessaires || document.querySelectorAll('canvas').length<1) {cl(renderingSteps,necessaires,document.querySelectorAll('canvas').length);await new
@@ -86,11 +88,11 @@ async function captureMap(el,callback){
         });
 */
 
-        $(el).removeClass('fullScreen').attr('style',styleback);
+        $(el).removeClass('hidden').attr('style',styleback);
         //r.innerHTML='';
         datasize=b64img.length;
         //console.log(datasize);
-        $.ajax({"url":"/z/receptor.php","method":"POST","data":{"name":_mapName,"img":b64img}}).done(function(e) {
+        $.ajax({"url":"/z/ajax.php","method":"POST","data":{"name":_mapName,"img":b64img}}).done(function(e) {
             $.ajax({"url":"/updateHistory","method":"POST","data":{"hid":session['hid'],"mapName":e}}).done(function(e) {
                 cl('updated',e);
             });
@@ -133,7 +135,7 @@ function ajax(url,method,data,callback){
     xhr.onload = function () {
         ajax.urls.remove(url);ajax.nb--;
         callback(this.responseText);
-        cl('response for',url,':',this.responseText);
+        //cl('response for',url,':',this.responseText);
     };
     ajax.inc++;ajax.nb++;ajax.urls.push(url);
     if(typeof data=='object')data=JSON.stringify(data);

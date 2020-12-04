@@ -1,3 +1,5 @@
+<?php
+$a=1;?>
 <!DOCTYPE HTML>
 <html>
     <head>
@@ -27,6 +29,7 @@
     </head>
     <body>
         <div id="header">
+            <table><tr><td>
             <div>
                 <p><strong>Adresse : </strong><?php echo $historyResult->request->adresse; ?></p>
             </div>
@@ -46,12 +49,20 @@
             <div>
                 <p><strong>Périmetre : </strong><?php echo $historyResult->request->perimetre; ?></p>
             </div>
+                    </td><td>
+                        <?php
+                        if(isset($history->field_map["und"][0]["value"])){
+                            echo"<img src='".$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$history->field_map["und"][0]["value"]."'>";
+                        }
+                        ?>
+                    </td></tr></table>
         </div>
 
         <div id="content">
             <table class="table table-sm table-hover">
                 <thead>
                     <tr>
+                    <th scope="col">Id</th>
                     <th scope="col">Résidence</th>
                     <th scope="col">Code postal</th>
                     <th scope="col">Ville</th>
@@ -62,9 +73,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php $rows = 0; ?>
-                    <?php foreach( $historyResult->response as $residence ): ?>
+                    <?php $rows = 0;
+                    foreach( $historyResult->response as $k=>$residence ): ?>
                     <tr>
+                        <td><?php echo $k+1 ?></td>
                         <td><?php echo $residence->title ?></td>
                         <td><?php echo $residence->field_location_postal_code; ?></td>
                         <td><?php echo $residence->field_location_locality; ?></td>
