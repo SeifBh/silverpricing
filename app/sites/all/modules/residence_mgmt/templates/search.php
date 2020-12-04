@@ -27,7 +27,7 @@ function historyCheck(el){
         x=confirm('Une recherche correspondante existe déjà ('+nb+'), êtes vous certain de vouloir poursuivre ?');
         return x;
     }
-    return false;
+    return true;
     /*dqs('#latitude');dqs('#longitude');*/
 }
 </script>
@@ -149,9 +149,9 @@ function historyCheck(el){
                                             ));
                                         }
                                     ?>
-                                    <a href="<?php echo '/residence/' . $residence->nid; ?>"><?php echo $residence->title ?></a>
+                                    <a href="<?php echo '/residence/' . $residence->nid; ?>"><?php echo ($k+1).' '.$residence->title ?></a>
                                 </td>
-                                <td>#<?php echo ($k+1).' '.$residence->grp_term_name; ?></td>
+                                <td><?php echo $residence->grp_term_name; ?></td>
                                 <td><?php echo $residence->field_location_postal_code; ?></td>
                                 <td><?php echo $residence->field_location_locality; ?></td>
                                 <td><?php echo $residence->name; ?></td>

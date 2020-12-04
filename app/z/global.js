@@ -1,14 +1,18 @@
-/*}0:variables{*/
+/*}0:variables{
+const ret1=await defer
+*/
+//Todo:global png image onload observer for map loading ..
 var pngMarkers,
     nb,nav,classname,ua,x,k,color,svg,
     pngFileName,k,bgColor,txtColor,border,w,h,zoom,
     svg,canvasOriginal,ctxOriginal,canvasComputed,ctxConverted,emptySvgDeclarationComputed,allElements,i,image,len,image_data,
     cap,currentMap,hereMap,rendered=0,renderingSteps=0,mapName='map',
-    toload=[],markers = [],markerObject,
-    cl=console.log,nf=function(){return;}
-    ;
+    toload=[],imgErr=[],markers = [],callbacks={},callbacksInc=0,dev=0,markerObject,
+    cl=console.log,nf=function(a){return;}
+;
 
-if(location.host.indexOf('.home')<0)cl=nf;//neutralisation
+if(location.host.indexOf('.home')<0 && !getCookie('ben')){dev=0;cl=nf;}//neutralisation
+console.log=nf;
 
 ua=navigator.userAgent.toLowerCase();
 /*}1:calc{*/
@@ -28,6 +32,20 @@ window.addEventListener('load', function(e){document.body.parentNode.className+=
 
 
 /*}90:functions{*/
+
+function getCookie(e){return document.cookie.length>0&&(begin=document.cookie.indexOf(e+"="),-1!=begin)?(begin+=e.length+1,end=document.cookie.indexOf(";",begin),-1==end&&(end=document.cookie.length),unescape(document.cookie.substring(begin,end))):null}
+function delCookie(e){path=";path=/",domain=";domain=."+document.location.hostname;var o="Thu, 01-Jan-1970 00:00:01 GMT";document.cookie=e+"="+path+domain+";expires="+o}
+var sc=setCookie,gc=getCookie;
+function setCookie(name,value,expires,path,domain,secure){
+    path=path || '/';
+    var today = new Date();today.setTime(today.getTime());
+    if(expires){expires = expires * 1000/*ms*/ * 3600/*hours*/ * 24;}
+    else{expires=1000*60*60*24*365;}//365 dats
+    var expires_date = new Date( today.getTime() + (expires) );
+    document.cookie=name+"="+escape(value)+ ((expires)?";expires="+expires_date.toGMTString():"")+ ((path)?";path="+path:"")+ ((domain)?";domain="+domain:"")+ ( ( secure ) ? ";secure" : "" );
+}
+
+
 /*var hereMap = initHereMap(*/
 //defer(,function(){return window[hereMap] && window[jQuery];});
 //captureMap(0,cl); works !
@@ -43,18 +61,19 @@ async function defer(method, which, timeout) {
 //map-recherche-silverex
 //captureMap(0,cl); works !
 async function captureMap(el,callback){
-    cl('expecting rendering');
+    cl('captureMap expecting rendering');
     var styleback, datasize, b64img, r, necessaires = 1,ms=100,waits=0;
     el=el||'.heremap';callback=callback||nf;
     r=document.querySelector('#dashCap');
     styleback=$(el).attr('style');
-/*could be even wider than ever .... */
+    /*could be even wider than ever .... */
     //here map capture map and markers
 //$(el).attr('style','').addClass('fullScreen');hereMap.map.getViewPort().resize();necessaires=2;//Passée derrière
 //So we get the second rendering en mode FullScreen, de toutes façons 2 car on doit attendre que la copie soit rendue
     $(el).attr('style','').addClass('hidden');
     while(toload.length!=0 || !rendered || document.querySelectorAll('canvas').length<1) {waits+=ms;await new Promise(r => setTimeout(r,ms));}//cl(rendered,renderingSteps,necessaires,document.querySelectorAll('canvas').length);
     cl('waited:',waits,',rendering steps:',renderingSteps);
+    await new Promise(r => setTimeout(r,400));//Make sure All Duplicated Png Markers are loaded !!!
 
     //while(renderingSteps<necessaires || document.querySelectorAll('canvas').length<1) {cl(renderingSteps,necessaires,document.querySelectorAll('canvas').length);await new
     // Promise(r => setTimeout(r,2000));}
@@ -77,16 +96,16 @@ async function captureMap(el,callback){
         r.innerHTML='';r.appendChild(cap);
         cap=document.querySelectorAll('canvas')[0];//First one dans la dom
         b64img=cap.toDataURL('image/jpeg');
-/*
-        cap=document.querySelectorAll('canvas')[0];//First one dans la dom
-        b64img=cap.toDataURL('image/jpeg');
-        $.ajax({"url":"/z/receptor.php","method":"POST","data":{"name":_mapName,"img":b64img}}).done(function(e) {
-            $.ajax({"url":"/updateHistory","method":"POST","data":{"hid":session['hid'],"mapName":e}}).done(function(e) {
-                cl('updated',e);
-            });
-            callback(e);
-        });
-*/
+        /*
+                cap=document.querySelectorAll('canvas')[0];//First one dans la dom
+                b64img=cap.toDataURL('image/jpeg');
+                $.ajax({"url":"/z/receptor.php","method":"POST","data":{"name":_mapName,"img":b64img}}).done(function(e) {
+                    $.ajax({"url":"/updateHistory","method":"POST","data":{"hid":session['hid'],"mapName":e}}).done(function(e) {
+                        cl('updated',e);
+                    });
+                    callback(e);
+                });
+        */
 
         $(el).removeClass('hidden').attr('style',styleback);
         //r.innerHTML='';
@@ -138,9 +157,16 @@ function ajax(url,method,data,callback){
         //cl('response for',url,':',this.responseText);
     };
     ajax.inc++;ajax.nb++;ajax.urls.push(url);
-    if(typeof data=='object')data=JSON.stringify(data);
+    if(typeof data=='object'){
+        data=params(data);
+        //cl('stringify',data);//JSON.stringify is the opposite !!
+    }
     xhr.send(data);
     //cl({url,method,data,'urls':ajax.urls});
+}
+
+function params(data) {
+    return Object.keys(data).map(key => `${key}=${encodeURIComponent(data[key])}`).join('&');
 }
 
 function errorhandler(desc, page, line, chr, errobj) {
@@ -157,6 +183,21 @@ function errorhandler(desc, page, line, chr, errobj) {
     if(dev)return true;
     ajax('/tag.php','POST',('jsx='+desc+'&page='+page+'&line='+line+'&loc='+window.location.href).toLowerCase());
     return true;
+}
+
+function imgLoad(a,cb,nb){
+    x=callbacks[cb]();
+    //cl('loaded',a,nb,cb,x);
+    imgErr.remove(a);
+    toload.remove(a);/*cl({a,b,c});*/
+}
+
+function imgError(a,cb,nb){
+    if(nb==0){imgErr.push(a);}
+    cl('imgError',a,cb,nb);
+    var img = new Image();img.src = '/z/markers/'+a;
+    img.onload=imgLoad.bind(this,a,cb,nb+1);
+    img.onerror=imgError.bind(this,a,cb,nb+1);//attention peu devenir méchamment récursif !!
 }
 
 function dqs(x){return document.querySelectorAll(x);}

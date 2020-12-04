@@ -578,10 +578,11 @@ switch($dataMarker->field_statut_value) {
     default:$color='FFF';
         break;
 }
+$fs=14;
 if($k>10);
-if($k>100);#plus large
+if($k>100)$fs=12;#plus large
 ?>
-var color='<?=$color?>',svg=document.createElement('div');svg.innerHTML='<svg xmlns="http://www.w3.org/2000/svg"  style="margin:-36px 0 0 -14px" width="28px" height="36px"><path d="M 19 31 C 19 32.7 16.3 34 13 34 C 9.7 34 7 32.7 7 31 C 7 29.3 9.7 28 13 28 C 16.3 28 19 29.3 19 31 Z" fill="#000" fill-opacity=".2"/><path d="M 13 0 C 9.5 0 6.3 1.3 3.8 3.8 C 1.4 7.8 0 9.4 0 12.8 C 0 16.3 1.4 19.5 3.8 21.9 L 13 31 L 22.2 21.9 C 24.6 19.5 25.9 16.3 25.9 12.8 C 25.9 9.4 24.6 6.1 22.1 3.8 C 19.7 1.3 16.5 0 13 0 Z" fill="#fff"/><path d="M 13 2.2 C 6 2.2 2.3 7.2 2.1 12.8 C 2.1 16.1 3.1 18.4 5.2 20.5 L 13 28.2 L 20.8 20.5 C 22.9 18.4 23.8 16.2 23.8 12.8 C 23.6 7.07 20 2.2 13 2.2 Z" fill="#'+color+'"/><text x="10" y="19" font-size="14pt" font-weight="bold" text-anchor="middle" fill="#fff"><?=$k?></text></svg>';
+var fs=<?=$fs?>,color='<?=$color?>',svg=document.createElement('div');svg.innerHTML='<svg xmlns="http://www.w3.org/2000/svg"  style="margin:-36px 0 0 -14px" width="28px" height="36px"><path d="M 19 31 C 19 32.7 16.3 34 13 34 C 9.7 34 7 32.7 7 31 C 7 29.3 9.7 28 13 28 C 16.3 28 19 29.3 19 31 Z" fill="#000" fill-opacity=".2"/><path d="M 13 0 C 9.5 0 6.3 1.3 3.8 3.8 C 1.4 7.8 0 9.4 0 12.8 C 0 16.3 1.4 19.5 3.8 21.9 L 13 31 L 22.2 21.9 C 24.6 19.5 25.9 16.3 25.9 12.8 C 25.9 9.4 24.6 6.1 22.1 3.8 C 19.7 1.3 16.5 0 13 0 Z" fill="#fff"/><path d="M 13 2.2 C 6 2.2 2.3 7.2 2.1 12.8 C 2.1 16.1 3.1 18.4 5.2 20.5 L 13 28.2 L 20.8 20.5 C 22.9 18.4 23.8 16.2 23.8 12.8 C 23.6 7.07 20 2.2 13 2.2 Z" fill="#'+color+'"/><text x="10" y="19" font-size="'+fs+'pt" font-weight="bold" text-anchor="middle" fill="#fff"><?=$k?></text></svg>';
 markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfoBubble(hereMap,markerObject,"hoho");
 
         addInfoBubble(hereMap, markerObject,
@@ -1532,7 +1533,7 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
 
     currentMap=hereMap= initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('map-recherche-silverex'));
 
-    currentMap.map.getEngine().addEventListener('render',function(e){if (currentMap.map.getEngine() === e.target) {rendered=1;cl('rendered');}renderingSteps++;});//It renders 2 time, then 2 more for copy
+    currentMap.map.getEngine().addEventListener('render',function(e){if (currentMap.map.getEngine() === e.target) {rendered=1;cl('rendered',renderingSteps);}renderingSteps++;});//It renders 2 time, then 2 more for copy
 
     addFullScreenUIControl(hereMap);
 
@@ -1554,9 +1555,7 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
             event.preventDefault();
             var adresse = document.querySelector("#adresse").value;
             if( adresse != null && adresse.length > 0 ) {
-
                 getGeoCodingSilverex( adresse );
-
             } else {
                 $("#search-form").submit();
             }
@@ -1577,74 +1576,84 @@ foreach( $residences as $k=>$residence ){
         case "Privé":$color='584AB9';$txtcolor='FFF';$b='000';break;
         default:$color='FFF';$txtcolor='000';$b='FFF';break;
     }
-    $w=28;$r=36/$w;
-    if($k>10)$w=40;
-    elseif($k>100)$w=50;#plus large
-    $w=40;#anyways
+    $fs=14;$w=28;$r=36/$w;
+    if($k2>99){$fs=11;$w=50;}#plus large, dégressif
+    elseif($k2>10){$fs=13;$w=40;}
+    $w=40;#anyways-- stupid otherwise
     $h=round($w*$r);
     $zoom=1.5;
 ?>
-markerObject = null,marker = { lat: <?php echo $residence->field_latitude_value; ?>, lng: <?php echo $residence->field_longitude_value; ?> };
-markers.push(marker);
-
-k=<?=$k2?>;bgColor='<?=$color?>';txtColor='<?=$txtcolor?>';border='<?=$b?>';w=<?=$w?>;h=<?=$h?>;zoom=<?=$zoom?>;
+fs=<?=$fs?>;k=<?=$k2?>;bgColor='<?=$color?>';txtColor='<?=$txtcolor?>';border='<?=$b?>';w=<?=$w?>;h=<?=$h?>;zoom=<?=$zoom?>;
 pngFileName=k+'-'+bgColor+'-'+txtColor+'-'+border+'-'+w+'-'+h+'-'+zoom;
 var final=pngFileName+'.png';
 
-img = new Image();img.src = '/z/markers/'+final;toload.push(final);//[final]=1;
-img.onload=function(a,b,c){/*cl({a,b,c});*/toload.remove(a);}.bind(this,final);//1st bind Is "This"
+marker = { lat: <?php echo $residence->field_latitude_value; ?>, lng: <?php echo $residence->field_longitude_value; ?> };
+markers.push(marker);
 
-markerObject = new H.map.Marker(marker, { icon: new H.map.Icon('/z/markers/'+final) });
-addInfoBubble(hereMap, markerObject,
-    "<?php
+callbacksInc++;//hereMap is a global here :)
+callbacks[callbacksInc]=function(final,marker,callbacksInc) {
+    cl({'loadedImg':callbacksInc,marker,final});
+    var markerObject = new H.map.Marker(marker, {icon: new H.map.Icon('/z/markers/' + final)});
+    addInfoBubble(hereMap, markerObject, "<?php
         echo " #$k2 <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
         echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
         echo "<strong>$residence->field_tarif_chambre_simple_value €</strong>";
         ?>");
-//function(final .. ){}.bind(0,final,pngFileName, k, bgColor, txtColor, border, w, h, zoom)
-//(function(final,pngFileName, k, bgColor, txtColor, border, w, h, zoom) {//Closure passes arguments    })();
-    //cl('defer', final,pngFileName, k, bgColor, txtColor, border, w, h, zoom);
-defer(
-    function(final,pngFileName, k, bgColor, txtColor, border, w, h, zoom){//Peuvent être générés après
-// cl('defer', final, pngMarkers.indexOf(final),zoom);
-//undefined -1
+    return final;
+}.bind(this,final,marker,callbacksInc);
 
-    if (pngMarkers.indexOf(final) == -1) {//Génération
-        cl('defer',pngFileName, k, bgColor, txtColor, border, w, h, zoom);
-        document.querySelector('#svgC').innerHTML = genSvg(k, bgColor, txtColor, border, w, h, zoom);
-        svg2png(pngFileName);
+toload.push(final);//[final]=1;
+
+defer(
+    function(final,pngFileName, k, bgColor, txtColor, border, w, h, zoom,fs,cbn){//Peuvent être générés après
+        if (pngMarkers.indexOf(final) == -1) {//Nécessitant uneGénération
+            cl('defer',pngFileName, k, bgColor, txtColor, border, w, h, zoom);
+            document.querySelector('#svgC').innerHTML = genSvg(k, bgColor, txtColor, border, w, h, zoom,fs);
+            callbacksInc++;//as global !!!
+            callbacks[callbacksInc]=function(final,ajxResponse){
+                cl({final,ajxResponse});
+                var img = new Image();img.src = '/z/markers/'+final;
+                img.onload = imgLoad.bind(this, final, cbn, 0);//au dessus
+                img.onerror = imgError.bind(this, final, cbn, 0);
+            }.bind(this,final);
+            svg2png(pngFileName,callbacks[callbacksInc]);
+        }else{
+            var img = new Image();img.src = '/z/markers/'+final;
+            img.onload = imgLoad.bind(this, final, cbn, 0);//1st bind Is "This"
+            img.onerror = imgError.bind(this, final, cbn, 0);//aka retry as long as marker not here
+        }
+    }.bind(0,final,pngFileName, k, bgColor, txtColor, border, w, h, zoom,fs,callbacksInc)
+
+    ,function (){
+        x= (typeof svg2png == 'function' && typeof document.body == 'object' && typeof pngMarkers == 'object' && typeof Canvas2Image == 'object' && typeof RGBColor == 'function' && typeof jQuery == 'function' && typeof $ == 'function' && typeof canvg == 'function');
+        //cl(final,pngFileName,x);
+        return x;
     }
-}.bind(0,final,pngFileName, k, bgColor, txtColor, border, w, h, zoom)
-,function (){
-    x= (typeof svg2png == 'function' && typeof document.body == 'object' && typeof pngMarkers == 'object' && typeof Canvas2Image == 'object' && typeof RGBColor == 'function' && typeof jQuery == 'function' && typeof $ == 'function' && typeof canvg == 'function');
-    //cl(final,pngFileName,x);
-    return x;
-});
-//})(final,pngFileName, k, bgColor, txtColor, border, w, h, zoom);
+);
 
 <?php
 }
-        foreach( $healthOrganizations as $healthOrganization ): ?>
+    foreach( $healthOrganizations as $healthOrganization ){ ?>
 
-            var marker = { lat: <?php echo $healthOrganization->latitude; ?>, lng: <?php echo $healthOrganization->longitude; ?> };
-            markers.push(marker);
+        var marker = { lat: <?php echo $healthOrganization->latitude; ?>, lng: <?php echo $healthOrganization->longitude; ?> };
+        markers.push(marker);
 
-            var markerObject = new H.map.Marker(marker, { icon: icon.hospital });
+        var markerObject = new H.map.Marker(marker, { icon: icon.hospital });
 
-            addInfoBubble(hereMap, markerObject,
-                "<?php
-                echo "<strong>" . htmlspecialchars($healthOrganization->raison_sociale) . "</strong><br /> ";
-                echo "FINESS : " . $healthOrganization->finess . "<br /> ";
-                echo "Catégorie : " . $healthOrganization->lib_categorie . "<br /> ";
-                echo "Statut : " . $healthOrganization->lib_statut . "<br /> ";
-                echo "Tarif : " . $healthOrganization->lib_tarif . "<br /> ";
-            ?>");
-
-        <?php endforeach; ?>
-
-        addMarkersAndSetViewBounds(hereMap, markers);
-
-    });
+        addInfoBubble(hereMap, markerObject,
+            "<?php
+            echo "<strong>" . htmlspecialchars($healthOrganization->raison_sociale) . "</strong><br /> ";
+            echo "FINESS : " . $healthOrganization->finess . "<br /> ";
+            echo "Catégorie : " . $healthOrganization->lib_categorie . "<br /> ";
+            echo "Statut : " . $healthOrganization->lib_statut . "<br /> ";
+            echo "Tarif : " . $healthOrganization->lib_tarif . "<br /> ";
+        ?>");
+    <?php }#endForeach WTO ?>
+    defer(
+        function(){cl('ready?');addMarkersAndSetViewBounds(hereMap, markers);}.bind(this,hereMap,markers),
+        function(){return (toload.length==0);}
+    );
+});//end docready
 
     <?php elseif( $currentMenu == "history" ): ?>
 

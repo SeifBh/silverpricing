@@ -44,6 +44,8 @@ if(isset($_POST['img'])){
     die;
     $a=1;
 }
+$ak=array_keys($_POST);
+die('#not found action ..'.implode(',',$ak));
 return;?>
 
 
