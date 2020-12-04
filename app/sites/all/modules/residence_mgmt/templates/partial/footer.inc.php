@@ -1528,10 +1528,9 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
 
     // MAP
 
-    var hereMap = initHereMap(
-        "XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8",
-        document.getElementById('map-recherche-silverex')
-    );
+    currentMap=hereMap= initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('map-recherche-silverex'));
+
+    currentMap.map.getEngine().addEventListener('render',function(e){if (currentMap.map.getEngine() === e.target) {rendered=1;cl('rendered');}renderingSteps++;});//It renders 2 time, then 2 more for copy
 
     addFullScreenUIControl(hereMap);
 
@@ -1584,7 +1583,7 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
         $h=round($w*$r);
         $zoom=1.5;
         ?>
-        var x='<svg class=map preserveAspectRatio="xMidYMid meet" viewBox="0 0 <?=$w/$zoom?> <?=$h/$zoom?>" xmlns="http://www.w3.org/2000/svg" style="margin:-<?=$h?>px 0 0 -<?=$w/2?>px" width="<?=$w?>px" height="<?=$h?>px"><path d="M 19 31 C 19 32.7 16.3 34 13 34 C 9.7 34 7 32.7 7 31 C 7 29.3 9.7 28 13 28 C 16.3 28 19 29.3 19 31 Z" fill="#000" fill-opacity=".2"/><path d="M 13 0 C 9.5 0 6.3 1.3 3.8 3.8 C 1.4 7.8 0 9.4 0 12.8 C 0 16.3 1.4 19.5 3.8 21.9 L 13 31 L 22.2 21.9 C 24.6 19.5 25.9 16.3 25.9 12.8 C 25.9 9.4 24.6 6.1 22.1 3.8 C 19.7 1.3 16.5 0 13 0 Z" fill="#<?=$b?>"/><path d="M 13 2.2 C 6 2.2 2.3 7.2 2.1 12.8 C 2.1 16.1 3.1 18.4 5.2 20.5 L 13 28.2 L 20.8 20.5 C 22.9 18.4 23.8 16.2 23.8 12.8 C 23.6 7.07 20 2.2 13 2.2 Z" fill="#<?=$color?>"/><text x="12" y="19" font-size="14pt" font-weight="bold" text-anchor="middle" fill="#<?=$txtcolor?>"><?=$k?></text></svg>',k=<?=$k?>,color='<?=$color?>',svg=document.createElement('div');svg.className='svgpointer';svg.innerHTML=x;
+        x='<svg class=map preserveAspectRatio="xMidYMid meet" viewBox="0 0 <?=$w/$zoom?> <?=$h/$zoom?>" xmlns="http://www.w3.org/2000/svg" style="margin:-<?=$h?>px 0 0 -<?=$w/2?>px" width="<?=$w?>px" height="<?=$h?>px"><path d="M 19 31 C 19 32.7 16.3 34 13 34 C 9.7 34 7 32.7 7 31 C 7 29.3 9.7 28 13 28 C 16.3 28 19 29.3 19 31 Z" fill="#000" fill-opacity=".2"/><path d="M 13 0 C 9.5 0 6.3 1.3 3.8 3.8 C 1.4 7.8 0 9.4 0 12.8 C 0 16.3 1.4 19.5 3.8 21.9 L 13 31 L 22.2 21.9 C 24.6 19.5 25.9 16.3 25.9 12.8 C 25.9 9.4 24.6 6.1 22.1 3.8 C 19.7 1.3 16.5 0 13 0 Z" fill="#<?=$b?>"/><path d="M 13 2.2 C 6 2.2 2.3 7.2 2.1 12.8 C 2.1 16.1 3.1 18.4 5.2 20.5 L 13 28.2 L 20.8 20.5 C 22.9 18.4 23.8 16.2 23.8 12.8 C 23.6 7.07 20 2.2 13 2.2 Z" fill="#<?=$color?>"/><text x="12" y="19" font-size="14pt" font-weight="bold" text-anchor="middle" fill="#<?=$txtcolor?>"><?=$k?></text></svg>';k=<?=$k?>;color='<?=$color?>';svg=document.createElement('div');svg.className='svgpointer';svg.innerHTML=x;
         markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfoBubble(hereMap,markerObject,"hoho");
             addInfoBubble(hereMap, markerObject,
                 "<?php
