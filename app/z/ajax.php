@@ -25,7 +25,7 @@ if (isset($_POST['imgURI'])) {
 /*reçoit les images des cartes canvas encodées en base64*/
 if(isset($_POST['img'])){
     #$_received=\Alptech\Wip\fun::dbm([__FILE__.__line__,'missing b64'],'php500');
-    $ext='nf';
+    $ext='png';
     if(strpos($_POST['img'],'data:image/jpeg')!==FALSE){
         $ext='jpg';$_POST['img']=str_replace('data:image/jpeg;base64,','',$_POST['img']);
     } elseif(strpos($_POST['img'],'data:image/png')!==FALSE){
