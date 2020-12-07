@@ -1,5 +1,10 @@
 <?php
-
+/*
+$node->setNewRevision(TRUE);
+$node->revision_log = 'Created revision for node' . $nid;
+$node->setRevisionCreationTime(REQUEST_TIME);
+$node->setRevisionUserId($user_id);
+ */
 require_once __DIR__ . "/../vendor/autoload.php";
 require_once __DIR__ . "/../inc/geocoding.inc.php";
 

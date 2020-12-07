@@ -739,19 +739,12 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
 
     // MAP
 
-    var residencesMap = {
-        direct: null,
-        indirect: null,
-    };
-
-    var markers = {
-        direct : [],
-        indirect : [],
-    };
-
+    var residencesMap = {direct: null, indirect: null,};
+    var markers = {direct : [], indirect : [],};
     // HERE MAP
-
-    <?php foreach( $residencesConcurrentes as $concurrence => $dataMarkers ): ?>
+    <?php
+$a='https://ehpad.home/residence/45337';
+    foreach( $residencesConcurrentes as $concurrence => $dataMarkers ): ?>
 
         residencesMap.<?php echo $concurrence; ?> = initHereMap(
             "XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8",
@@ -1561,11 +1554,23 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
             }
         });
 
+w=32;h=32;
 toload=[];markers = [];
 needSvgToCanvas();
 ajax('/z/ajax.php?markers=1','GET','',function(r){pngMarkers=JSON.parse(r);/*cl(pngMarkers);*/});
 
 <?php
+$fs=14;$w=28;$h=36;$r=$h/$w;
+if($k2>99){$fs=11;$w=50;}#plus large, dégressif
+elseif($k2>10){$fs=13;$w=40;}
+$w=40;#anyways-- stupid otherwise
+$h=round($w*$r);
+$zoom=1.7;#
+
+if(count($residences)>200)$zoom=0.3;#plus de résultats, moins de zoom
+elseif(count($residences)>100)$zoom=0.5;#plus de résultats, moins de zoom
+elseif(count($residences)>50)$zoom=1;
+
 $a='https://ehpad.home/recherche-silverex';#rechercher
 foreach( $residences as $k=>$residence ){
     $k2=$k+1;
@@ -1576,12 +1581,6 @@ foreach( $residences as $k=>$residence ){
         case "Privé":$color='584AB9';$txtcolor='FFF';$b='000';break;
         default:$color='FFF';$txtcolor='000';$b='FFF';break;
     }
-    $fs=14;$w=28;$r=36/$w;
-    if($k2>99){$fs=11;$w=50;}#plus large, dégressif
-    elseif($k2>10){$fs=13;$w=40;}
-    $w=40;#anyways-- stupid otherwise
-    $h=round($w*$r);
-    $zoom=1.5;
 ?>
 fs=<?=$fs?>;k=<?=$k2?>;bgColor='<?=$color?>';txtColor='<?=$txtcolor?>';border='<?=$b?>';w=<?=$w?>;h=<?=$h?>;zoom=<?=$zoom?>;
 pngFileName=k+'-'+bgColor+'-'+txtColor+'-'+border+'-'+w+'-'+h+'-'+zoom;
@@ -1591,16 +1590,16 @@ marker = { lat: <?php echo $residence->field_latitude_value; ?>, lng: <?php echo
 markers.push(marker);
 
 callbacksInc++;//hereMap is a global here :)
-callbacks[callbacksInc]=function(final,marker,callbacksInc) {
+callbacks[callbacksInc]=function(final,marker,callbacksInc,w,h) {
     cl({'loadedImg':callbacksInc,marker,final});
-    var markerObject = new H.map.Marker(marker, {icon: new H.map.Icon('/z/markers/' + final)});
+    var markerObject = new H.map.Marker(marker, {icon: new H.map.Icon('/z/markers/' + final),width:w,height:h});
     addInfoBubble(hereMap, markerObject, "<?php
         echo " #$k2 <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
         echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
         echo "<strong>$residence->field_tarif_chambre_simple_value €</strong>";
         ?>");
     return final;
-}.bind(this,final,marker,callbacksInc);
+}.bind(this,final,marker,callbacksInc,w,h);
 
 toload.push(final);//[final]=1;
 

@@ -8,11 +8,12 @@ function residence_mgmt_menu() {
 
     $items = array();
 
-    $items['updateHistory'] = array('title' => 'updateHistory', 'access callback' => true, 'page callback' => 'updateHistory',);
+    $items['updateHistory'] = array('title' => 'updateHistory', 'access callback' => true, 'page callback' => 'updateHistory');
     $items['yo'] = array(
         'title'             =>  'yo',
         'access callback'   =>  true,
         'page callback'     =>  'residence_mgmt_yo',#residence_mgmt_yo,#drushy cc all
+        #'yo/%'=> 'page arguments'    => array( 1 ),
         #'access arguments'  => array(array('administrator')),
     );
 

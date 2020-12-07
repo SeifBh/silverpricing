@@ -1,4 +1,6 @@
 <?die;
+/edit-residence/31459
+
 #création de silos de compétences non transversales
 g1 alternate results rows in pdf
 <link rel="preconnect" href="https://fonts.gstatic.com">

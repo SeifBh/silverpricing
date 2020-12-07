@@ -1,4 +1,5 @@
 <?php
+sdie;
 if (isset($_POST['imgURI'])) {
     $img = $_POST['imgURI'];
     $len=strlen($img);if($len<2000)die;
