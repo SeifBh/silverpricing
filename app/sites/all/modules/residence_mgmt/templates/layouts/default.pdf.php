@@ -1,6 +1,6 @@
 <?php
+$a='https://ehpad.home/ged/1/document/48165';
 #Used by WKhtml2Pdf
-$a=1;
 use mikehaertl\wkhtmlto\Pdf;
 use mikehaertl\tmp\File;
 /*
@@ -12,7 +12,7 @@ bordures moins noires, alignement toutes à gauches
 1 colonne sur deux en bleu ciel
  */
 
-ob_start(); ?><!DOCTYPE HTML><html>
+if('header'){ob_start(); ?><!DOCTYPE HTML><html>
     <head>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
         <style type="text/css">
@@ -79,46 +79,41 @@ ob_start(); ?><!DOCTYPE HTML><html>
                     </td>
 
                     <td>
-                        <span><?php echo 'Utilisateur'; ?></span><br />
-                        <?php echo $account->field_firstname . " " . $account->field_lastname; ?>
+                        <?php /*<span><?php echo 'Utilisateur'; ?></span><br />*/ echo (isset($account->field_firstname))?$account->field_firstname . ' ' . $account->field_lastname:$account->name; ?>
                     </td>
                 </tr>
             </table>
         </div>
     </body>
 </html>
-<?php
+<?php }
 $header = ob_get_clean();
-ob_start();
-?><!DOCTYPE HTML><html>
-<head>
+ob_start();if('footer'){
+?><!DOCTYPE HTML><html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head>
 <div id="footer">
-        <div style="border-top: 1px solid #000;">
-            <table>
-                <tr>
-                    <td><?php echo "Crée le" . ' : '. date('Y-m-d H:i:s'); ?></td>
-    <td><?php echo 'Page'; ?> <span class="page"></span> / <span class="topage"></span></td>
-    </tr>
-    </table>
+    <div style="border-top: 1px solid #000;">
+        <table>
+            <tr>
+                <td><?php echo "Crée le" . ' : '. date('Y-m-d H:i:s'); ?></td>
+                <td><?php /* echo 'Page'; ?> <span class="page">[page]</span> / <span class="topage">[topage]</span>*/?></td>
+            </tr>
+        </table>
     </div>
+</div>
 </body></html>
 <?php
-$footer = ob_get_clean();
+}$footer = ob_get_clean();
 $option = array(
     'binary' => RESIDENCE_MGMT_WKHTMLTOPDF,
     'page-size' => 'A4',
     'header-html' => $header,
     'header-spacing' => '5',
     'footer-html' => $footer,
+    'footer-right' => 'Page : [page]/[toPage]',
     'footer-spacing' => '10',
     'ignoreWarnings' => true,
-    'commandOptions' => array(
-        'useExec' => true,
-        'procEnv' => array(
-            'LANG' => 'en_US.utf-8',
-        ),
-    ),
-    'javascript-delay' => 1000
+    'commandOptions' => array('useExec' => true, 'procEnv' => array('LANG' => 'en_US.utf-8',),),
+    'javascript-delay' => 1000 /* Laisser s'executer*/
 );
 
 $pdf = new Pdf($option);
@@ -130,4 +125,8 @@ if (!$pdf->send($generatedFile . ".pdf")) {
     varDebug($error);
 }
 
-$ok=1;
+$ok=1;/*
+return;
+?>
+--footer-center [page]/[topage]
+*/

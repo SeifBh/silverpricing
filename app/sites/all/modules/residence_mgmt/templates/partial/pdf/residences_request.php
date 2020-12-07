@@ -1,17 +1,18 @@
 <?php
-$a=1;?>
+$a='https://ehpad.home/ged/1/document/48165';?>
 <!DOCTYPE HTML>
-<html>
+<html id="h">
     <head>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
         <style type="text/css">
+            table{border-collapse:collapse;}
+            table td,table th{text-align:left;verticali-align:top;}
+            .nowrap{white-space:nowrap;}
             .results tr:nth-child(even){background:#EEEEEE;}
-            #h #b #content tr.black{background:#444444;color:#FFFFFF;}
+            #h #b #content tr.black,.black{background:#DDD;color:#000;}
 
             img{max-height:30vh}
-            body {
-                font-family: "Times New Roman", Georgia, Serif;
-            }
+            body {font-family: "Times New Roman", Georgia, Serif;}
 
             #header {
               margin-bottom: 25px;
@@ -58,7 +59,7 @@ $a=1;?>
                             echo"<img src='".$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$history->field_map["und"][0]["value"]."'>";
                         }
                         ?>
-                    </td></tr></>
+                    </td></tr><table>
 
         <div id="content">
             <table class="table table-sm table-hover results">
@@ -85,7 +86,7 @@ $a=1;?>
                         <td><?php echo $residence->name; ?></td>
                         <td><?php echo round($residence->distance, 2); ?> KM</td>
                         <td><?php echo $residence->field_statut_value; ?></td>
-                        <td><?php echo $residence->field_tarif_chambre_simple_value; ?> €</td>
+                        <td class="nowrap"><?php echo $residence->field_tarif_chambre_simple_value; ?> €</td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
