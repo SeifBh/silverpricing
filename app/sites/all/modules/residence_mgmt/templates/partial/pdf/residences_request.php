@@ -5,7 +5,10 @@ $a=1;?>
     <head>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
         <style type="text/css">
+            .results tr:nth-child(even){background:#EEEEEE;}
+            #h #b #content tr.black{background:#444444;color:#FFFFFF;}
 
+            img{max-height:30vh}
             body {
                 font-family: "Times New Roman", Georgia, Serif;
             }
@@ -27,9 +30,9 @@ $a=1;?>
 
         </style>
     </head>
-    <body>
-        <div id="header">
-            <table><tr><td>
+    <body id="b">
+      <table id="header">
+            <tr><td>
             <div>
                 <p><strong>Adresse : </strong><?php echo $historyResult->request->adresse; ?></p>
             </div>
@@ -55,13 +58,12 @@ $a=1;?>
                             echo"<img src='".$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$history->field_map["und"][0]["value"]."'>";
                         }
                         ?>
-                    </td></tr></table>
-        </div>
+                    </td></tr></>
 
         <div id="content">
-            <table class="table table-sm table-hover">
+            <table class="table table-sm table-hover results">
                 <thead>
-                    <tr>
+                <tr class="black">
                     <th scope="col">Id</th>
                     <th scope="col">Résidence</th>
                     <th scope="col">Code postal</th>

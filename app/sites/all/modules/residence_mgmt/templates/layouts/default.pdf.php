@@ -3,6 +3,15 @@
 $a=1;
 use mikehaertl\wkhtmlto\Pdf;
 use mikehaertl\tmp\File;
+/*
+ * Utilisateur => il faut l'avoir
+ * crée le encodage pied de page
+ * nowrap sur tarifs
+alignement des colonnes :
+bordures moins noires, alignement toutes à gauches
+1 colonne sur deux en bleu ciel
+ */
+
 ob_start(); ?><!DOCTYPE HTML><html>
     <head>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8" />

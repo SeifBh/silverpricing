@@ -10,16 +10,19 @@ if (isset($_GET['markers'])) {#fun::r304();
 
 #les marqueurs
 if (isset($_POST['imgURI'])) {
-    $name = 'markers/'.$_POST['name'].'.png';#uniqid()
+    $name = 'markers/' . $_POST['name'] . '.png';#uniqid()
     $img = $_POST['imgURI'];
-    $len=strlen($img);if($len<2000)die;
+    $len = strlen($img);
+    if ($len < 990) {
+        die('#'.$len);
+    }
     $img = str_replace('data:image/png;base64,', '', $img);//replace the name of image
     #str_replace('data:image/png;base64,','
     $img = str_replace(' ', '+', $img);
     $data = base64_decode($img);
     #$file =  $name . '.png';//with unique name each image saves
     $success = file_put_contents($name, $data); // image put to folder upload
-    die($success ? $name:'');
+    die($success ? $name : '');
 }
 
 /*reçoit les images des cartes canvas encodées en base64*/

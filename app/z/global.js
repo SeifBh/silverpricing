@@ -193,7 +193,9 @@ function imgLoad(a,cb,nb){
 }
 
 function imgError(a,cb,nb){
-    if(nb==0){imgErr.push(a);}
+    if(nb==0){
+        imgErr.push(a);
+    }if(nb>10){return;}
     cl('imgError',a,cb,nb);
     var img = new Image();img.src = '/z/markers/'+a;
     img.onload=imgLoad.bind(this,a,cb,nb+1);

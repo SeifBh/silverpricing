@@ -1607,8 +1607,6 @@ toload.push(final);//[final]=1;
 defer(
     function(final,pngFileName, k, bgColor, txtColor, border, w, h, zoom,fs,cbn){//Peuvent être générés après
         if (pngMarkers.indexOf(final) == -1) {//Nécessitant uneGénération
-            cl('defer',pngFileName, k, bgColor, txtColor, border, w, h, zoom);
-            document.querySelector('#svgC').innerHTML = genSvg(k, bgColor, txtColor, border, w, h, zoom,fs);
             callbacksInc++;//as global !!!
             callbacks[callbacksInc]=function(final,ajxResponse){
                 cl({final,ajxResponse});
@@ -1616,6 +1614,9 @@ defer(
                 img.onload = imgLoad.bind(this, final, cbn, 0);//au dessus
                 img.onerror = imgError.bind(this, final, cbn, 0);
             }.bind(this,final);
+
+            cl('defer',pngFileName, k, bgColor, txtColor, border, w, h, zoom);
+            document.querySelector('#svgC').innerHTML = genSvg(k, bgColor, txtColor, border, w, h, zoom,fs);
             svg2png(pngFileName,callbacks[callbacksInc]);
         }else{
             var img = new Image();img.src = '/z/markers/'+final;
