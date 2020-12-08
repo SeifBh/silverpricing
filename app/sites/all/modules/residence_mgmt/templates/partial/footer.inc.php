@@ -1561,11 +1561,11 @@ ajax('/z/ajax.php?markers=1','GET','',function(r){pngMarkers=JSON.parse(r);/*cl(
 
 <?php
 $fs=14;$w=28;$h=36;$r=$h/$w;
-if($k2>99){$fs=11;$w=50;}#plus large, dégressif
-elseif($k2>10){$fs=13;$w=40;}
+if(count($residences)>99){$fs=11;$w=50;}#plus large, dégressif
+elseif(count($residences)>10){$fs=13;$w=40;}
 $w=40;#anyways-- stupid otherwise
 $h=round($w*$r);
-$zoom=1.7;#
+$zoom=1.6;#minima
 
 if(count($residences)>200)$zoom=0.3;#plus de résultats, moins de zoom
 elseif(count($residences)>100)$zoom=0.5;#plus de résultats, moins de zoom
@@ -1629,6 +1629,7 @@ defer(
         //cl(final,pngFileName,x);
         return x;
     }
+    
 );
 
 <?php
@@ -1655,7 +1656,17 @@ defer(
     );
 });//end docready
 
-    <?php elseif( $currentMenu == "history" ): ?>
+    <?php
+    elseif( $currentMenu == "history" ):#https://ehpad.home/history/46822
+$fs=14;$w=28;$h=36;$r=$h/$w;
+$w=40;$h=round($w*$r);$zoom=1.6;##anyways-- stupid otherwise
+
+if(count($historyBody->response)>200)$zoom=0.3;#plus de résultats, moins de zoom
+elseif(count($historyBody->response)>100)$zoom=0.5;#plus de résultats, moins de zoom
+elseif(count($historyBody->response)>50)$zoom=1;
+
+    ?>
+w=32;h=32;toload=[];markers = [];needSvgToCanvas();ajax('/z/ajax.php?markers=1','GET','',function(r){pngMarkers=JSON.parse(r);/*cl(pngMarkers);*/});
 
         // DATATABLES
         $(document).ready(function() {
@@ -1679,47 +1690,73 @@ defer(
 
         $(document).ready(function() {
             resetHereMap(hereMap);
-
-            var location = {
-                lat: <?php echo $historyBody->request->latitude; ?>,
-                lng: <?php echo $historyBody->request->longitude; ?>
-            };
-
+            var location = {lat: <?php echo $historyBody->request->latitude; ?>, lng: <?php echo $historyBody->request->longitude; ?>};
             updateCenter(hereMap, location);
             addMarker(hereMap, location,  icon.search);
 
             var markers = [];
-            <?php foreach( $historyBody->response as $residence ): ?>
-
-                var marker = { lat: <?php echo $residence->field_latitude_value; ?>, lng: <?php echo $residence->field_longitude_value; ?> };
-                markers.push(marker);
-
-                var markerObject = null;
-
-                <?php
-
-                    switch($residence->field_statut_value) {
-                    case "Public":
-                        echo "markerObject = new H.map.Marker(marker, { icon: icon.public });";
-                        break;
-                    case "Associatif":
-                        echo "markerObject = new H.map.Marker(marker, { icon: icon.associatif });";
-                        break;
-                    case "Privé":
-                        echo "markerObject = new H.map.Marker(marker, { icon: icon.prive });";
-                        break;
-                    }
-
+            <?php foreach( $historyBody->response as $k=>$residence ){
+                $k2=$k+1;
+                switch($residence->field_statut_value) {
+                    case "Associatif":$color='EB9B6C';$txtcolor='000';$b='FFF';break;
+                    case "Public":$color='836983';$txtcolor='FFF';$b='000';break;#gris bof
+                    case "Privé":$color='584AB9';$txtcolor='FFF';$b='000';break;
+                    default:$color='FFF';$txtcolor='000';$b='FFF';break;
+                }
                 ?>
+fs=<?=$fs?>;k=<?=$k2?>;bgColor='<?=$color?>';txtColor='<?=$txtcolor?>';border='<?=$b?>';w=<?=$w?>;h=<?=$h?>;zoom=<?=$zoom?>;
+pngFileName=k+'-'+bgColor+'-'+txtColor+'-'+border+'-'+w+'-'+h+'-'+zoom;
+var final=pngFileName+'.png';
 
-                addInfoBubble(hereMap, markerObject,
-                    "<?php
-                    echo "<a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
-                    echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
-                    echo "<strong>$residence->field_tarif_chambre_simple_value €</strong>";
-                ?>");
+var marker = { lat: <?php echo $residence->field_latitude_value; ?>, lng: <?php echo $residence->field_longitude_value; ?> };
+markers.push(marker);
+var markerObject = null;
 
-            <?php endforeach; ?>
+
+callbacksInc++;//hereMap is a global here :)
+callbacks[callbacksInc]=function(final,marker,callbacksInc,w,h) {
+cl({'loadedImg':callbacksInc,marker,final});
+var markerObject = new H.map.Marker(marker, {icon: new H.map.Icon('/z/markers/' + final),width:w,height:h});
+
+addInfoBubble(hereMap, markerObject, "<?php
+echo " #$k2 <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
+echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
+echo "<strong>$residence->field_tarif_chambre_simple_value €</strong>";
+?>");
+return final;
+}.bind(this,final,marker,callbacksInc,w,h);
+
+toload.push(final);//[final]=1;
+
+defer(
+function(final,pngFileName, k, bgColor, txtColor, border, w, h, zoom,fs,cbn){//Peuvent être générés après
+if (pngMarkers.indexOf(final) == -1) {//Nécessitant uneGénération
+    callbacksInc++;//as global !!!
+    callbacks[callbacksInc]=function(final,ajxResponse){
+        cl({final,ajxResponse});
+        var img = new Image();img.src = '/z/markers/'+final;
+        img.onload = imgLoad.bind(this, final, cbn, 0);//au dessus
+        img.onerror = imgError.bind(this, final, cbn, 0);
+    }.bind(this,final);
+
+    cl('defer',pngFileName, k, bgColor, txtColor, border, w, h, zoom);
+    document.querySelector('#svgC').innerHTML = genSvg(k, bgColor, txtColor, border, w, h, zoom,fs);
+    svg2png(pngFileName,callbacks[callbacksInc]);
+}else{
+    var img = new Image();img.src = '/z/markers/'+final;
+    img.onload = imgLoad.bind(this, final, cbn, 0);//1st bind Is "This"
+    img.onerror = imgError.bind(this, final, cbn, 0);//aka retry as long as marker not here
+}
+}.bind(0,final,pngFileName, k, bgColor, txtColor, border, w, h, zoom,fs,callbacksInc)
+
+,function (){
+x= (typeof svg2png == 'function' && typeof document.body == 'object' && typeof pngMarkers == 'object' && typeof Canvas2Image == 'object' && typeof RGBColor == 'function' && typeof jQuery == 'function' && typeof $ == 'function' && typeof canvg == 'function');
+//cl(final,pngFileName,x);
+return x;
+}
+);
+
+            <?php } ?>
 
             addMarkersAndSetViewBounds(hereMap, markers);
 

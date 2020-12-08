@@ -1,5 +1,7 @@
 <?die;
 /edit-residence/31459
+/taxonomy/term/279/edit?destination=admin/structure/taxonomy/plan#plans gives permissions to access various things
+PAGE_MES_RESIDENCES
 
 #création de silos de compétences non transversales
 g1 alternate results rows in pdf
