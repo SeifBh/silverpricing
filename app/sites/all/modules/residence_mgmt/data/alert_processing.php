@@ -24,7 +24,7 @@ $query->fields('b', array('body_value'));
 $query->fields('s', array('field_scheduled_value'));
 $query->fields('p', array('field_plans_target_id'));
 $query->fields('t', array('name'));
-$alertes = $query->execute()->fetchAll();
+$alertes = fetchAll($query)();
 
 // echo "<pre>";
 // var_dump($alertes);
@@ -120,7 +120,7 @@ foreach( $users as $ku => $user ) {
         $query->fields('di', array('primary_nid', 'distance'));
         $query->addField('pr', 'title', 'notre_residence_name');
         $query->addField('t', 'field_tarif_chambre_simple_value', 'notre_tarif');
-        $result = $query->execute()->fetchAll();
+        $result = fetchAll($query)();
 
         $nearbyResidencesUpdated = array_merge($nearbyResidencesUpdated, $result);
     }

@@ -23,7 +23,7 @@ function findAllResidences() {
     $query->fields('c', array('title'));
     $query->fields('t', array('field_tarif_chambre_simple_value'));
 
-    $residences = $query->execute()->fetchAll();
+    $residences = fetchAll($query)();
 
     return $residences;
 }
@@ -50,7 +50,7 @@ function findResidenceByDepartment($departmentId) {
     $query->fields('c', array('nid','title'));
     $query->fields('t', array('field_tarif_chambre_simple_value'));
 
-    $residences = $query->execute()->fetchAll();
+    $residences = fetchAll($query)();
 
     return $residences;
 }
@@ -77,7 +77,7 @@ function findResidencesByGroup( $groupId ) {
     $query->fields('t', array('field_tarif_chambre_simple_value'));
     $query->fields('capacite', array('field_capacite_value'));
 
-    $residences = $query->execute()->fetchAll();
+    $residences = fetchAll($query)();
 
     return $residences;
 }
@@ -124,7 +124,7 @@ function searchResidencesByGroup($groupeId = null, $dataForm = array()) {
       $query->condition('dn.field_departement_tid', $dataForm['departement'], 'IN');
   }
 
-  $residences = $query->execute()->fetchAll();
+  $residences = fetchAll($query)();
 
   return $residences;
 
@@ -433,7 +433,7 @@ function synchronizeChambre( $entityId, $data,$finess=null) {
 //     $query->addExpression('(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude))))', 'distance', array( ':latitude' => $currentLatitude, ':longitude' => $currentLongitude ));
 //     $query->orderBy('distance', 'ASC');
 //     $query->range(0, 10);
-//     $residences = $query->execute()->fetchAll();
+//     $residences = fetchAll($query)();
 
 //     return $residences;
 
@@ -478,7 +478,7 @@ function getRankingOfResidence( $residenceNid, $rankingTypes = array() ) {
         $query->fields('di', array('distance'));
         $query->orderBy('distance', 'ASC');
         $query->range(0, 10);
-        $residences = $query->execute()->fetchAll();
+        $residences = fetchAll($query)();
 
         array_unshift($residences, $rankedResidence);
 
@@ -514,7 +514,7 @@ function getRankingOfResidence( $residenceNid, $rankingTypes = array() ) {
         $query->fields('n', array('nid'));
         $query->fields('cs', array('field_tarif_chambre_simple_value'));
         $query->orderBy('CAST(cs.field_tarif_chambre_simple_value AS DECIMAL(6, 2) )', 'DESC');
-        $residences = $query->execute()->fetchAll();
+        $residences = fetchAll($query)();
 
         foreach( $residences as $position => $r ) {
             if( $r->nid == $residenceNid ) {
@@ -568,10 +568,9 @@ function getResidencesConcurrentesOnAddress($latitude, $longitude, $perimetre = 
     $query->addExpression('(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude))))', 'distance', array( ':latitude' => $latitude, ':longitude' => $longitude ));
     $query->where('(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude)))) <= :perimetre', array( ':perimetre' => $perimetre, ':latitude' => $latitude, ':longitude' => $longitude ));
     $query->orderBy('distance', 'ASC');
-    $residences = $query->execute()->fetchAll();
-
+    $_ENV['stop']=__FILE__.__line__;
+    $residences = fetchAll($query);
     return $residences;
-
 }
 
 function getAllDepartmentsRelatedToResidences($groupes, $residenceIds) {
@@ -632,7 +631,7 @@ function findResidencesByUserAccess($groupes, $residenceIds, $departement = null
 
     $query->where("n.nid IN (:residenceIds) or gr.field_groupe_tid IN (:groupes)", array( ':residenceIds' => $residenceIds, ':groupes' => $groupes ));
 
-    $residences = $query->execute()->fetchAll();
+    $residences = fetchAll($query)();
 
     return $residences;
 }
@@ -707,7 +706,7 @@ function findResidence($departementId = null, $dataForm = array()) {
       $query->condition('t.field_tarif_chambre_simple_value', $dataForm['tarif_max'], "<=");
   }
 
-  $residences = $query->execute()->fetchAll();
+  $residences = fetchAll($query)();
 
   return $residences;
 
@@ -724,7 +723,7 @@ function getMonthlyEvolutionDataChart($residenceId = null) {
     $query->join('field_data_field_tarif_chambre_simple', 'cs', 'cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> :tarif', array( ':tarif' => 'NA' ));
     $query->fields('n', array('nid'));
     $query->fields('cs', array('field_tarif_chambre_simple_value'));
-    $residenceCourante = $query->execute()->fetchAll();
+    $residenceCourante = fetchAll($query)();
     // $revisions = node_revision_list(node_load($residenceId));
 
     // DEPARTEMENT
@@ -737,7 +736,7 @@ function getMonthlyEvolutionDataChart($residenceId = null) {
     $query->fields('cs', array('field_tarif_chambre_simple_value'));
     //$query->addExpression("DATE_FORMAT(FROM_UNIXTIME(n.created),'%Y-%m')", "created_at");
     //$query->groupBy('created_at');
-    $residences = $query->execute()->fetchAll();
+    $residences = fetchAll($query)();
 
     // RESIDENCES CONCURRENTES
     $query = db_select('node', 'n');
@@ -754,7 +753,7 @@ function getMonthlyEvolutionDataChart($residenceId = null) {
     $query->addExpression('(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude))))', 'distance', array( ':latitude' => $residence[$residenceId]->field_latitude['und'][0]['value'], ':longitude' => $residence[$residenceId]->field_longitude['und'][0]['value'] ));
     $query->orderBy('distance', 'ASC');
     $query->range(0, 10);
-    $residencesConcurrentes = $query->execute()->fetchAll();
+    $residencesConcurrentes = fetchAll($query)();
 
     $rTarifs = [];
     $rcTarifs = [];
@@ -937,7 +936,7 @@ function getHistories() {
 
   $query->orderBy('n.created', 'DESC');
 
-  $histories = $query->execute()->fetchAll();
+  $histories = fetchAll($query)();
 
   return $histories;
 
@@ -982,7 +981,7 @@ function findDepartmentsByGroup($groupId) {
     $query->groupBy("d.field_departement_tid");
     $query->orderBy("d.field_departement_tid");
 
-    $results = $query->execute()->fetchAll();
+    $results = fetchAll($query)();
 
     return $results;
 }
@@ -1073,7 +1072,7 @@ function getLatLngResidencesByDepartment( $departementId ) {
     $query->fields('t', array('field_tarif_chambre_simple_value'));
     $query->fields('logo', array('field_logo_fid'));
 
-    $residences = $query->execute()->fetchAll();
+    $residences = fetchAll($query)();
 
     return $residences;
 
@@ -1143,7 +1142,7 @@ function indexDistanceBetweenTwoPoints( $primaryNid, $secondaryNid ) {
     $query->fields('n', array('nid', 'title'));
     $query->fields('lat', array('field_latitude_value'));
     $query->fields('lng', array('field_longitude_value'));
-    $residences = $query->execute()->fetchAllAssoc('nid');
+    $residences = fetchAllAssoc($query,'nid');
 
     $distance = getDistance(
       $residences[$primaryNid]->field_latitude_value,
@@ -1197,7 +1196,7 @@ function getResidencesByRadius( $residenceNid, $radius = 5) {
     $query->fields('lat', array('field_latitude_value'));
     $query->fields('lng', array('field_longitude_value'));
     $query->orderBy('di.distance', 'ASC');
-    $residences = $query->execute()->fetchAll();
+    $residences = fetchAll($query)();
 
     return $residences;
 
@@ -1226,7 +1225,9 @@ function getResidencesProchesByStatus( $residenceNid, $statuses = array(), $limi
   $query->fields('lng', array('field_longitude_value'));
   $query->orderBy('di.distance', 'ASC');
   $query->range(0, $limit);
-  $residences = $query->execute()->fetchAll();
+  $residences = fetchAll($query);#->execute()->fetchAll();
 
   return $residences;
 }
+
+

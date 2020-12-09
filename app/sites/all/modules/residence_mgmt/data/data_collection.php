@@ -22,7 +22,7 @@ if( empty($queue) ) {
     $query->fields('n', array('nid'));
     $query->fields('ff', array('field_finess_value'));
     $query->orderBy("n.nid", "ASC");
-    $allResidences = $query->execute()->fetchAll();
+    $allResidences = fetchAll($query)();
 
     file_put_contents( DRUPAL_RESIDENCE_DATA_QUEUE . "/data_queue.json", json_encode($allResidences));
 
