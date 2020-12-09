@@ -4,10 +4,22 @@ phpx ~/home/ehpad/app/z/capretraite.php
 SCRAP FULL PAGE = Conserver
 Finess Images
 */
-namespace Alptech\Wip;#todo:rename to ajax
-chdir(__DIR__);
+namespace Alptech\Wip;die;#todo:rename to ajax
+chdir(__DIR__);require_once'../autoload.php';
+$x=io::fgcj('capretraite.json');
+$a=1;
+
+return;
+
+
+
+
+
+
+
+
 $json=$processed=[];
-require_once'../autoload.php';
+
 $hn='https://www.capretraite.fr';
 $url=$hn.'/maisons-de-retraite/';
 $cf=str_replace(['https','http','://','www.'],'',$url);

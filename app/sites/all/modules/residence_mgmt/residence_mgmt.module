@@ -13,6 +13,14 @@ require_once __DIR__ . "/inc/polygon.php";
 require_once __DIR__ . "/inc/theme.inc.php";
 require_once __DIR__ . "/inc/user.inc.php";
 require_once __DIR__ . "/inc/routing.inc.php";
+require_once __DIR__.'/../../../../autoload.php';
+
+#use Alptech\Wip\io;
+function capretraite(){
+    $x=io::fgcj($_SERVER['DOCUMENT_ROOT'].'z/capretraite.json');
+    $a=1;#then get residence by finess and upload images
+    #field_uuid
+}
 
 #https://ehpad.home/yo
 function residence_mgmt_yo(){
