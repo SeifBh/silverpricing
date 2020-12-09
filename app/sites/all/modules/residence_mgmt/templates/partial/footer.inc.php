@@ -212,9 +212,9 @@
             ]
         });
 
-    <?php elseif( $currentMenu == "ma_maquette" ): ?>
+    <?php elseif( $currentMenu == "ma_maquette" ): 
 
-    <?php elseif( $currentMenu == "departements" ): ?>
+    elseif( $currentMenu == "departements" ): ?>
 
     // BAR CHART / FRENCH DEPARTMENTS
     var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getContext('2d'), {
@@ -226,9 +226,9 @@
                     label: 'Départements',
                     backgroundColor: '#6dbaf5',
                     data: [
-                        <?php foreach( $departements as $departement ):?>
-                            <?php echo "\"$departement->count\","; ?>
-                        <?php endforeach; ?>
+                        <?php foreach( $departements as $departement ):
+                            echo "\"$departement->count\","; 
+                        endforeach; ?>
                     ],
                 },
                 {
@@ -239,16 +239,16 @@
                     borderColor: '#65e0e0',
                     fill: false,
                     data: [
-                        <?php foreach( $departements as $departement ):?>
-                            <?php echo "\"$departement->tarif_moyen\","; ?>
-                        <?php endforeach; ?>
+                        <?php foreach( $departements as $departement ):
+                            echo "\"$departement->tarif_moyen\","; 
+                        endforeach; ?>
                     ]
                 },
             ],
             labels: [
-                <?php foreach( $departements as $departement ):?>
-                    <?php echo "\"$departement->name\","; ?>
-                <?php endforeach; ?>
+                <?php foreach( $departements as $departement ):
+                    echo "\"$departement->name\","; 
+                endforeach; ?>
             ]
         },
         options: {
@@ -427,8 +427,8 @@
                     label: 'Nombre de résidences',
                     backgroundColor: '#6dbaf5',
                     data: [
-                        <?php foreach( $departementChartData as $data ): ?>
-                            <?php echo $data->count; ?>,
+                        <?php foreach( $departementChartData as $data ): 
+                            echo $data->count; ?>,
                         <?php endforeach;?>
                     ],
                 },
@@ -440,8 +440,8 @@
                     borderColor: '#65e0e0',
                     fill: false,
                     data: [
-                        <?php foreach( $departementChartData as $data ): ?>
-                            <?php echo round($data->totaltarif / $data->count, 2); ?>,
+                        <?php foreach( $departementChartData as $data ): 
+                            echo round($data->totaltarif / $data->count, 2); ?>,
                         <?php endforeach;?>
                     ]
                 },
@@ -456,9 +456,9 @@
                     pointRadius: 0,
                     borderWidth: 1,
                     data: [
-                        <?php foreach( $departementChartData as $departement ):?>
-                            <?php echo $statistique_globale['Tarif plus haut'] . ","; ?>
-                        <?php endforeach; ?>
+                        <?php foreach( $departementChartData as $departement ):
+                            echo $statistique_globale['Tarif plus haut'] . ","; 
+                        endforeach; ?>
                     ],
                 },
                 {
@@ -472,9 +472,9 @@
                     pointRadius: 0,
                     borderWidth: 1,
                     data: [
-                        <?php foreach( $departementChartData as $departement ):?>
-                            <?php echo $statistique_globale['Tarif moyen'] . ","; ?>
-                        <?php endforeach; ?>
+                        <?php foreach( $departementChartData as $departement ):
+                            echo $statistique_globale['Tarif moyen'] . ","; 
+                        endforeach; ?>
                     ],
                 },
                 {
@@ -488,9 +488,9 @@
                     pointRadius: 0,
                     borderWidth: 1,
                     data: [
-                        <?php foreach( $departementChartData as $departement ):?>
-                            <?php echo $statistique_globale['Tarif plus bas'] . ","; ?>
-                        <?php endforeach; ?>
+                        <?php foreach( $departementChartData as $departement ):
+                            echo $statistique_globale['Tarif plus bas'] . ","; 
+                        endforeach; ?>
                     ],
                 },
             ],
@@ -1309,9 +1309,9 @@ $a='https://ehpad.home/residence/45337';
                         pointRadius: 0,
                         borderWidth: 1,
                         data: [
-                            <?php foreach( $chartData['dataGroupe'] as $gChartData ):?>
-                                <?php echo $statistiques_globales['Tarif plus haut'] . ","; ?>
-                            <?php endforeach; ?>
+                            <?php foreach( $chartData['dataGroupe'] as $gChartData ):
+                                echo $statistiques_globales['Tarif plus haut'] . ","; 
+                            endforeach; ?>
                         ],
                     },
                     {
@@ -1325,9 +1325,9 @@ $a='https://ehpad.home/residence/45337';
                         pointRadius: 0,
                         borderWidth: 1,
                         data: [
-                            <?php foreach( $chartData['dataGroupe'] as $gChartData ):?>
-                                <?php echo $statistiques_globales['Tarif médian'] . ","; ?>
-                            <?php endforeach; ?>
+                            <?php foreach( $chartData['dataGroupe'] as $gChartData ):
+                                echo $statistiques_globales['Tarif médian'] . ","; 
+                            endforeach; ?>
                         ],
                     },
                     {
@@ -1341,9 +1341,9 @@ $a='https://ehpad.home/residence/45337';
                         pointRadius: 0,
                         borderWidth: 1,
                         data: [
-                            <?php foreach( $chartData['dataGroupe'] as $gChartData ):?>
-                                <?php echo $statistiques_globales['Tarif plus bas'] . ","; ?>
-                            <?php endforeach; ?>
+                            <?php foreach( $chartData['dataGroupe'] as $gChartData ):
+                                echo $statistiques_globales['Tarif plus bas'] . ","; 
+                            endforeach; ?>
                         ],
                     },
                 ],
@@ -1497,9 +1497,9 @@ $a='https://ehpad.home/residence/45337';
 
         addMarkersAndSetViewBounds(requestHereMap, requestMarkers);
 
-        <?php endif; ?>
+        <?php endif; 
 
-    <?php elseif( $currentMenu == "recherche-silverex" ):
+    elseif( $currentMenu == "recherche-silverex" ):
     $a=1;?>
 
 

@@ -272,11 +272,15 @@ function addResidence($residenceData = null, $departmentNumber) {
     $newResidence->type = 'residence';
     $newResidence->title = $residenceData->title;
     $newResidence->body = "";
-    $newResidence->language = LANGUAGE_NONE;
+    $newResidence->language = LANGUAGE_NONE;#und
     node_object_prepare($newResidence);
     if($residenceData->finess){
         $newResidence->field_finess[$newResidence->language][0]['value'] = $residenceData->finess;
     }
+    if($residenceData->groupe) {
+        $newResidence->field_groupe[$newResidence->language][0]['tid'] = 102;#residenceData->groupe
+    }
+
     //$newResidence->field_finess[$newResidence->language][0]['value'] = "";
     $newResidence->field_email[$newResidence->language][0]['value'] = $residenceData->email;
     $newResidence->field_site[$newResidence->language][0]['value'] = $residenceData->website;

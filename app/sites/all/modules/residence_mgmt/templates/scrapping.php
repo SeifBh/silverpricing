@@ -315,6 +315,7 @@ $a=1;
             $residenceData->location[0]['address']['postcode']=$t["coordinates"]["postcode"];
             $residenceData->location[0]['lat']=$t["coordinates"]["latitude"];
             $residenceData->location[0]['lon']=$t["coordinates"]["longitude"];
+            $residenceData->groupe = 102;
 #select distinct(field_statut_value) from field_revision_field_statut #Associatif,Privé,Public
 $status='Privé';
 if(preg_match('~assoc~i',$t['legal_status']))$status='Associatif';
