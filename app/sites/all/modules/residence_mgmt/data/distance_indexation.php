@@ -17,7 +17,7 @@ $query->fields('n', array('nid', 'title'));
 $query->fields('lat', array('field_latitude_value'));
 $query->fields('lng', array('field_longitude_value'));
 $query->orderBy('n.nid', 'ASC');
-$residences = fetchAll($query)();
+$residences = fetchAll($query);
 
 $totalResidences = count($residences);
 

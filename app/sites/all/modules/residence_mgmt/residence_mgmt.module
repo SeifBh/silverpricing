@@ -258,7 +258,7 @@ function residence_mgmt_dashboard() {
         $query->fields('lng', array('field_longitude_value'));
         $query->orderBy("cs.field_tarif_chambre_simple_value", "DESC");
         $query->range(0, 5);
-        $quickWins = fetchAll($query)();
+        $quickWins = fetchAll($query);
 
         foreach( $quickWins as $key => $r ) {
 
@@ -326,7 +326,7 @@ function residence_mgmt_dashboard() {
         $query->fields('n', array('created', 'nid'));
         $query->orderby('n.created', 'DESC');
         $query->range(0, 5);
-        $maquettes = fetchAll($query)();
+        $maquettes = fetchAll($query);
 
         // file_put_contents( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file, json_encode($maquettes));
 
@@ -418,7 +418,7 @@ function residence_mgmt_dashboard() {
     $query->fields('c', array('field_capacite_value'));
     $query->fields('logo', array('field_logo_fid'));
 
-    $residences = fetchAll($query)();
+    $residences = fetchAll($query);
 
     // DATA MAPS
     $dataMarkers = $residences;
@@ -462,7 +462,7 @@ function residence_mgmt_get_quick_win() {
     $query->fields('cs', array('field_tarif_chambre_simple_value'));
     $query->fields('c', array('field_capacite_value'));
     // $query->range(0, 10);
-    $quickWins = fetchAll($query)();
+    $quickWins = fetchAll($query);
 
     foreach( $quickWins as $key => $r ) {
 
@@ -534,7 +534,7 @@ function residence_mgmt_get_mes_maquettes() {
     $query->fields('f', array('field_favoris_value'));
     $query->fields('n', array('created', 'nid'));
     $query->orderby('n.created', 'DESC');
-    $maquettes = fetchAll($query)();
+    $maquettes = fetchAll($query);
 
     ob_start();
 
@@ -585,7 +585,7 @@ function residence_mgmt_departements() {
     $query->addExpression('count(nid)', 'count');
     $query->addExpression('GROUP_CONCAT(tarif.field_tarif_chambre_simple_value)', 'tarifs');
     $query->addExpression('SUM(c.field_capacite_value)', 'nombre_lits');
-    $departements = fetchAll($query)();
+    $departements = fetchAll($query);
 
     foreach( $departements as $departement ) {
         $departement->number = substr($departement->name, 0, stripos($departement->name, " - "));
@@ -701,7 +701,7 @@ function residence_mgmt_get_groupes() {
   // $query->addExpression("GROUP_CONCAT(tarif.field_tarif_chambre_simple_value SEPARATOR ',')", 'tarifs');
   $query->where('t.name NOT IN (:names)', array( ':names' => array('Default', 'Indépendant') ));
   $query->orderBy("count", "DESC");
-  $groupes = fetchAll($query)();
+  $groupes = fetchAll($query);
 
   foreach( $groupes as $key => $groupe ) {
 
@@ -811,7 +811,7 @@ function residence_mgmt_get_groupe_details( $groupeId = null ) {
     $query->leftjoin('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
     $query->leftjoin('node', 'c', 'rc.entity_id = c.nid', array());
     $query->fields('c', array('nid'));
-    $groupeResidences = fetchAll($query)();
+    $groupeResidences = fetchAll($query);
 
     $chambresNids = [];
     foreach( $groupeResidences as $r ) { $chambresNids[] = $r->nid; }
@@ -823,7 +823,7 @@ function residence_mgmt_get_groupe_details( $groupeId = null ) {
     $query->fields('cs', array('entity_id', 'field_tarif_chambre_simple_value'));
     $query->addExpression("DATE_FORMAT(dm.field_date_de_modification_value, '%Y-%m')", 'date_modification');
     $query->orderBy('date_modification', 'asc');
-    $groupeChambres = fetchAll($query)();
+    $groupeChambres = fetchAll($query);
 
 
     $resultList = [];
@@ -889,7 +889,7 @@ function residence_mgmt_get_my_groups() {
     $query->addField('t', 'name', 'name');
     $query->addExpression('count(nid)', 'count');
     $query->orderBy("count", "DESC");
-    $groupes = fetchAll($query)();
+    $groupes = fetchAll($query);
 
     ob_start();
 
@@ -1264,7 +1264,7 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null
     $query->addExpression("DATE_FORMAT(dm.field_date_de_modification_value, '%Y-%m')", 'date_modification');
     //$query->groupBy('date_modification');
     $query->orderBy('date_modification', 'asc');
-    $chambres = fetchAll($query)();
+    $chambres = fetchAll($query);
 
     $resultList = [];
     foreach( $chartData['xAxe'] as $xAxe ) {
@@ -1318,7 +1318,7 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null
     $query->leftjoin('node', 'c', 'rc.entity_id = c.nid', array());
     $query->fields('n', array('nid', 'title'));
     $query->fields('c', array('nid', 'title'));
-    $residences = fetchAll($query)();
+    $residences = fetchAll($query);
 
     $chambresNids = [];
     foreach( $residences as $r ) {
@@ -1335,7 +1335,7 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null
     $query->addExpression("DATE_FORMAT(dm.field_date_de_modification_value, '%Y-%m')", 'date_modification');
     //$query->groupBy('date_modification');
     $query->orderBy('date_modification', 'asc');
-    $departementChambres = fetchAll($query)();
+    $departementChambres = fetchAll($query);
 
     $resultList = [];
     foreach( $chartData['xAxe'] as $key => $xAxe ) {
@@ -1371,7 +1371,7 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null
     $query->addExpression('(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude))))', 'distance', array( ':latitude' => $residence[$residenceId]->field_latitude['und'][0]['value'], ':longitude' => $residence[$residenceId]->field_longitude['und'][0]['value'] ));
     $query->orderBy('distance', 'ASC');
     $query->range(0, 10);
-    $residencesConcurrentes = fetchAll($query)();
+    $residencesConcurrentes = fetchAll($query);
 
     $chambresRCNids = [];
     foreach( $residencesConcurrentes as $r ) {
@@ -1387,7 +1387,7 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null
     $query->addExpression("DATE_FORMAT(dm.field_date_de_modification_value, '%Y-%m')", 'date_modification');
     //$query->groupBy('date_modification');
     $query->orderBy('date_modification', 'asc');
-    $residencesConcurrentesChambres = fetchAll($query)();
+    $residencesConcurrentesChambres = fetchAll($query);
 
     $resultList = [];
     foreach( $chartData['xAxe'] as $key => $xAxe ) {
@@ -1724,7 +1724,7 @@ function get_data_bar_chart($departementId = null, $dataForm = array()) {
         $query->condition('t.field_tarif_chambre_simple_value', $dataForm['tarif_max'], "<=");
     }
 
-    $statistiques = fetchAll($query)();
+    $statistiques = fetchAll($query);
 
     return $statistiques;
 }
@@ -1804,7 +1804,7 @@ function loadDepartementChartData($departementId = null) {
     $query->addField('l', 'field_location_locality', 'ville');
     $query->addExpression('count(n.nid)', 'count');
     $query->addExpression('SUM(t.field_tarif_chambre_simple_value)', 'totaltarif');
-    $departementChartData = fetchAll($query)();
+    $departementChartData = fetchAll($query);
 
     return $departementChartData;
 }
@@ -1869,7 +1869,7 @@ function updateDepartements() {
     $query->join('field_data_field_location', 'l', 'l.entity_id = n.nid', array());
     $query->fields('n', array('nid', 'title'));
     $query->fields('l', array('field_location_postal_code'));
-    $nodes = fetchAll($query)();
+    $nodes = fetchAll($query);
 
     foreach( $nodes as $node ) {
         $n = node_load($node->nid);
@@ -1935,7 +1935,7 @@ function residence_mgmt_distance_indexation() {
     $query->fields('n', array('nid', 'title'));
     $query->orderBy('n.nid', 'ASC');
     $query->range(0, 100);
-    $residences = fetchAll($query)();
+    $residences = fetchAll($query);
 
     foreach( $residences as $k => $residence ) {
         for( $i = 0 ; $i < count($residences) ; $i++ ) {
@@ -2034,7 +2034,7 @@ function residence_mgmt_nearby_residences_updated( $SchedulingType ) {
         $query->fields('di', array('primary_nid', 'distance'));
         $query->addField('pr', 'title', 'notre_residence_name');
         $query->addField('t', 'field_tarif_chambre_simple_value', 'notre_tarif');
-        $result = fetchAll($query)();
+        $result = fetchAll($query);
 
         $nearbyResidencesUpdated = array_merge($nearbyResidencesUpdated, $result);
 

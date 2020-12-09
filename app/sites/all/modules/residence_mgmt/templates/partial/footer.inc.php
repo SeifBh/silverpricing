@@ -1500,7 +1500,7 @@ $a='https://ehpad.home/residence/45337';
         <?php endif; 
 
     elseif( $currentMenu == "recherche-silverex" ):
-    $a=1;?>
+    $a='https://ehpad.home/recherche-silverex';?>
 
 
     $('#categories').select2({
@@ -1514,7 +1514,7 @@ $a='https://ehpad.home/residence/45337';
                 url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
             },
             "searching": false,
-            "order": [[ 3, "asc" ]],
+            "order": [[ 5, "asc" ]],
             columnDefs: [
                     { type: 'natural-nohtml', targets: 5 },
                     { type: 'natural-nohtml', targets: 7 }
@@ -1657,7 +1657,8 @@ defer(
 });//end docready
 
     <?php
-    elseif( $currentMenu == "history" ):#https://ehpad.home/history/46822
+    elseif( $currentMenu == "history" ):#
+$a='https://ehpad.home/history/46822';
 $fs=14;$w=28;$h=36;$r=$h/$w;
 $w=40;$h=round($w*$r);$zoom=1.6;##anyways-- stupid otherwise
 
@@ -1675,7 +1676,7 @@ w=32;h=32;toload=[];markers = [];needSvgToCanvas();ajax('/z/ajax.php?markers=1',
                     url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
                 },
                 "searching": false,
-                "order": [[ 3, "asc" ]],
+                "order": [[ 5, "asc" ]],
                 columnDefs: [
                     { type: 'natural-nohtml', targets: 6 }
                 ]

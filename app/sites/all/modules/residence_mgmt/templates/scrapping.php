@@ -129,7 +129,8 @@ function updateAll($forceFiness=null,$tarifsForces=null){
     $starts=time();
 /* Attention : ce ne sont pas toutes des Ehpad .. */
     $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=$fin2rid=$tarifsModifies=$c2r=[];
-    $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';
+    $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';#finess:argv2, noFinesset/010001246
+    #$url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/010001246';
     $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
     if(is_file($f)){
         $_a=['contents'=>file_get_contents($f)];#cached
