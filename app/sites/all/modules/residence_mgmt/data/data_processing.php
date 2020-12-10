@@ -26,7 +26,7 @@ foreach( $residenceList as $residenceFileName ) {
     $query->fields('n', array('nid', 'title'));
     $query->fields('f', array('field_finess_value'));
     $query->fields('rc', array('entity_id'));
-    $node = $query->execute()->fetchObject();
+    $node = fetchObject($query);
 
     $chambre = node_load($node->entity_id);
 

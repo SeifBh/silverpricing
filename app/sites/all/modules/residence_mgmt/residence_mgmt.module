@@ -24,8 +24,36 @@ function capretraite(){
 
 #https://ehpad.home/yo
 function residence_mgmt_yo(){
-    updateAll(210007159,['tarifGir12'=>60+date('s'),'prixHebPermCs'=>date('s'),'prixHebPermCd'=>100-date('s'),'prixHebTempCd'=>99-date('s')]);#.
+    die('test ation for bootstraping !');
+/*#drupal 7 programmaticaly add image s*/
+    if(0 and 'sets multiples images'){
+        $x=node_load(45123);$files=[];
+        foreach([1,2] as $v){
+            $filepath = '/Users/ben/Desktop/'.$v.'.jpg';#drupal_realpath('misc/druplicon.png');
+            if(!is_file($filepath)){
+                $err=1;
+            }
+            // Create managed File object and associate with Image field.
+            $file = (object) array('uid' => 1, 'uri' => $filepath, 'filemime' => file_get_mimetype($filepath), 'status' => 1,);
+            $files[] =(array) file_copy($file, 'public://ehpad/'.uniqid().'.jpg');
+        }
+#{"und":[{"fid":"111","uid":"1","filename":"5fd1df4fe4b74.jpg","uri":"public:\/\/\/5fd1df4fe4b74.jpg","filemime":"image\/jpeg","filesize":"35348","status":"1","timestamp":"1607589769","type":"image","library":"0","field_file_image_alt_text":[],"field_file_image_title_text":[],"rdf_mapping":[],"title":"","alt":"","metadata":{"height":210,"width":261},"height":"210","width":"261"},{"fid":"112","uid":"1","filename":"5fd1df4fde0e5.jpg","uri":"public:\/\/\/5fd1df4fde0e5.jpg","filemime":"image\/jpeg","filesize":"41319","status":"1","timestamp":"1607589769","type":"image","library":"0","field_file_image_alt_text":[],"field_file_image_title_text":[],"rdf_mapping":[],"title":"","alt":"","metadata":{"height":217,"width":239},"height":"217","width":"239"}]}
+$o=json_encode($x->field_images[LANGUAGE_NONE][0]);
+        $x->field_images[LANGUAGE_NONE] = $files;
+        node_save($x);
+        die;
+    }
+#die;
+    updateAllResidencesFromPersonnesAgeesJson();
+    #updateAllResidencesFromPersonnesAgeesJson(210007159,['tarifGir12'=>60+date('s'),'prixHebPermCs'=>date('s'),'prixHebPermCd'=>100-date('s'),'prixHebTempCd'=>99-date('s')]);#.
 }
+
+function residence_mgmt_node_presave( $n ) {
+    if($n->type=='chambre' and !$n->field_uuid['und']){
+        $n->field_uuid['und'][0]['value']=uniqid();#mais les générer également pour chacune des entités
+    }
+}
+
 #cuj https://ehpad.home/updateHistory?opc;           https://ehpad.home/updateHistory
 #cuj "https://ehpad.home/updateHistory" '' '{"hid":"","mapName":"\/z\/genmaps\/201203144358--hid=null-adress=paris-perimetre=5.jpg"}' 1 "has_js=1;ben=1;Drupal_toolbar_collapsed=0;XDEBUG_SESSION=XDEBUG_ECLIPSE;SESS02da88e2f02ccdeaa197b0dcdf4d100a=gfAt1ljHWtGbMd0_77Z2BCSVaGYNOtd49_glJkpAJbY;SSESS02da88e2f02ccdeaa197b0dcdf4d100a=rVW6y734nmhBIH_ydjf7LgnqkK6CsvRoO-MlK43j9H0;sql=history;Drupal_tableDrag_showWeight=0;siteDisabled=1"
 function updateHistory(){
@@ -982,7 +1010,7 @@ function residence_mgmt_get_residence_details($residenceId = null) {
     $query = db_select('field_data_field_residence', 'rc');
     $query->condition('rc.field_residence_target_id', $residenceId, '=');
     $query->fields('rc', array('entity_id'));
-    $result = $query->execute()->fetchObject();
+    $result = fetchObject($query);
 
     $chambre = entity_load('node', array($result->entity_id), array('type' => 'chambre'));
     $chambre = $chambre[$result->entity_id];
@@ -1257,7 +1285,7 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null
     $query = db_select('field_data_field_residence', 'rc');
     $query->condition('rc.field_residence_target_id', $residenceId, '=');
     $query->fields('rc', array('entity_id'));
-    $chambreCourant = $query->execute()->fetchObject();
+    $chambreCourant = fetchObject($query);
 
     for( $i = 0 ; $i < 24 ; $i++ ) { $chartData['xAxe'][] = date('Y-m', strtotime(date('Y-m-d') . "- $i month")); }
     $chartData['xAxe'] = array_reverse($chartData['xAxe']);
@@ -1563,7 +1591,7 @@ function residence_mgmt_edit_residence($residenceId = null) {
     $query = db_select('field_data_field_residence', 'rc');
     $query->condition('rc.field_residence_target_id', $residenceId, '=');
     $query->fields('rc', array('entity_id'));
-    $result = $query->execute()->fetchObject();
+    $result = fetchObject($query);
 
     if( isset($_POST) && !empty($_POST) ) {
         updateChambre($result->entity_id, $_POST);
@@ -1917,7 +1945,7 @@ function update_residences_latlong() {
         $query->join('field_data_field_finess', 'f', 'f.entity_id = n.nid and f.field_finess_value = :finess', array(':finess' => $importedNode[0] ));
         $query->fields('n', array('nid', 'title'));
         $query->fields('f', array('field_finess_value'));
-        $node = $query->execute()->fetchObject();
+        $node = fetchObject($query);
 
         if( $node ) {
             $n = node_load($node->nid);
@@ -2063,12 +2091,23 @@ function residence_mgmt_nearby_residences_updated( $SchedulingType ) {
 
 #todo:replace all ->execute()->fetchAll
 function fetchAllAssoc($query,$assoc){
-    if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);$res=$query->execute()->fetchAllAssoc($assoc);$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;
+    if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);$res=$query->execute()->fetchAllAssoc($assoc);$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;interceptQuery($query,$res);
     return $res;
 }
 function fetchAll($query){
-    if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);$res=$query->execute()->fetchAll();$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;
+    if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);$res=$query->execute()->fetchAll();$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;interceptQuery($query,$res);
     return $res;
+}
+
+function fetchObject($query){
+    if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);
+    $res=$query->execute()->fetchObject();$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;interceptQuery($query,$res);
+    return $res;
+}
+function interceptQuery($query,$res){
+    if(isset($_COOKIE['sql']) and preg_match('~'.$_COOKIE['sql'].'~i',$query)){
+        $a=1;
+    }
 }
 
 function  resmgmt_database_interpolateQuery($query, $params,$objcontext=null)
@@ -2095,3 +2134,4 @@ function  resmgmt_database_interpolateQuery($query, $params,$objcontext=null)
     $query=str_replace(['{','}'],'',$query);
     return $query;
 }
+

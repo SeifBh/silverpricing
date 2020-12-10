@@ -459,7 +459,7 @@ function getRankingOfResidence( $residenceNid, $rankingTypes = array() ) {
     $query->fields('s', array('field_statut_value'));
     $query->fields('cs', array('field_tarif_chambre_simple_value'));
     $query->addExpression(0, 'distance', array());
-    $rankedResidence = $query->execute()->fetchObject();
+    $rankedResidence = fetchObject($query);
 
     // varDebug($rankedResidence);
     // exit();

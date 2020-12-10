@@ -116,7 +116,7 @@ my -u a -pb silverpricing_db < ../db/silverpricing_db.sql;drushy cc all;
 a;cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) ';b;say done;
 on second update shall stop uneccessary updates
 */
-function updateAll($forceFiness=null,$tarifsForces=null){
+function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForces=null){
 #todo:lock
     if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE){
         $lf=__file__.__function__.'.lock';#if(is_file($lf) and filemtime($lf)>time()-70000)die("locked:$lf");touch($lf);
