@@ -401,9 +401,7 @@ function synchronizeChambre( $entityId, $data,$finess=null) {
                 $residence->field_url_source[LANGUAGE_NONE][0]['value'] = $data->urlSource;
                 node_save($residence);
             }
-
         }
-
     }
     return;
     #return [$chambre,$residence];
@@ -568,7 +566,7 @@ function getResidencesConcurrentesOnAddress($latitude, $longitude, $perimetre = 
     $query->addExpression('(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude))))', 'distance', array( ':latitude' => $latitude, ':longitude' => $longitude ));
     $query->where('(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude)))) <= :perimetre', array( ':perimetre' => $perimetre, ':latitude' => $latitude, ':longitude' => $longitude ));
     $query->orderBy('distance', 'ASC');
-    $_ENV['stop']=__FILE__.__line__;
+    #$_ENV['stop']=__FILE__.__line__;
     $residences = fetchAll($query);
     return $residences;
 }
@@ -904,8 +902,48 @@ function addHistory($historyData = array()) {
         #$history->field_name = $historyData['name'];#[$history->language][0]['value']
         $history->field_name[$history->language][0]['value'] = $historyData['name'];#
       node_object_prepare($history);
+    if(1 and 'excel'){
+        $fn=$historyData['body']['request']['adresse'].'-'.$historyData['body']['request']['perimetre'];
+        $t=(array)$historyData['body']['response'][0];unset($t['nid'],$t['field_logo_fid'],$t['grp_term_name']);
+        $headers=array_keys($t);
+        $translate=['title'=>'titre','field_statut_value'=>'type','field_location_locality'=>'ville','field_location_postal_code'=>'code postal','field_tarif_chambre_simple_value'=>'tarif chambre','field_gestionnaire_value'=>'gestionnaire','field_latitude_value'=>'latitude','field_longitude_value'=>'longitude','name'=>'département','distance'=>'distance en km'];
+        foreach($headers as &$v){
+            if(isset($translate[$v])){$v=$translate[$v];}
+            $v=str_replace(['field_','_value',],'',$v);
+        }unset($v);
+        $lines=[$headers];
 
+        foreach($historyData['body']['response'] as $k=>$t){
+            if(is_object($t))$t=(array)$t;
+            unset($t['nid'],$t['field_logo_fid'],$t['grp_term_name']);
+            $lines[]=array_values($t);
+        }
+
+        try{
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle($historyData['body']['request']['adresse']);#31 max chars '.$historyData['body']['request']['adresse'].','.$historyData['body']['request']['perimetre']);
+            $cols=[];$letter = 'A';while ($letter !== 'AAA') {$cols[] = $letter++;}
+            if ('parcours des données') {
+                foreach ($lines as $l => $t) {
+                    foreach ($t as $c => $v) {
+                        $x = $cols[$c];
+                        $coord = $x . '' . ($l + 1);
+                        $sheet->getCell($coord)->setValue($v);
+                    }
+                }
+            }
+
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $rp='z/xls/'.$fn.'-'.$GLOBALS['user']->uid.'-'.$GLOBALS['user']->name.'-'.uniqid().'.xlsx';
+            $writer->save($_SERVER['DOCUMENT_ROOT'].$rp);#$GLOBALS['user']???
+            $history->field_excel['und'][0]['value'] =  '/'.$rp;#
+        }catch(\Exception $e){
+            $err=1;
+        }
+    }#end excel
       $history->body[$history->language][0]['value'] = json_encode($historyData['body']);
+
       $history->field_balance_consumed[$history->language][0]['value'] = $historyData['balance_consumed'];
     node_save($history);
     $_SESSION['public']=['hid'=>$history->nid];

@@ -4,15 +4,21 @@
 * implement hook_menu()
 * create menu residences
 */
-function residence_mgmt_menu() {
-
-    $items = array();
+function residence_mgmt_menu() {$items = array();
+/**  } START BEN {*****/
+#drushy cc all
+    $items['updateAllRoomsUuid'] = array(
+        'title'             =>  'updateAllRoomsUuid',
+        'page callback'     =>  'updateAllRoomsUuid',
+        'access callback'   => 'fastAccess',
+    );#drushy cc all
 
     $items['capretraite'] = array(
         'title'             =>  'capretraite',
         'page callback'     =>  'capretraite',
-        'access callback'   => true,
+        'access callback'   => 'fastAccess',
     );#drushy cc all
+
     $items['er/%'] = array(#uuid
         'title'             =>  'Modifier la résidence',
         'page callback'     =>  'editChambreByUuid',
@@ -20,16 +26,16 @@ function residence_mgmt_menu() {
         'access callback'   => true,
         #'access callback'   => 'fastAccess','access arguments' => array('PAGE_MES_RESIDENCES'),
     );
-    $items['yo'] = array(
-        'title'             =>  'yo',
-        'access callback'   =>  true,
+    $items['updateAllResidencesByJson'] = array(
+        'title'             =>  'updateAllResidencesByJson',
+        'access callback'   =>  'fastAccess',
         'page callback'     =>  'residence_mgmt_yo',#residence_mgmt_yo,#drushy cc all
         #'yo/%'=> 'page arguments'    => array( 1 ),
         #'access arguments'  => array(array('administrator')),
     );
 
     $items['updateHistory'] = array('title' => 'updateHistory', 'access callback' => true, 'page callback' => 'updateHistory');
-
+/**  } END BEN{*****/
 
 
     $items['profile/%'] = array(

@@ -573,10 +573,16 @@ class fun /* extends base */
                 throw new Exception(__function__ . __file__ . __line__ . "Unknown image type. : $mime");
         }
 
-        if ($ext2 == 'webp') {#passed in last argument
-            $image_save_func = 'imagewebp';
-            $quality = 90;#as original png files .. better quality is expected here :)
-            $ext = $ext2;
+        if($target){
+            $ext2=fun::getExtension($target);
+            $ext=$ext2;
+            switch ($ext2) {
+                case 'webp':$image_save_func = 'imagewebp';$quality = 80;break;
+                case 'jpg':$image_save_func = 'imagejpeg';$quality = 70;break;
+                case 'png':$image_save_func = 'imagepng';$quality = $pngq;break;
+                case 'gif':$image_save_func = 'imagegif';break;
+                #default:throw new Exception(__function__ . __file__ . __line__ . "Unknown image type. : $mime");
+            }
         }
 
         $img = $image_create_func($filename);

@@ -5,7 +5,8 @@ SCRAP FULL PAGE = Conserver
 Finess Images
 */
 namespace Alptech\Wip;die;#todo:rename to ajax
-chdir(__DIR__);require_once'../autoload.php';
+chdir(__DIR__);
+require_once '../autoload.php';
 $x=io::fgcj('capretraite.json');
 $a=1;
 

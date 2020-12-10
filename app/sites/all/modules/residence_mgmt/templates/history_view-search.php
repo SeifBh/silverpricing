@@ -84,10 +84,10 @@
                                 </thead>
                                 <tbody>
                                     <?php $rows = 0; ?>
-                                    <?php foreach( $historyBody->response as $residence ): ?>
+                                    <?php foreach( $historyBody->response as $k=>$residence ): ?>
                                     <tr>
                                         <td><a
-                                                href="<?php echo '/residence/' . $residence->nid; ?>"><?php echo $residence->title ?></a>
+                                                href="<?php echo '/residence/' . $residence->nid; ?>"><?php echo ($k+1).' '. $residence->title ?></a>
                                         </td>
                                         <td><?php echo $residence->field_location_postal_code; ?></td>
                                         <td><?php echo $residence->field_location_locality; ?></td>

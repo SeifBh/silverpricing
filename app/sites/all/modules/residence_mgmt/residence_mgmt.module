@@ -14,13 +14,107 @@ require_once __DIR__ . "/inc/theme.inc.php";
 require_once __DIR__ . "/inc/user.inc.php";
 require_once __DIR__ . "/inc/routing.inc.php";
 require_once __DIR__.'/../../../../autoload.php';#-> maps to composer
-
 #use Alptech\Wip\io;use Alptech\Wip\fun;
+/*
+cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'ben=1'
 
+cuj 'https://ehpad.home/updateAllRoomsUuid' a '' 1 'ben=1'
+cuj 'https://ehpad.home/capretraite' a '' 1 'ben=1'
+*/
+
+function fastAccess(){
+    if(!isset($_COOKIE['ben']) and !strpos($_SERVER['HTTP_HOST'],'.home')){
+        die('/*nothing*/');
+        $a=1;
+        return false;
+    }
+    return true;
+}
+
+function residence_mgmt_node_presave( $n ) {
+    if($n->type=='chambre' and !$n->field_uuid['und']){
+        $n->field_uuid['und'][0]['value']=uniqid();#mais les générer également pour chacune des entités
+    }
+}
+
+function updateAllRoomsUuid(){
+    #select n.nid,u.field_uuid_value as uuid from node n left join field_data_field_uuid u on n.nid=u.entity_id where type='chambre' and u.field_uuid_value is not null -- sauvegardées : 20
+    $x = Alptech\Wip\fun::sql("select n.nid from node n left join field_data_field_uuid u on n.nid=u.entity_id where type='chambre' and u.field_uuid_value is null");
+    foreach($x as $t){
+        $y=node_load($t['nid']);
+        $y->field_uuid['und'][0]['value']=uniqid();
+        $saved=node_save($y);
+        $a=1;
+    }
+    die(count($x).'chambres->UUID');
+}
+
+
+
+#cuj 'https://ehpad.home/capretraite' a '' 1 'ben=1'
 function capretraite(){
+    ini_set('max_execution_time',9999999);
     $x=Alptech\Wip\io::fgcj($_SERVER['DOCUMENT_ROOT'].'z/capretraite.json');
-    $a=1;#then get residence by finess and upload images
-    #field_uuid
+    $fitnesses=array_keys($x);$fitness2id=[];
+    $y=Alptech\Wip\fun::sql("select field_finess_value,entity_id from field_data_field_finess where field_finess_value in('".implode("','",$fitnesses)."')");
+    foreach($y as $t){$fitness2id[$t['field_finess_value']]=$t['entity_id'];}
+
+    foreach($x as $fitness=>$data) {
+        if (!$data['images'][1]) {
+            $nf++;
+            continue;#ras
+        } elseif (!isset($fitness2id[$fitness])) {
+            $nf++;#cant update something
+            continue;
+        }
+        $rid = $fitness2id[$fitness];
+        $files = [];
+        foreach ($data['images'][1] as $img) {
+            $_curl=$_written=$_resized=0;
+            $x = explode('/', $img);
+            unset($x[6]);
+            $fq = implode('/', $x);
+            $ffn = end($x);
+            $ext = Alptech\Wip\fun::getExtension($img);
+            $dlp = $_SERVER['DOCUMENT_ROOT'] . '/z/curlcache/capimg/' . $fitness . '-' . preg_replace('~[^a-z0-9\.\-]+~is', '_', $fq);
+#resized => toutes en jpg et non en png !!!
+            $dlp2 = $_SERVER['DOCUMENT_ROOT'] . '/z/curlcache/capimg/tn-' . $fitness . '-' . preg_replace('~[^a-z0-9\.\-]+~is', '_', str_replace('.' . $ext, '', $fq)) . '.jpg';
+
+            if (is_file($dlp) or is_file($dlp2)) {#boucle parfois sur des répétitions de données on dirait .. :)
+                $a = 1;#ok
+            } else {
+                $opts = [CURLOPT_URL => $fq, CURLOPT_HEADER => 1, CURLINFO_HEADER_OUT => 1, CURLOPT_VERBOSE => 1, CURLOPT_RETURNTRANSFER => 1, CURLOPT_AUTOREFERER => 1, CURLOPT_FOLLOWLOCATION => 1, CURLOPT_TIMEOUT => 50, CURLOPT_CONNECTTIMEOUT => 50, CURLOPT_SSL_VERIFYHOST => false, CURLOPT_SSL_VERIFYPEER => false];#, CURLOPT_HTTPHEADER => $headers
+                $curlFile = Alptech\Wip\fun::cuo($opts);
+                $_curl=$curlFile['info']['download_content_length'];
+                if ($curlFile['error'] or $curlFile['info']['http_code'] != 200 or $curlFile["info"]["download_content_length"] < 200) {
+                    $err = 1;
+                    continue;
+                } else {
+                    $_written = Alptech\Wip\io::FPC($dlp, $curlFile['contents']);
+                }
+            }
+            if(is_file($dlp2))$dlp=$dlp2;
+
+            $fs=filesize($dlp);
+            if(!$fs){$err=1;
+                continue;
+            }elseif($fs>400000 and $dlp!=$dlp2){#not recursive please!!!
+                #$is=getimagesize($dlp,$if);#osef
+                $_resized=Alptech\Wip\fun::resizeImage($dlp,1600,null,$dlp2);
+                unlink($dlp);
+                $dlp=$dlp2;
+            }
+
+            $file = (object)['uid' => 1, 'uri' => $dlp, 'filemime' => file_get_mimetype($dlp), 'status' => 1];
+            $files[] = (array)file_copy($file, 'public://ehpad/' . $fitness.'-'.uniqid() . '.' . $ext);
+        }
+        $y=node_load($rid);
+        $y->field_images[LANGUAGE_NONE] = $files;
+        $saved=node_save($y);
+        $a=1;
+    }
+    $a='end';
+    die;
 }
 
 function editChambreByUuid($uuid=null){
@@ -49,9 +143,12 @@ function editChambreByUuid($uuid=null){
     return;
 }
 
-#https://ehpad.home/yo
+#cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'ben=1'
 function residence_mgmt_yo(){
-    die('test ation for bootstraping !');
+    ini_set('max_execution_time',9999999);
+    updateAllResidencesFromPersonnesAgeesJson();#
+    die;
+    #die('test ation for bootstraping !');
 /*#drupal 7 programmaticaly add image s*/
     if(0 and 'sets multiples images'){
         $x=node_load(45123);$files=[];
@@ -71,14 +168,7 @@ $o=json_encode($x->field_images[LANGUAGE_NONE][0]);
         die;
     }
 #die;
-    updateAllResidencesFromPersonnesAgeesJson();
     #updateAllResidencesFromPersonnesAgeesJson(210007159,['tarifGir12'=>60+date('s'),'prixHebPermCs'=>date('s'),'prixHebPermCd'=>100-date('s'),'prixHebTempCd'=>99-date('s')]);#.
-}
-
-function residence_mgmt_node_presave( $n ) {
-    if($n->type=='chambre' and !$n->field_uuid['und']){
-        $n->field_uuid['und'][0]['value']=uniqid();#mais les générer également pour chacune des entités
-    }
 }
 
 #cuj https://ehpad.home/updateHistory?opc;           https://ehpad.home/updateHistory
@@ -1492,6 +1582,13 @@ function residence_mgmt_recherche_silverex() {
     $categories = json_decode(getRequest( BASE_API_URL . "/api/health-organizations/categories/list" ));
     $healthOrganizations = array();
     $requete_statistiques = null;
+#Si F5
+    if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE and  isset($_SESSION['hid']) and isset($_POST['latitude']) and isset($_POST['longitude']) and isset($_POST['perimetre']) and $_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.$_POST['categories']==$_SESSION['lastSearch']) {
+        $a='https://ehpad.home/history/48179';#rediriger sur dernière historique
+        Alptech\Wip\fun::r302('/history/'.$_SESSION['hid'].'#f5?');
+
+        #"$_SESSION['lastSearch'];;
+    }
 
     if( !empty($_POST) && residence_mgmt_has_enough_user_balance('RESIDENCES_REQUEST', array( "perimetre" => $_POST['perimetre'] )) ) {
 
@@ -1507,6 +1604,8 @@ function residence_mgmt_recherche_silverex() {
             if( !empty($_POST['categories']) ){
                 $healthOrganizations = json_decode(postRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], array( 'categories' => $_POST['categories'] ) ));
             }
+
+            $_SESSION['lastSearch']=$_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.$_POST['categories'];
         }
 
         $requete_statistiques = get_requete_statistique($residences,$name);

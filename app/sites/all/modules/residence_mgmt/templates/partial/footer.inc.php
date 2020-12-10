@@ -1676,7 +1676,7 @@ w=32;h=32;toload=[];markers = [];needSvgToCanvas();ajax('/z/ajax.php?markers=1',
                     url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
                 },
                 "searching": false,
-                "order": [[ 5, "asc" ]],
+                "order": [[ 4, "asc" ]],
                 columnDefs: [
                     { type: 'natural-nohtml', targets: 6 }
                 ]

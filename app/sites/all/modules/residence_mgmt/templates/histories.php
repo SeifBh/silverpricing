@@ -13,7 +13,7 @@
                           <th scope="col">Détails de la recherche</th>
                           <th scope="col">Crédit utilisés</th>
                           <th scope="col">Créé le</th>
-                          <th scope="col">Action</th>
+                          <th scope="col">Actions</th>
                       </tr>
                   </thead>
                   <tbody>
@@ -33,11 +33,11 @@
                               </td>
                               <td><?php echo $history->field_balance_consumed_value; ?></td>
                               <td><?php echo date( "d-m-Y H:i:s", $history->created); ?></td>
-                              <td>
+                              <td nowrap>
                                   <a class="btn btn-sm btn-primary btn-icon" href="<?php echo "/ged/" . $account->uid . "/document/" . $history->nid ; ?>" title="Télécharger"><i data-feather="download"></i></a>
                                   <?php if($history->title == "RESIDENCES_REQUEST"): ?>
                                   <a class="btn btn-sm btn-primary btn-icon" href="<?php echo "/history/" . $history->nid ; ?>" title="Consulter"><i data-feather="eye"></i></a>
-                                  <?php endif; ?>
+                                  <?php if($history->field_excel_value){?><a class="btn btn-sm btn-primary btn-icon" href="<?php echo $history->field_excel_value;?>" title="excel"><span class="iconify" data-icon="fe-file-excel" data-inline="false"></span></a><?}endif; ?>
                               </td>
                           </tr>
                       <?php endforeach; ?>

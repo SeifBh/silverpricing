@@ -113,17 +113,18 @@ foreach( $tarifTable->find('tr') as $tarif ) {
 Drupal 7 new route to module action ..
 
 my -u a -pb silverpricing_db < ../db/silverpricing_db.sql;drushy cc all;
-a;cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) ';b;say done;
+a;cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'sql=(insert|update) ';b;say done;
 on second update shall stop uneccessary updates
 */
 function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForces=null){
-#todo:lock
+#todo:lock#
     if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE){
-        $lf=__file__.__function__.'.lock';#if(is_file($lf) and filemtime($lf)>time()-70000)die("locked:$lf");touch($lf);
+        $lf=__file__.__function__.'.lock';if(is_file($lf) and filemtime($lf)>time()-70000)die("locked:$lf");touch($lf);
         register_shutdown_function(function()use($lf){
             $a=1;
             unlink($lf);});#
     }
+    echo'<pre>';
     ini_set('max_execution_time',-1);
     ini_set('memory_limit',-1);
     $starts=time();
@@ -145,7 +146,7 @@ function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForc
     $_c=json_decode($_a['contents'],1);unset($_a);
     $_mem[__line__]=memory_get_usage(1);
     foreach($_c as $k=>&$t){
-        $finesses[]=ltrim($t['noFinesset'],0);
+        $finesses[]=ltrim($t['noFinesset']);
     }
     $finesses=array_unique($finesses);
 
@@ -258,7 +259,7 @@ if($rid and isset($t['ehpadPrice']) and 'alertes Modification de prix lorsque r�
                     $residence = node_load($rid);
                     $rtt=$residence->revision_timestamp;#[$residence->revision_timestamp,$modifRes,$lastmod]
                     if($rtt>=$modifRes or $rtt>=$lastmod){
-                        $err=1;
+                        $err=1;#revision timestamp above declared modifications
                     }
 if(0){
 #$residence->type = 'residence';$residence->body = '';$residence->language = LANGUAGE_NONE;
@@ -413,26 +414,26 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
     $took=time()-$starts;$starts=time();
     echo"\n\nAlertsTook:$took";#
 
-    require_once $_SERVER['DOCUMENT_ROOT'].'z/geo.php';
+    require_once rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/z/geo.php';
     $took=time()-$starts;$starts=time();
     echo"\n\nGeodingTook:$took";#
 
     if($__inserts['residences']){#do the geo recoding
 
     }
-    /*
-    #A) Get aRids from alert last timestamp
-    #B) uRids from registred alerts ( user inner join residences )
-    #C) Intersections geographiques
-    #D) => from z_geo where rid in($uRids) and list like '%$aRid,%'
-    #$took=time()-$starts;$starts=time();
+/*
+#A) Get aRids from alert last timestamp
+#B) uRids from registred alerts ( user inner join residences )
+#C) Intersections geographiques
+#D) => from z_geo where rid in($uRids) and list like '%$aRid,%'
+#$took=time()-$starts;$starts=time();
 
 my -u a -pb silverpricing_db < ../db/silverpricing_db.sql;drushy cc all;
 a;cuj 'https://ehpad.home/yo' a '' 1 'sql=(insert|update) ';b;say done;
 
 Une alerte peut être identifiée par date ! Les interceptions donnent z_variations.id
 select * from z_geo where list like'%,33979,%' -- 40 ehpads l'ayant dans ses coordonnées les plus proches
-    */
+*/
     print_r($_mem);
     die;
 }
