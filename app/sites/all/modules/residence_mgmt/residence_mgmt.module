@@ -13,13 +13,40 @@ require_once __DIR__ . "/inc/polygon.php";
 require_once __DIR__ . "/inc/theme.inc.php";
 require_once __DIR__ . "/inc/user.inc.php";
 require_once __DIR__ . "/inc/routing.inc.php";
-require_once __DIR__.'/../../../../autoload.php';
+require_once __DIR__.'/../../../../autoload.php';#-> maps to composer
 
-#use Alptech\Wip\io;
+#use Alptech\Wip\io;use Alptech\Wip\fun;
+
 function capretraite(){
-    $x=io::fgcj($_SERVER['DOCUMENT_ROOT'].'z/capretraite.json');
+    $x=Alptech\Wip\io::fgcj($_SERVER['DOCUMENT_ROOT'].'z/capretraite.json');
     $a=1;#then get residence by finess and upload images
     #field_uuid
+}
+
+function editChambreByUuid($uuid=null){
+    if(!$uuid){
+        Alptech\Wip\fun::r404('nothing here');
+    }
+    $x=Alptech\Wip\fun::sql("SELECT entity_id FROM field_data_field_uuid a WHERE a.field_uuid_value='".addslashes($uuid)."'");
+    if(!$x){
+        Alptech\Wip\fun::r404('nothing here 2');
+    } elseif(count($x)>1){
+        Alptech\Wip\fun::r404('multiple results ... ?');
+    }
+    $eid=$x[0]['entity_id'];
+    #node_load(); ..
+    if( isset($_POST) && !empty($_POST) ) {
+        updateChambre($eid, $_POST);
+        Alptech\Wip\fun::r302('?');
+    } else {#chargement données et template
+        $chambre = entity_load('node', array($eid), array('type' => 'chambre'));
+        $chambre = $chambre[$eid];
+    }
+    ob_start();
+    include_once __DIR__ . "/templates/edit_residence.php";
+    $content = ob_get_clean();
+    include_once __DIR__ . "/templates/layouts/default.php";
+    return;
 }
 
 #https://ehpad.home/yo

@@ -12,13 +12,13 @@ function residence_mgmt_menu() {
         'title'             =>  'capretraite',
         'page callback'     =>  'capretraite',
         'access callback'   => true,
-    );
+    );#drushy cc all
     $items['er/%'] = array(#uuid
         'title'             =>  'Modifier la résidence',
-        'page callback'     =>  'residence_mgmt_edit_residence',
+        'page callback'     =>  'editChambreByUuid',
         'page arguments'    => array( 1 ),
-        'access callback'   => 'fastAccess',
-        'access arguments' => array('PAGE_MES_RESIDENCES'),
+        'access callback'   => true,
+        #'access callback'   => 'fastAccess','access arguments' => array('PAGE_MES_RESIDENCES'),
     );
     $items['yo'] = array(
         'title'             =>  'yo',
