@@ -69,11 +69,11 @@ class fun /* extends base */
             }
             if (preg_match('~":"[^\"]+\.php[^\"]*"~i', $json, $m)) {
                 return 'complex nested file upload: ' . $m[0];
-            }
-            $foundUploads = searchInArrayDepths($files, ['name'], '~\.php~');
+            }/*
+            $foundUploads = fun::searchInArrayDepths($files, ['name'], '~\.php~');
             if ($foundUploads) {
                 return 'deep file upload: ' . json_encode($foundUploads);
-            }
+            }*/
         }
         return false;#clear :)
     }

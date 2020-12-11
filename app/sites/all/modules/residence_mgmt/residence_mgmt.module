@@ -78,7 +78,7 @@ function capretraite(){
         }
         $rid = $fitness2id[$fitness];
         $files = [];
-        $y=node_load($rid);
+        $y=node_load($rid);#46796
         $____currentImages=$y->field_images[LANGUAGE_NONE];
         $a='what about current nodes images ??';
         foreach ($data['images'][1] as $img) {
