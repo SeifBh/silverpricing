@@ -23,6 +23,7 @@ cuj 'https://ehpad.home/updateAllRoomsUuid' a '' 1 'ben=1'
 x=setups2.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db >> $x;tar czf $x.tgz $x;rm $x;say $x;#with geocodings !!!! ;)
 
 cuj 'https://ehpad.home/capretraite' a '' 1 'ben=1'
+x=setups3.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db >> $x;tar czf $x.tgz $x;rm $x;say $x;#with geocodings !!!! ;)
 
 cuj 'http://ehpad.silverpricing.fr?opc=1' a '' 1 'ben=1'
 cd ~/home/ehpad/release/app;mysqldump -u a -pb silverpricing_db > silver.sql;tar czf silver.sql.tgz silver.sql;rm silver.sql;say done;
