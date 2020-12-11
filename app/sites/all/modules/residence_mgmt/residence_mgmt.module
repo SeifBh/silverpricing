@@ -14,12 +14,18 @@ require_once __DIR__ . "/inc/theme.inc.php";
 require_once __DIR__ . "/inc/user.inc.php";
 require_once __DIR__ . "/inc/routing.inc.php";
 require_once __DIR__.'/../../../../autoload.php';#-> maps to composer
-#use Alptech\Wip\io;use Alptech\Wip\fun;
 /*
-cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'ben=1'
+#use Alptech\Wip\io;use Alptech\Wip\fun;
+my silverpricing_db < silver.20201210-benSetups.sql
 
+cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'ben=1'
 cuj 'https://ehpad.home/updateAllRoomsUuid' a '' 1 'ben=1'
+mysqldump -u a -pb silverpricing_db > updated.sql;tar czf updated.tgz updated.sql;rm updated.sql
+
 cuj 'https://ehpad.home/capretraite' a '' 1 'ben=1'
+
+cuj 'http://ehpad.silverpricing.fr?opc=1' a '' 1 'ben=1'
+cd ~/home/ehpad/release/app;mysqldump -u a -pb silverpricing_db > silver.sql;tar czf silver.sql.tgz silver.sql;rm silver.sql;say done;
 */
 
 function fastAccess(){
@@ -53,6 +59,8 @@ function updateAllRoomsUuid(){
 
 #cuj 'https://ehpad.home/capretraite' a '' 1 'ben=1'
 function capretraite(){
+/*todo : md5 of prod url instead of uniqid() so next import wont overwrite those neat images*/
+    $imgset=0;
     ini_set('max_execution_time',9999999);
     $x=Alptech\Wip\io::fgcj($_SERVER['DOCUMENT_ROOT'].'z/capretraite.json');
     $fitnesses=array_keys($x);$fitness2id=[];
@@ -69,13 +77,19 @@ function capretraite(){
         }
         $rid = $fitness2id[$fitness];
         $files = [];
+        $y=node_load($rid);
+        $____currentImages=$y->field_images[LANGUAGE_NONE];
+        $a='what about current nodes images ??';
         foreach ($data['images'][1] as $img) {
+            $md5=md5($img);
+            $ext = Alptech\Wip\fun::getExtension($img);
+            $finalPath='public://ehpad/' . $fitness.'-'.$md5 . '.' . $ext;
+            $a='fait -elle partie de cet ensemble ??';
             $_curl=$_written=$_resized=0;
             $x = explode('/', $img);
             unset($x[6]);
             $fq = implode('/', $x);
             $ffn = end($x);
-            $ext = Alptech\Wip\fun::getExtension($img);
             $dlp = $_SERVER['DOCUMENT_ROOT'] . '/z/curlcache/capimg/' . $fitness . '-' . preg_replace('~[^a-z0-9\.\-]+~is', '_', $fq);
 #resized => toutes en jpg et non en png !!!
             $dlp2 = $_SERVER['DOCUMENT_ROOT'] . '/z/curlcache/capimg/tn-' . $fitness . '-' . preg_replace('~[^a-z0-9\.\-]+~is', '_', str_replace('.' . $ext, '', $fq)) . '.jpg';
@@ -98,23 +112,25 @@ function capretraite(){
             $fs=filesize($dlp);
             if(!$fs){$err=1;
                 continue;
-            }elseif($fs>400000 and $dlp!=$dlp2){#not recursive please!!!
+            }elseif(/*$fs>400000 and */$dlp!=$dlp2){#not recursive please!!!
                 #$is=getimagesize($dlp,$if);#osef
-                $_resized=Alptech\Wip\fun::resizeImage($dlp,1600,null,$dlp2);
+                $_resized=Alptech\Wip\fun::resizeImage($dlp,1200,null,$dlp2);#1200 max as jpg 70
                 unlink($dlp);
                 $dlp=$dlp2;
             }
 
+            $imgset++;
             $file = (object)['uid' => 1, 'uri' => $dlp, 'filemime' => file_get_mimetype($dlp), 'status' => 1];
-            $files[] = (array)file_copy($file, 'public://ehpad/' . $fitness.'-'.uniqid() . '.' . $ext);
+            $files[] = (array)file_copy($file, $finalPath);
+            $a=1;
         }
-        $y=node_load($rid);
+
         $y->field_images[LANGUAGE_NONE] = $files;
         $saved=node_save($y);
         $a=1;
     }
     $a='end';
-    die;
+    die($imgset.' images setted');
 }
 
 function editChambreByUuid($uuid=null){
