@@ -1,16 +1,18 @@
 <?php
 /*
-phpx ~/home/ehpad/app/z/capretraite.php
+phpx ~/home/ehpad/app/z/tests/capretraite.php
 SCRAP FULL PAGE = Conserver
 Finess Images
 */
-namespace Alptech\Wip;die;#todo:rename to ajax
+namespace Alptech\Wip;#die;#todo:rename to ajax
 chdir(__DIR__);
-require_once '../autoload.php';
-$x=io::fgcj('capretraite.json');
-$a=1;
+require_once '../../autoload.php';
 
-return;
+if(0){
+    $x=io::fgcj('capretraite.json');
+    $a=1;
+    return;
+}
 
 
 
@@ -24,7 +26,7 @@ $json=$processed=[];
 $hn='https://www.capretraite.fr';
 $url=$hn.'/maisons-de-retraite/';
 $cf=str_replace(['https','http','://','www.'],'',$url);
-$cf='curlcache/capretraite/'.preg_replace('~[^a-z0-9_\.\-]|_+~','_',$cf).'.html';
+$cf='../curlcache/capretraite/'.preg_replace('~[^a-z0-9_\.\-]|_+~','_',$cf).'.html';
 
 if(is_file($cf)){$contents=io::fgc($cf);}else{
 $opt = [/*10015 => json_encode($json),10036 => 'POST',10023 => $headers,*/10002 => $url, 19913 => 1, 42 => 1, 45 => false, 81 => false, 64 => false,/*ssl verify*/13 => 30, 78 => 30, 52 => 1,2 => 1, 41 => 1, 58 => 1,  /*?? Follow Return Headers*/];
@@ -44,7 +46,7 @@ while($link2dep = array_shift($links[1])){#considère les nouveaux injectés ent
 
     if(in_array($url,$processed))continue;$processed[]=$url;
     $cf=str_replace(['https','http','://','www.'],'',$url);
-    $cf='curlcache/capretraite/'.preg_replace('~[^a-z0-9_\.\-]|_+~','_',$cf).'.html';
+    $cf='../curlcache/capretraite/'.preg_replace('~[^a-z0-9_\.\-]|_+~','_',$cf).'.html';
     if(is_file($cf)){$contents=io::fgc($cf);}else{
     $opt = [/*10015 => json_encode($json),10036 => 'POST',10023 => $headers,*/10002 => $url, 19913 => 1, 42 => 1, 45 => false, 81 => false, 64 => false,/*ssl verify*/13 => 30, 78 => 30, 52 => 1,2 => 1, 41 => 1, 58 => 1,  /*?? Follow Return Headers*/];
     $_a=fun::cuo($opt);
@@ -65,7 +67,7 @@ while($link2dep = array_shift($links[1])){#considère les nouveaux injectés ent
         $url=$hn.$urlResidence;
         if(in_array($url,$processed))continue;$processed[]=$url;
         $cf=str_replace(['https','http','://','www.'],'',$url);
-        $cf='curlcache/capretraite/'.preg_replace('~[^a-z0-9_\.\-]|_+~','_',$cf).'.html';
+        $cf='../curlcache/capretraite/'.preg_replace('~[^a-z0-9_\.\-]|_+~','_',$cf).'.html';
         if(is_file($cf)){$contents=io::fgc($cf);}else{
             $opt = [/*10015 => json_encode($json),10036 => 'POST',10023 => $headers,*/10002 => $url, 19913 => 1, 42 => 1, 45 => false, 81 => false, 64 => false,/*ssl verify*/13 => 30, 78 => 30, 52 => 1,2 => 1, 41 => 1, 58 => 1,  /*?? Follow Return Headers*/];$_a=fun::cuo($opt);if($_a['info']['http_code']!=200 or $_a['error']){
                 $err=1;
@@ -77,13 +79,16 @@ while($link2dep = array_shift($links[1])){#considère les nouveaux injectés ent
             continue;
         }
         preg_match_all('~<script type=\'application/ld+json\'>(.*)</script>~i',$contents,$jsondata);
-        preg_match_all('~src="(https://res.cloudinary.com/capretraite/image/upload/[^"]+/residences_new/[^"]+)"~i',$contents,$images);#46 => 20 => 8
+        preg_match('~<figure id="carouselResidence".*</figure>~is',$contents,$figure);
+        if($figure and $figure[0]){#phpx ~/home/ehpad/app/z/tests/capretraite.php
+            $nbFound=preg_match_all('~src="(https://res.cloudinary.com/capretraite/image/upload/[^"]+/residences_new/[^"]+)"~i',$figure[0],$images);#46 => 20 => 8
+        } elseif(0){preg_match_all('~src="(https://res.cloudinary.com/capretraite/image/upload/[^"]+/residences_new/[^"]+)"~i',$contents,$images);}#46 => 20 => 8
         $a=1;
         $json[$finess[1]]=compact('images','jsondata');
     }
 };
 
-$_written=io::FPCJ('capretraite.json',$json);
+$_written=io::FPCJ('../capretraite.json',$json);
 $a=1;
 $b=1;
 return;?>

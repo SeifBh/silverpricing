@@ -20,18 +20,36 @@ my silverpricing_db < silver.20201210-benSetups.sql
 
 cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'ben=1'
 cuj 'https://ehpad.home/updateAllRoomsUuid' a '' 1 'ben=1'
-x=setups2.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db >> $x;tar czf $x.tgz $x;rm $x;say $x;#with geocodings !!!! ;)
+x=setups2.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db --ignore-table=distance_indexation >> $x;tar czf $x.tgz $x;rm $x;say $x;#with geocodings !!!! ;)
+
+my silverpricing_db < setups2.sql
 
 cuj 'https://ehpad.home/capretraite' a '' 1 'ben=1'
-x=setups3.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db >> $x;tar czf $x.tgz $x;rm $x;say $x;#with geocodings !!!! ;)
+x=setups3.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db --extended-insert=FALSE --ignore-table=distance_indexation >> $x;tar czf $x.tgz $x;rm $x;say $x;#Images linked !!!
 
-cuj 'http://ehpad.silverpricing.fr?opc=1' a '' 1 'ben=1'
-cd ~/home/ehpad/release/app;mysqldump -u a -pb silverpricing_db > silver.sql;tar czf silver.sql.tgz silver.sql;rm silver.sql;say done;
+x=setups4.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db --extended-insert=FALSE --ignore-table=distance_indexation >> $x;tar czf $x.tgz $x;rm $x;say $x;#Images linked !!!
+
+ls /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/sites/default/files/ehpad | wc -l
+
+tar xf setups3.sql.tgz;mysql -u root -ptoor --max_allowed_packet=999M --force --wait --reconnect silverpricing_db < setups3.sql | tee mysql.log;# force executing rest of queries
+
+$td/mysqlSplit.sh setups3.sql
+cat $(ls -t) > joined.sql
+
+grep -n 'for table `distance_indexation`' setups3.sql
+grep 'for table `distance_indexation`' setup3.sql
+
+1002
+
+
+
+tar xf setups4.sql.tgz;mysql -u root -ptoor --max_allowed_packet=999M --force --wait --reconnect silverpricing_db < setups4.sql | tee mysql.log;# force executing rest of queries
+mysql -u root -ptoor -e "show global variables"
 */
 
 function fastAccess(){
     if(!isset($_COOKIE['ben']) and !strpos($_SERVER['HTTP_HOST'],'.home')){
-        die('/*nothing*/');
+        #die('/*nothing*/');
         $a=1;
         return false;
     }
@@ -77,15 +95,30 @@ function capretraite(){
             continue;
         }
         $rid = $fitness2id[$fitness];
-        $files = [];
         $y=node_load($rid);#46796
-        $____currentImages=$y->field_images[LANGUAGE_NONE];
-        $a='what about current nodes images ??';
+        $files = [];$ajoutImage=0;
+        #$____currentImages=$y->field_images[LANGUAGE_NONE];if($____currentImages)$files=$____currentImages;
+        $fpaths=explode(',',$y->field_imageslist[LANGUAGE_NONE][0]['value']);# = implode(',',$fpaths);
+
         foreach ($data['images'][1] as $img) {
             $md5=md5($img);
             $ext = Alptech\Wip\fun::getExtension($img);
-            $finalPath='public://ehpad/' . $fitness.'-'.$md5 . '.' . $ext;
-            $a='fait -elle partie de cet ensemble ??';
+            $fn=$fitness.'-'.$md5 . '.' . $ext;#final expected path#
+            #$files[0]["filename"]
+            foreach($fpaths as $imgt){
+                if($fn==$imgt['filename']){
+                    continue 2;
+                }
+            }
+            foreach($files as $k=>$imgt){
+                if($fn==$imgt['filename']){
+                    $a='déjà dedans';
+                    continue 2;
+                }
+            }
+
+            $finalPath='public://ehpad/' . $fn;
+$a=1;
             $_curl=$_written=$_resized=0;
             $x = explode('/', $img);
             unset($x[6]);
@@ -119,15 +152,18 @@ function capretraite(){
                 unlink($dlp);
                 $dlp=$dlp2;
             }
-
-            $imgset++;
+            $imgset++;$ajoutImage++;
             $file = (object)['uid' => 1, 'uri' => $dlp, 'filemime' => file_get_mimetype($dlp), 'status' => 1];
-            $files[] = (array)file_copy($file, $finalPath);
+            #$finalPath
+            $fpaths[]=$fn;
+            #$files[] = (array)file_copy($file, $finalPath);
             $a=1;
         }
-
-        $y->field_images[LANGUAGE_NONE] = $files;
-        $saved=node_save($y);
+        if($ajoutImage){
+            $y->field_imageslist[LANGUAGE_NONE][0]['value'] = implode(',',$fpaths);
+            #$y->field_images[LANGUAGE_NONE] = $files;
+            $saved=node_save($y);
+        }
         $a=1;
     }
     $a='end';

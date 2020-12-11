@@ -35,9 +35,9 @@
                               <td><?php echo date( "d-m-Y H:i:s", $history->created); ?></td>
                               <td nowrap>
                                   <a class="btn btn-sm btn-primary btn-icon" href="<?php echo "/ged/" . $account->uid . "/document/" . $history->nid ; ?>" title="Télécharger"><i data-feather="download"></i></a>
-                                  <?php if($history->title == "RESIDENCES_REQUEST"): ?>
+                                  <?php if($history->title == "RESIDENCES_REQUEST"){?>
                                   <a class="btn btn-sm btn-primary btn-icon" href="<?php echo "/history/" . $history->nid ; ?>" title="Consulter"><i data-feather="eye"></i></a>
-                                  <?php if($history->field_excel_value){?><a class="btn btn-sm btn-primary btn-icon" href="<?php echo $history->field_excel_value;?>" title="excel"><span class="iconify" data-icon="fe-file-excel" data-inline="false"></span></a><?}endif; ?>
+                                  <?php if($history->field_excel_value){?><a class="btn btn-sm btn-primary btn-icon" href="<?php echo $history->field_excel_value;?>" title="excel"><span class="iconify" data-icon="fe-file-excel" data-inline="false"></span></a><?}}#?>
                               </td>
                           </tr>
                       <?php endforeach; ?>

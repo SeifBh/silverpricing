@@ -936,9 +936,11 @@ function addHistory($historyData = array()) {
 
             $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
             $rp='z/xls/'.$fn.'-'.$GLOBALS['user']->uid.'-'.$GLOBALS['user']->name.'-'.uniqid().'.xlsx';
-            $writer->save($_SERVER['DOCUMENT_ROOT'].$rp);#$GLOBALS['user']???
-            $history->field_excel['und'][0]['value'] =  '/'.$rp;#
+#could not close
+            $writer->save(rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/'.$rp);#$GLOBALS['user']???
+            $history->field_excel['und'][0]['value'] =  '/'.$rp;##
         }catch(\Exception $e){
+            file_put_contents(ini_get('error_log'),"\n\n}{".print_r($e,1),8);
             $err=1;
         }
     }#end excel
