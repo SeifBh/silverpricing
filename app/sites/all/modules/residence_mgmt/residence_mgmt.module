@@ -20,7 +20,7 @@ my silverpricing_db < silver.20201210-benSetups.sql
 
 cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'ben=1'
 cuj 'https://ehpad.home/updateAllRoomsUuid' a '' 1 'ben=1'
-mysqldump -u a -pb silverpricing_db > updated.sql;tar czf updated.tgz updated.sql;rm updated.sql
+x=setups2.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db >> $x;tar czf $x.tgz $x;rm $x;say $x;#with geocodings !!!! ;)
 
 cuj 'https://ehpad.home/capretraite' a '' 1 'ben=1'
 
@@ -59,7 +59,7 @@ function updateAllRoomsUuid(){
 
 #cuj 'https://ehpad.home/capretraite' a '' 1 'ben=1'
 function capretraite(){
-/*todo : md5 of prod url instead of uniqid() so next import wont overwrite those neat images*/
+/*Extrait les images depuis le site capretraite : listing résidences et pages par région, puis résidence par résidence .. todo : md5 of prod url instead of uniqid() so next import wont overwrite those neat images*/
     $imgset=0;
     ini_set('max_execution_time',9999999);
     $x=Alptech\Wip\io::fgcj($_SERVER['DOCUMENT_ROOT'].'z/capretraite.json');
@@ -159,7 +159,13 @@ function editChambreByUuid($uuid=null){
     return;
 }
 
-#cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'ben=1'
+/*
+cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'ben=1'
+insert : résidences:598;chambres:599
+updates:r:6895;c:7491
+notModified:r:10;c:12
+Took: 821 seconds
+*/
 function residence_mgmt_yo(){
     ini_set('max_execution_time',9999999);
     updateAllResidencesFromPersonnesAgeesJson();#

@@ -414,6 +414,8 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
     $took=time()-$starts;$starts=time();
     echo"\n\nAlertsTook:$took";#
 
+    $_SESSION['geo']=1;
+
     require_once rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/z/geo.php';
     $took=time()-$starts;$starts=time();
     echo"\n\nGeodingTook:$took";#
