@@ -538,11 +538,11 @@ class fun /* extends base */
             $filename = reset($filename);
         }
         if (!is_file($filename)) {
-            throw new Exception(__function__ . __file__ . __line__ . "!not file : $filename");
+            throw new \Exception(__function__ . __file__ . __line__ . "!not file : $filename");
         }
         $info = getimagesize($filename);
         if (!$info) {
-            throw new Exception(__function__ . __file__ . __line__ . "!image error - no mime : $filename");
+            throw new \Exception(__function__ . __file__ . __line__ . "!image error - no mime : $filename");
             return;
         }
 
@@ -570,7 +570,7 @@ class fun /* extends base */
                 $ext = 'gif';
                 break;
             default:
-                throw new Exception(__function__ . __file__ . __line__ . "Unknown image type. : $mime");
+                throw new \Exception(__function__ . __file__ . __line__ . "Unknown image type. : $mime");
         }
 
         if($target){
@@ -581,7 +581,7 @@ class fun /* extends base */
                 case 'jpg':$image_save_func = 'imagejpeg';$quality = 70;break;
                 case 'png':$image_save_func = 'imagepng';$quality = $pngq;break;
                 case 'gif':$image_save_func = 'imagegif';break;
-                #default:throw new Exception(__function__ . __file__ . __line__ . "Unknown image type. : $mime");
+                #default:throw new \Exception(__function__ . __file__ . __line__ . "Unknown image type. : $mime");
             }
         }
 
@@ -679,13 +679,13 @@ class fun /* extends base */
         if (!isset($target)) {#todo: pourquoi ai-je fais cela à l'époque ??? Génération image inline sans sauvegarder le fihier ???
             $image_save_func($tmp);
             imagedestroy($tmp);
-            throw new Exception(__function__ . __file__ . __line__ . "!no target");
+            throw new \Exception(__function__ . __file__ . __line__ . "!no target");
         }
 
         fun::makereps($target);#construire l'arboresence si manquante
         $success = @touch($target);
 #catched above ..
-        /*try {$success = @touch($target);} catch (\Exception $e) {throw new Exception(__function__.__file__.__line__."#no writable:$target".$e->getMessage());}*/
+        /*try {$success = @touch($target);} catch (\Exception $e) {throw new \Exception(__function__.__file__.__line__."#no writable:$target".$e->getMessage());}*/
         if (!$success) {
             return;
         }

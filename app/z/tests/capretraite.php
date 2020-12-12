@@ -50,7 +50,7 @@ while($link2dep = array_shift($links[1])){#considère les nouveaux injectés ent
     if(is_file($cf)){$contents=io::fgc($cf);}else{
     $opt = [/*10015 => json_encode($json),10036 => 'POST',10023 => $headers,*/10002 => $url, 19913 => 1, 42 => 1, 45 => false, 81 => false, 64 => false,/*ssl verify*/13 => 30, 78 => 30, 52 => 1,2 => 1, 41 => 1, 58 => 1,  /*?? Follow Return Headers*/];
     $_a=fun::cuo($opt);
-    if($_a["info"]["http_code"]!=200 or $_a['error']){
+    if($_a['info']['http_code']!=200 or $_a['error']){
         $err=1;
     }else{io::fpc($cf,$_a['contents']);$contents=$_a['contents'];unset($_a);}
     }
@@ -61,11 +61,21 @@ while($link2dep = array_shift($links[1])){#considère les nouveaux injectés ent
         $links[1]=array_merge($links[1],$pages);
         $a=1;#$links[1] ++++
     }
-    preg_match_all('~<a class="link-box" href="('.$link2dep.'[^"\']+)"><span></span></a>~',$contents,$urlsResidences);
+#<a class="link-box" href="/maisons-de-retraite/yvelines-78/aubergenville/les-jardins-medicis-aubergenville/">
+    $link2dep1=preg_replace('~\?page=.*~is','',$link2dep);
+    preg_match_all('~<a class="link-box" href="('.$link2dep1.'[^"\']+)"><span></span></a>~',$contents,$urlsResidences);
+    if(stripos($contents,'yvelines-78/aubergenville/les-jardins-medicis-aubergenville')){
+        $a=1;
+    }
 
     foreach($urlsResidences[1] as $urlResidence){
         $url=$hn.$urlResidence;
         if(in_array($url,$processed))continue;$processed[]=$url;
+
+        if(stripos($urlResidence,'yvelines-78/aubergenville/les-jardins-medicis-aubergenville')){
+            $a=1;
+        }
+
         $cf=str_replace(['https','http','://','www.'],'',$url);
         $cf='../curlcache/capretraite/'.preg_replace('~[^a-z0-9_\.\-]|_+~','_',$cf).'.html';
         if(is_file($cf)){$contents=io::fgc($cf);}else{

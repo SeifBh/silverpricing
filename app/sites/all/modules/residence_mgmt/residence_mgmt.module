@@ -27,7 +27,7 @@ my silverpricing_db < setups2.sql
 cuj 'https://ehpad.home/capretraite' a '' 1 'ben=1'
 x=setups3.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db --extended-insert=FALSE --ignore-table=distance_indexation >> $x;tar czf $x.tgz $x;rm $x;say $x;#Images linked !!!
 
-x=setups4.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db --extended-insert=FALSE --ignore-table=distance_indexation >> $x;tar czf $x.tgz $x;rm $x;say $x;#Images linked !!!
+x=setups4.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db --extended-insert=FALSE --ignore-table=distance_indexation >> $x;tar czf $x.tgz $x;rm $x;say $x;#Images linked !!!N
 
 ls /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/sites/default/files/ehpad | wc -l
 
@@ -85,9 +85,11 @@ function capretraite(){
     $fitnesses=array_keys($x);$fitness2id=[];
     $y=Alptech\Wip\fun::sql("select field_finess_value,entity_id from field_data_field_finess where field_finess_value in('".implode("','",$fitnesses)."')");
     foreach($y as $t){$fitness2id[$t['field_finess_value']]=$t['entity_id'];}
-
+try{
     foreach($x as $fitness=>$data) {
-        if (!$data['images'][1]) {
+        if($fitness==780006508){
+            $a=1;
+        }if (!$data['images'][1]) {
             $nf++;
             continue;#ras
         } elseif (!isset($fitness2id[$fitness])) {
@@ -97,23 +99,23 @@ function capretraite(){
         $rid = $fitness2id[$fitness];
         $y=node_load($rid);#46796
         $files = [];$ajoutImage=0;
-        #$____currentImages=$y->field_images[LANGUAGE_NONE];if($____currentImages)$files=$____currentImages;
-        $fpaths=explode(',',$y->field_imageslist[LANGUAGE_NONE][0]['value']);# = implode(',',$fpaths);
+$____currentImages=$y->field_images[LANGUAGE_NONE];if($____currentImages)$files=$____currentImages;
+#$fpaths=explode(',',$y->field_imageslist[LANGUAGE_NONE][0]['value']);# = implode(',',$fpaths);
 
         foreach ($data['images'][1] as $img) {
             $md5=md5($img);
             $ext = Alptech\Wip\fun::getExtension($img);
             $fn=$fitness.'-'.$md5 . '.' . $ext;#final expected path#
             #$files[0]["filename"]
-            foreach($fpaths as $imgt){
+            /*foreach($fpaths as $imgt){
                 if($fn==$imgt['filename']){
-                    continue 2;
+                    continue;
                 }
-            }
+            }*/
             foreach($files as $k=>$imgt){
                 if($fn==$imgt['filename']){
                     $a='déjà dedans';
-                    continue 2;
+                    continue;
                 }
             }
 
@@ -152,18 +154,26 @@ $a=1;
                 unlink($dlp);
                 $dlp=$dlp2;
             }
+/* Calculation :: the thumbnail */
+            $t2=rtrim($_SERVER['DOCUMENT_ROOT'],'/') . '/sites/default/styles/thumbnail/public/ehpad/'.$fn;
+            if(!is_file($t2)){$_resized=Alptech\Wip\fun::resizeImage($fn,100,null,$t2);}#1200 max as jpg 70
+
             $imgset++;$ajoutImage++;
             $file = (object)['uid' => 1, 'uri' => $dlp, 'filemime' => file_get_mimetype($dlp), 'status' => 1];
             #$finalPath
-            $fpaths[]=$fn;
-            #$files[] = (array)file_copy($file, $finalPath);
+            #$fpaths[]=$fn;
+            $fn1=rtrim($_SERVER['DOCUMENT_ROOT'],'/') . '/sites/default/files/ehpad/'.$fn;
+            if(is_file($fn1))unlink($fn1);#which is final path
+            $files[] = (array)file_copy($file, $finalPath);
             $a=1;
         }
         if($ajoutImage){
-            $y->field_imageslist[LANGUAGE_NONE][0]['value'] = implode(',',$fpaths);
-            #$y->field_images[LANGUAGE_NONE] = $files;
+            #$y->field_imageslist[LANGUAGE_NONE][0]['value'] = implode(',',$fpaths);
+            $y->field_images[LANGUAGE_NONE] = $files;
             $saved=node_save($y);
         }
+        $a=1;
+    }} catch(\Exception $e){#duplicates exception
         $a=1;
     }
     $a='end';

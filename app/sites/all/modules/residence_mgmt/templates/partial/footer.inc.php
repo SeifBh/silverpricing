@@ -553,14 +553,14 @@
         }
     });
 
-    // MAP
-    var markers = [],hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('french-residences-map'));
-
-    // Create a marker using the previously instantiated icon and add marker to the map:
-    <?php foreach( $dataMarkers as $k=>$dataMarker ): ?>
-        var markerObject = null,marker = { lat: <?php echo $dataMarker->field_latitude_value; ?>, lng: <?php echo $dataMarker->field_longitude_value; ?> };
-        markers.push(marker);
-        <?php
+// MAP
+var markers = [],hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('french-residences-map'));
+/* Remettre les pngs de base
+// Create a marker using the previously instantiated icon and add marker to the map:
+<?php foreach( $dataMarkers as $k=>$dataMarker ){ ?>
+    var markerObject = null,marker = { lat: <?php echo $dataMarker->field_latitude_value; ?>, lng: <?php echo $dataMarker->field_longitude_value; ?> };
+    markers.push(marker);
+<?php
 $groupeLogo = "";
 if( isset($dataMarker->field_logo_fid) ) {
     $groupeLogo = "<img src='" . file_create_url(file_load($dataMarker->field_logo_fid)->uri) . "' width='24' alt='' />";
@@ -594,7 +594,7 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
         ?>"
         );
 //map.addObject(markerObject);
-    <?php endforeach; ?>
+    <?php } ?>
     updateCenter(hereMap, markers[0]);
     addFullScreenUIControl(hereMap);
     addMarkersAndSetViewBounds(hereMap, markers);
