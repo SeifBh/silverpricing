@@ -354,25 +354,27 @@ class fun /* extends base */
     {
         if (!static::$conf) {
             #if (!isset($_ENV['alpTechConf'])) {
-            if(isset($GLOBALS['argv'])/* and!isset($_SERVER['DOCUMENT_ROOT'])*/){
+            $conf=[];
+            if(1 and isset($GLOBALS['argv'])/* and!isset($_SERVER['DOCUMENT_ROOT'])*/){
                 $_SERVER['DOCUMENT_ROOT']= __DIR__ . '/../../app/';
                 $_SERVER['HTTP_HOST']='superwebsite.com';
                 $_SERVER['REQUEST_SCHEME']='https';
-            }
 
-            $f = __DIR__ . '/cli.conf.php';
-            if (!is_file($f)) {
-                copy(__DIR__ . '/default.cli.conf.php', $f);#is setup
+                $f = __DIR__ . '/cli.conf.php';
+                if (!is_file($f)) {
+                    copy(__DIR__ . '/default.cli.conf.php', $f);#is setup
+                }
+                $conf=require_once $f;
+                if($conf['cliHost'])$_SERVER['HTTP_HOST']=$conf['cliHost'];
+                if($conf['cliDocRoot'])$_SERVER['DOCUMENT_ROOT']=$conf['cliDocRoot'];
             }
-            $conf=require_once $f;
-            if($conf['cliHost'])$_SERVER['HTTP_HOST']=$conf['cliHost'];
-            if($conf['cliDocRoot'])$_SERVER['DOCUMENT_ROOT']=$conf['cliDocRoot'];
 
             $f = __DIR__ . '/conf.php';
             if (!is_file($f)) {
                 copy(__DIR__ . '/default.conf.php', $f);#is setup
             }
-            $conf+=require_once $f;
+            $new=require_once $f;
+            $conf+=$new;
             fun::setStatic('conf', $conf);
         }
 
