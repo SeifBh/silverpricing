@@ -1,5 +1,9 @@
 <?php
 /*bootstraped action
+
+EHPAD Ornano - Rsidence Les Intemporelles	 -> check id
+
+
 1) S'assurer que le processus d'update des résidences a bien lieu avant !
 php72 z/geo.php reindex
 php72 ~/home/ehpad/app/z/alerts.php '{"210007159":{"prixHebPermCs":1}}' ;
@@ -169,8 +173,11 @@ foreach($notifications as $mail=>$notifs){
         $mailBody.="\n<tr><td>".Alptech\Wip\fun::stripHtml($rid2title[$rid])."</td><td>$bef &euro;</td><td>$aft &euro;</td><td>$evol &euro;</td></tr>";
     }
     $mailBody.="\n</tbody></table></center><style>body{font:16px Assistant,'Trebuchet MS',Sans-Serif} th:nth-child(n+2),td:nth-child(n+2){text-align:right} td:nth-child(1){ padding:0 10px; } thead,tr:nth-child(even){background:#DDD;}</style></body>";
+    if ($prod and !$sent) {
+        Alptech\Wip\fun::sendMail('bencopy@x24.fr', 'Silverpricing : évolution des tarifs des ehpads voisines', $mailBody);
+    }
     $sent=Alptech\Wip\fun::sendMail(trim($mail),'Silverpricing : évolution des tarifs des ehpads voisines',$mailBody);
-    if($prod)Alptech\Wip\fun::sendMail('bencopy@x24.fr','Silverpricing : évolution des tarifs des ehpads voisines',$mailBody);
+
     $a=1;
 
 }

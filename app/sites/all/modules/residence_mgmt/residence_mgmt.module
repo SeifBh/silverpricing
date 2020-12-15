@@ -1637,12 +1637,9 @@ function residence_mgmt_departement_info($departementId) {
 }
 
 function residence_mgmt_recherche_silverex() {
-
     $currentMenu = "recherche-silverex";
-
-    $residences = array();
     $categories = json_decode(getRequest( BASE_API_URL . "/api/health-organizations/categories/list" ));
-    $healthOrganizations = array();
+    $residences = $healthOrganizations = array();
     $requete_statistiques = null;
 #Si F5
     if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE and  isset($_SESSION['hid']) and isset($_POST['latitude']) and isset($_POST['longitude']) and isset($_POST['perimetre']) and $_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.$_POST['categories']==$_SESSION['lastSearch']) {
@@ -1672,7 +1669,7 @@ function residence_mgmt_recherche_silverex() {
 
         $requete_statistiques = get_requete_statistique($residences,$name);
 
-        residence_mgmt_update_user_balance( "RESIDENCES_REQUEST", array( "perimetre" => $_POST['perimetre'] ), $_POST, $residences,$name);
+        residence_mgmt_update_user_balance("RESIDENCES_REQUEST", array("perimetre" => $_POST['perimetre']), $_POST, $residences, $name);
     }
 
     ob_start();

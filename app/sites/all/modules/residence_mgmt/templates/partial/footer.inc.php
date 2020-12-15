@@ -554,37 +554,30 @@
     });
 
 // MAP
-var markers = [],hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('french-residences-map'));
-/* Remettre les pngs de base
+var markerObject,marker,markers = [],hereMap = initHereMap('XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8', document.getElementById('french-residences-map'));
+/* Remettre les pngs de base*/
 // Create a marker using the previously instantiated icon and add marker to the map:
 <?php foreach( $dataMarkers as $k=>$dataMarker ){ ?>
-    var markerObject = null,marker = { lat: <?php echo $dataMarker->field_latitude_value; ?>, lng: <?php echo $dataMarker->field_longitude_value; ?> };
+    marker = { lat: <?php echo $dataMarker->field_latitude_value; ?>, lng: <?php echo $dataMarker->field_longitude_value; ?> };
     markers.push(marker);
 <?php
-$groupeLogo = "";
+$groupeLogo = '';
 if( isset($dataMarker->field_logo_fid) ) {
     $groupeLogo = "<img src='" . file_create_url(file_load($dataMarker->field_logo_fid)->uri) . "' width='24' alt='' />";
 }
 switch($dataMarker->field_statut_value) {
-    case "Public":$color='836983';
-        echo "markerObject = new H.map.Marker(marker, { icon: icon.public });";
-        break;
-    case "Associatif":$color='EB9B6C';
-        echo "markerObject = new H.map.Marker(marker, { icon: icon.associatif });";
-        break;
-    case "Privé":$color='584AB9';
-        echo "markerObject = new H.map.Marker(marker, { icon: icon.prive });";
-        break;
-    default:$color='FFF';
-        break;
+    case "Public":$color='836983';echo "markerObject = new H.map.Marker(marker, { icon: icon.public });";break;
+    case "Associatif":$color='EB9B6C';echo "markerObject = new H.map.Marker(marker, { icon: icon.associatif });";break;
+    case "Privé":$color='584AB9';echo "markerObject = new H.map.Marker(marker, { icon: icon.prive });";break;
+    default:$color='FFF';break;
 }
-$fs=14;
-if($k>10);
-if($k>100)$fs=12;#plus large
+
+if(0 and 'nosvg'){
+    $fs=14;if($k>10);if($k>100)$fs=12;#plus large
 ?>
 var fs=<?=$fs?>,color='<?=$color?>',svg=document.createElement('div');svg.innerHTML='<svg xmlns="http://www.w3.org/2000/svg"  style="margin:-36px 0 0 -14px" width="28px" height="36px"><path d="M 19 31 C 19 32.7 16.3 34 13 34 C 9.7 34 7 32.7 7 31 C 7 29.3 9.7 28 13 28 C 16.3 28 19 29.3 19 31 Z" fill="#000" fill-opacity=".2"/><path d="M 13 0 C 9.5 0 6.3 1.3 3.8 3.8 C 1.4 7.8 0 9.4 0 12.8 C 0 16.3 1.4 19.5 3.8 21.9 L 13 31 L 22.2 21.9 C 24.6 19.5 25.9 16.3 25.9 12.8 C 25.9 9.4 24.6 6.1 22.1 3.8 C 19.7 1.3 16.5 0 13 0 Z" fill="#fff"/><path d="M 13 2.2 C 6 2.2 2.3 7.2 2.1 12.8 C 2.1 16.1 3.1 18.4 5.2 20.5 L 13 28.2 L 20.8 20.5 C 22.9 18.4 23.8 16.2 23.8 12.8 C 23.6 7.07 20 2.2 13 2.2 Z" fill="#'+color+'"/><text x="10" y="19" font-size="'+fs+'pt" font-weight="bold" text-anchor="middle" fill="#fff"><?=$k?></text></svg>';
-markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfoBubble(hereMap,markerObject,"hoho");
-
+markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfoBubble(hereMap,markerObject,"hoho");*/
+<?}?>
         addInfoBubble(hereMap, markerObject,
         "<?php
             echo $groupeLogo . " <br />";
@@ -594,7 +587,7 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
         ?>"
         );
 //map.addObject(markerObject);
-    <?php } ?>
+    <?php }#endforeach ?>
     updateCenter(hereMap, markers[0]);
     addFullScreenUIControl(hereMap);
     addMarkersAndSetViewBounds(hereMap, markers);

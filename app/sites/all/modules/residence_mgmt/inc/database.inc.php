@@ -463,7 +463,7 @@ function getRankingOfResidence( $residenceNid, $rankingTypes = array() ) {
     // exit();
 
     if( in_array("CONCURRENCE_DIRECTE", $rankingTypes) ) {
-
+#todo: greffer z_geo
         // POSITION PAR RAPPORT A LA CONCURRENCE
         $query = db_select('distance_indexation', 'di');
         $query->condition('di.primary_nid', $residenceNid, "=");
@@ -900,7 +900,7 @@ function addHistory($historyData = array()) {
       $history->uid = $historyData['creator'];
       $history->language = LANGUAGE_NONE;
         #$history->field_name = $historyData['name'];#[$history->language][0]['value']
-        $history->field_name[$history->language][0]['value'] = $historyData['name'];#
+        $history->field_name[LANGUAGE_NONE][0]['value'] = $historyData['name'];#
       node_object_prepare($history);
     if(1 and 'excel'){
         $fn=$historyData['body']['request']['adresse'].'-'.$historyData['body']['request']['perimetre'];
