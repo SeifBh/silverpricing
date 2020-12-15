@@ -6,9 +6,8 @@ processed in Time::::219(base)
 php z/geo.php reindex
  */
 namespace Alptech\Wip;
-if(!isset($GLOBALS['argv']) and !isset($_SESSION)){
-    die('#'.__line__);
-}
+if(!isset($GLOBALS['argv']) and !isset($_SESSION)){die('#'.__line__);}
+$_mem=[__line__=>memory_get_usage(1)];
 chdir(__DIR__);
 $a=getcwd();
 require_once'../autoload.php';
@@ -33,7 +32,8 @@ foreach($x as $t){
     $_lon[$sLon][]=$t['k'];
     $id2latlon[$t['k']]=[$t['lat'],$t['lon'],$sLat,$sLon];
 }
-echo"\nid2latlon:".count($id2latlon);
+$_mem=[__line__=>memory_get_usage(1)];
+echo"\ngeo.php => nb ResidencesLatLon:".count($id2latlon);
 $closests=[];$cfound=0;
 
 $x=fun::sql("truncate table z_geo");
@@ -110,7 +110,9 @@ ksort($closests);
 file_put_contents('closests.json',json_encode($closests));
 $a2=time();
 $ratio=$cfound/count($closests);
+$_mem=[__line__=>memory_get_usage(1)];
 echo"\n".count($closests)." having total found $cfound with $ratio\nprocessed in :".($a2-$a1).' seconds';
+print_r($_mem);
 return;
 
 

@@ -5,6 +5,7 @@ return [
     'host'=>$_SERVER['HTTP_HOST'],
     'logCollectorUrl' => $_SERVER['REQUEST_SCHEME'].'://1.x24.fr/a/logCollector.php',#exposed path loading alptech
     'logCollectorSecret'=>'secretBenSeed',
+    'defaultSenderMail'=>'Silverpricing <admin@silverpricing.fr>',
 
     'mysql'=>['h' => '127.0.0.1', 'u' => 'silverpricing', 'p' => 'Silverpicing@wynter@2020', 'db' => 'silverpricing_db','names'=>'utf8'],
     'mysql_host' => '127.0.0.1','mysql_user' => 'silverpricing', 'mysql_pass' => 'Silverpicing@wynter@2020', 'mysql_db' => 'silverpricing_db',#bash
@@ -20,6 +21,7 @@ return [
     'log'=>1,
     'sendLogs' => 1,
     'logdir' => 'logs',
+    'mailSavePath'=>'z/mailsent/',
     'errorLog'=>'logs/errorLog.log',
     'exceptionsLog'=>'logs/exceptions.log',
     'logCollectorSeed'=>'%y%m%d',#one valid per day, avoid Hours if datetime resolution is not the same sync or timezone, will cause mismatches

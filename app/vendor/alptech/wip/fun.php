@@ -354,11 +354,26 @@ class fun /* extends base */
     {
         if (!static::$conf) {
             #if (!isset($_ENV['alpTechConf'])) {
+            if(isset($GLOBALS['argv'])/* and!isset($_SERVER['DOCUMENT_ROOT'])*/){
+                $_SERVER['DOCUMENT_ROOT']= __DIR__ . '/../../app/';
+                $_SERVER['HTTP_HOST']='superwebsite.com';
+                $_SERVER['REQUEST_SCHEME']='https';
+            }
+
+            $f = __DIR__ . '/cli.conf.php';
+            if (!is_file($f)) {
+                copy(__DIR__ . '/default.cli.conf.php', $f);#is setup
+            }
+            $conf=require_once $f;
+            if($conf['cliHost'])$_SERVER['HTTP_HOST']=$conf['cliHost'];
+            if($conf['cliDocRoot'])$_SERVER['DOCUMENT_ROOT']=$conf['cliDocRoot'];
+
             $f = __DIR__ . '/conf.php';
             if (!is_file($f)) {
                 copy(__DIR__ . '/default.conf.php', $f);#is setup
             }
-            fun::setStatic('conf', require_once $f);
+            $conf+=require_once $f;
+            fun::setStatic('conf', $conf);
         }
 
         if (!$k) {
@@ -1048,6 +1063,50 @@ class fun /* extends base */
         header("Cache-Control: post-check=0, pre-check=0", false);
         header("Pragma: no-cache");
     }
+
+    static function sendMail($to,$sub,$body,$head=null,$from=null,$mid=''){
+        $s="\r\n";
+        if (preg_match("~Message-ID: ([^\r\n]+)~i",$head,$m) and $m[1]){$mid=$m[1];}
+        else{$mid=preg_replace('~[^a-z0-9]+~i','',md5(time().$to.$sub.$body));$head .="Message-ID: ".$mid.$s;}#generates messageId if absent
+        if (strpos($head, 'text/html') === false){$head .= "MIME-Version: 1.0{$s}Content-type: text/html; charset=utf-8{$s}";}#            iso-8859-1   #make html as default :)
+        if (!$from and preg_match("~From:[^\r\n]+<([^>]+)>~i",$head,$m) and $m[1]) {#from.$to
+            $from=trim($m[1],'> ');
+        } elseif (!$from and preg_match("~From: ([^\r\n]+)~i",$head,$m) and $m[1]) {#from.$to
+            $from=trim($m[1],'> ');
+        } elseif (strpos($head, 'From:') === false) {
+            if (!$from) {
+                $from = fun::getConf('defaultSenderMail');
+            }
+            $head .= "From: $from{$s}Reply-To: $from{$s}";
+        }
+
+        $sp=fun::getConf('mailSavePath');
+        $sent=mail($to,$sub,$body,$head);
+        if($sp){#todo:query postfix for messageId
+            $f=$_SERVER['DOCUMENT_ROOT'].$sp.substr(preg_replace('~_+~','_',preg_replace('~[^a-z0-9@\.\-]~is','_',$mid.'-_-'.$to.'-_-'.time().'-_-'.$sub)),0,250).'.json';#
+            $_written=file_put_contents($f,json_encode(compact('to','sub','body','head')));
+        }
+        return $sent;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*}from base{*/
     static function setStatic($a, $b)
     {

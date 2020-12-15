@@ -1,7 +1,5 @@
-<?php 
-
-define("ENVIRONMENT", "PROD");
-
+<?php
+define("ENVIRONMENT", isset($_SERVER['WINDIR'])?'DEV':"PROD");
 // GLOBAL
 define('DRUPAL_RESIDENCE_DATA', __DIR__ . "/residences");
 define('DRUPAL_RESIDENCE_DATA_OUTPUT', __DIR__ . "/output");
@@ -23,9 +21,8 @@ if( ENVIRONMENT == "PROD" ) {
     define('DRUPAL_ROOT', "/home/ubuntu/SilverPricing/public_html/app.silverpricing.fr");
 
 } else if( ENVIRONMENT == "DEV" ) {
-
-    $_SERVER['REMOTE_ADDR'] = "https://residence-management.dev";
-    define('DRUPAL_ROOT', "C:\laragon\\www\\residence-management");
-
-} 
+    $_SERVER['REMOTE_ADDR'] = "https://ehpad.home";
+    define('DRUPAL_ROOT', 'C:/Users/ben/home/ehpad/app/');
+}
+if(!isset($_SERVER['DOCUMENT_ROOT']))$_SERVER['DOCUMENT_ROOT']=DRUPAL_ROOT;
 

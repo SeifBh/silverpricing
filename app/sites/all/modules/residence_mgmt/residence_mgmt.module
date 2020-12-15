@@ -1,4 +1,4 @@
-<?php
+<?php #
 require_once __DIR__ . "/vendor/autoload.php";
 require_once __DIR__ . "/inc/config.inc.php";
 require_once __DIR__ . "/inc/http_client.inc.php";
@@ -14,40 +14,8 @@ require_once __DIR__ . "/inc/theme.inc.php";
 require_once __DIR__ . "/inc/user.inc.php";
 require_once __DIR__ . "/inc/routing.inc.php";
 require_once __DIR__.'/../../../../autoload.php';#-> maps to composer
-/*
-#use Alptech\Wip\io;use Alptech\Wip\fun;
-my silverpricing_db < silver.20201210-benSetups.sql
 
-cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'ben=1'
-cuj 'https://ehpad.home/updateAllRoomsUuid' a '' 1 'ben=1'
-x=setups2.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db --ignore-table=distance_indexation >> $x;tar czf $x.tgz $x;rm $x;say $x;#with geocodings !!!! ;)
-
-my silverpricing_db < setups2.sql
-
-cuj 'https://ehpad.home/capretraite' a '' 1 'ben=1'
-x=setups3.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db --extended-insert=FALSE --ignore-table=distance_indexation >> $x;tar czf $x.tgz $x;rm $x;say $x;#Images linked !!!
-
-x=setups4.sql;echo "set Foreign_key_checks=0;" > $x;mysqldump -u a -pb silverpricing_db --extended-insert=FALSE --ignore-table=distance_indexation >> $x;tar czf $x.tgz $x;rm $x;say $x;#Images linked !!!N
-
-ls /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/sites/default/files/ehpad | wc -l
-
-tar xf setups3.sql.tgz;mysql -u root -ptoor --max_allowed_packet=999M --force --wait --reconnect silverpricing_db < setups3.sql | tee mysql.log;# force executing rest of queries
-
-$td/mysqlSplit.sh setups3.sql
-cat $(ls -t) > joined.sql
-
-grep -n 'for table `distance_indexation`' setups3.sql
-grep 'for table `distance_indexation`' setup3.sql
-
-1002
-
-
-
-tar xf setups4.sql.tgz;mysql -u root -ptoor --max_allowed_packet=999M --force --wait --reconnect silverpricing_db < setups4.sql | tee mysql.log;# force executing rest of queries
-mysql -u root -ptoor -e "show global variables"
-*/
-
-function fastAccess(){
+function fastAccess(){#pour les updates
     if(!isset($_COOKIE['ben']) and !strpos($_SERVER['HTTP_HOST'],'.home')){
         #die('/*nothing*/');
         $a=1;
@@ -85,10 +53,11 @@ function capretraite(){
     $fitnesses=array_keys($x);$fitness2id=[];
     $y=Alptech\Wip\fun::sql("select field_finess_value,entity_id from field_data_field_finess where field_finess_value in('".implode("','",$fitnesses)."')");
     foreach($y as $t){$fitness2id[$t['field_finess_value']]=$t['entity_id'];}
+
 try{
     foreach($x as $fitness=>$data) {
         if($fitness==780006508){
-            $a=1;
+            $a=1;#aubergen 78 Yvelines jardin medicis
         }if (!$data['images'][1]) {
             $nf++;
             continue;#ras
@@ -100,6 +69,7 @@ try{
         $y=node_load($rid);#46796
         $files = [];$ajoutImage=0;
 $____currentImages=$y->field_images[LANGUAGE_NONE];if($____currentImages)$files=$____currentImages;
+if(!$files){
 #$fpaths=explode(',',$y->field_imageslist[LANGUAGE_NONE][0]['value']);# = implode(',',$fpaths);
 
         foreach ($data['images'][1] as $img) {
@@ -148,7 +118,7 @@ $a=1;
             $fs=filesize($dlp);
             if(!$fs){$err=1;
                 continue;
-            }elseif(/*$fs>400000 and */$dlp!=$dlp2){#not recursive please!!!
+            }elseif(/*$fs>400000 and */$dlp != $dlp2){#not recursive please!!!
                 #$is=getimagesize($dlp,$if);#osef
                 $_resized=Alptech\Wip\fun::resizeImage($dlp,1200,null,$dlp2);#1200 max as jpg 70
                 unlink($dlp);
@@ -156,14 +126,14 @@ $a=1;
             }
 /* Calculation :: the thumbnail */
             $t2=rtrim($_SERVER['DOCUMENT_ROOT'],'/') . '/sites/default/styles/thumbnail/public/ehpad/'.$fn;
-            if(!is_file($t2)){$_resized=Alptech\Wip\fun::resizeImage($fn,100,null,$t2);}#1200 max as jpg 70
+            if(!is_file($t2)){$_resized=Alptech\Wip\fun::resizeImage($dlp,100,null,$t2);}#1200 max as jpg 70
 
             $imgset++;$ajoutImage++;
             $file = (object)['uid' => 1, 'uri' => $dlp, 'filemime' => file_get_mimetype($dlp), 'status' => 1];
             #$finalPath
             #$fpaths[]=$fn;
             $fn1=rtrim($_SERVER['DOCUMENT_ROOT'],'/') . '/sites/default/files/ehpad/'.$fn;
-            if(is_file($fn1))unlink($fn1);#which is final path
+            if(is_file($fn1))unlink($fn1);#which is final path .. si lancé plusieurs fois
             $files[] = (array)file_copy($file, $finalPath);
             $a=1;
         }
@@ -173,9 +143,11 @@ $a=1;
             $saved=node_save($y);
         }
         $a=1;
-    }} catch(\Exception $e){#duplicates exception
-        $a=1;
-    }
+    }#if no current files
+    }#enfor
+} catch(\Exception $e){#duplicate statement sql value exception
+    $a=1;
+}
     $a='end';
     die($imgset.' images setted');
 }
@@ -207,14 +179,35 @@ function editChambreByUuid($uuid=null){
 }
 
 /*
+45 * * * * curl -s http://example.com/cron.php
+cuj https://ehpad.home/cron.php?cron_key=T_PlBoy_kTfr4bc0qJ4Zd5h5Zt8iQDcrQd9soHeCly8 a '' 1
+php72 cron.php opc
+drushy cc all;
+php72 ~/home/ehpad/app/z/alerts.php '{"210007159":{"prixHebPermCs":1}}' ;
+ */
+function residence_mgmt_cron($a=null,$b=null){
+    if($a and $b){
+        return updateAllResidencesFromPersonnesAgeesJson($a,$b);#
+    }
+
+$_ENV['last']=__FILE__.'.last';if(filemtime($_ENV['last'])>(time()-30000)){return"lastRun:".(time()-filemtime($_ENV['last'])).' seconds ago';}
+    #$_ENV['lf']=__FILE__.'.lock';if(filemtime($_ENV['lf'])>(time()-86000)){return "locked:".(time()-filemtime($_ENV['lf'])).' seconds ago';}    touch($_ENV['lf']);
+    touch($_ENV['last']);
+    updateAllResidencesFromPersonnesAgeesJson();
+    #unlink($_ENV['lf']);
+    $a=1;
+    return;
+}
+
+/*
 cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'ben=1'
 insert : résidences:598;chambres:599
 updates:r:6895;c:7491
 notModified:r:10;c:12
 Took: 821 seconds
 */
+
 function residence_mgmt_yo(){
-    ini_set('max_execution_time',9999999);
     updateAllResidencesFromPersonnesAgeesJson();#
     die;
     #die('test ation for bootstraping !');
@@ -237,7 +230,7 @@ $o=json_encode($x->field_images[LANGUAGE_NONE][0]);
         die;
     }
 #die;
-    #updateAllResidencesFromPersonnesAgeesJson(210007159,['tarifGir12'=>60+date('s'),'prixHebPermCs'=>date('s'),'prixHebPermCd'=>100-date('s'),'prixHebTempCd'=>99-date('s')]);#.
+
 }
 
 #cuj https://ehpad.home/updateHistory?opc;           https://ehpad.home/updateHistory

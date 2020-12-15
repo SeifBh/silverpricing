@@ -117,7 +117,9 @@ a;cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'sql=(insert|update)
 on second update shall stop uneccessary updates
 */
 function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForces=null){
-#todo:lock#
+#todo:lock##ini_set('max_execution_time',9999999);
+    ini_set('max_execution_time',-1);
+    ini_set('memory_limit',-1);
     if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE){
         $lf=__file__.__function__.'.lock';if(is_file($lf) and filemtime($lf)>time()-70000)die("locked:$lf");touch($lf);
         register_shutdown_function(function()use($lf){
@@ -125,8 +127,6 @@ function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForc
             unlink($lf);});#
     }
     echo'<pre>';
-    ini_set('max_execution_time',-1);
-    ini_set('memory_limit',-1);
     $starts=time();
 /* Attention : ce ne sont pas toutes des Ehpad .. */
     $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=$fin2rid=$tarifsModifies=$c2r=[];
@@ -196,6 +196,7 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
                 continue;
             }
             $t['ehpadPrice']=array_merge($t['ehpadPrice'],$tarifsForces);#sinon magie !!2
+            $a=1;
         }
         if(!isset($t['ehpadPrice']) and !$t['IsEHPAD']){#Marpa & Autres ...
             continue;
@@ -411,6 +412,9 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
             $b=1;
         }
     }
+
+    #processAlertFor($now);
+
     $took=time()-$starts;$starts=time();
     echo"\n\nAlertsTook:$took";#
 
