@@ -169,21 +169,20 @@ if('memTarif'){
     $_mem[__line__]=memory_get_usage(1);
     $a=1;
 }
+#erreur:: ORDER BY clause is not in GROUP BY clause and contains nonaggregated column 'silverpricing_db.t.revision_id' which is not functionally dependent on columns in GROUP BY clause; this is incompatible with sql_mode=only_full_group_by
 
-    $sql="SELECT entity_id as a,field_finess_value as b FROM field_revision_field_finess t where t.bundle='residence' and t.field_finess_value in ('".implode("','",$finesses)."') group by field_finess_value,entity_id order by revision_id desc";
+$mysql58groupMode=Alptech\Wip\fun::sql("SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
+
+    $sql="SELECT entity_id as a,field_finess_value as b FROM field_data_field_finess t where t.bundle='residence' and t.field_finess_value in ('".implode("','",$finesses)."')";# group by field_finess_value,entity_id
+    #$sql="SELECT entity_id as a,field_finess_value as b FROM field_revision_field_finess t where t.bundle='residence' and t.field_finess_value in ('".implode("','",$finesses)."') group by field_finess_value,entity_id order by revision_id desc";
     $x=Alptech\Wip\fun::sql($sql);
     foreach($x as $t){$fin2rid[$t['b']]=$t['a'];}
     $a=1;#14758
     if('indexes'){
-#$x2=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b,nr.timestamp as date FROM field_revision_field_finess t inner join node_revision nr on nr.nid=t.entity_id  where t.bundle='residence' group by entity_id order by revision_id desc");
-$x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b,n.changed as date FROM field_revision_field_finess t inner join node n on n.nid=t.entity_id where t.bundle='residence' group by entity_id order by revision_id desc");
+$x=Alptech\Wip\fun::sql("SELECT entity_id as a,field_finess_value as b,n.changed as date FROM field_data_field_finess t inner join node n on n.nid=t.entity_id where t.bundle='residence' group by entity_id");# order by revision_id desc
         foreach($x as $t){$resFit2Id[$t['b']]=$t['a'];$res2date[$t['a']]=$t['date'];}
 
-        #select entity_id,max(field_date_de_modification_value)as dat from field_data_field_date_de_modification where bundle='chambre' group by entity_id order by field_date_de_modification_value desc
-#dernière date de révision de l'association ..
-#$x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,nr.timestamp as date,max(dm.field_date_de_modification_value) as date2 FROM field_revision_field_residence t inner join node_revision nr on nr.nid=t.entity_id inner join field_data_field_date_de_modification dm on dm.entity_id=t.entity_id where t.bundle='chambre' group by t.entity_id order by t.revision_id desc");#field_date_de_modification ..
-#$x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,max(dm.field_date_de_modification_value) as date2 FROM field_revision_field_residence t inner join field_data_field_date_de_modification dm on dm.entity_id=t.entity_id where t.bundle='chambre' group by t.entity_id order by t.revision_id desc");#field_date_de_modification ..
-$x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,n.changed as date FROM field_revision_field_residence t inner join node n on n.nid=t.entity_id where t.bundle='chambre' group by t.entity_id order by t.revision_id desc");#field_date_de_modification ..
+$x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,n.changed as date FROM field_data_field_residence t inner join node n on n.nid=t.entity_id where t.bundle='chambre' group by t.entity_id order by t.revision_id desc");#field_date_de_modification ..
         foreach($x as $t){$res2chambre[$t['b']][]=$t['a'];$ch2date[$t['a']]=$t['date'];}#strtotime($t['date2'])
         $a=1;
     }
@@ -416,14 +415,12 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
     #processAlertFor($now);
 
     $took=time()-$starts;$starts=time();
-    echo"\n\nAlertsTook:$took";#
-
+    #echo"\n\nAlertsTook:$took";#
     $_SESSION['geo']=1;
-
     require_once rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/z/geo.php';
     $took=time()-$starts;$starts=time();
     echo"\n\nGeodingTook:$took";#
-
+    return 1;
     if($__inserts['residences']){#do the geo recoding
 
     }
@@ -441,7 +438,6 @@ Une alerte peut être identifiée par date ! Les interceptions donnent z_variati
 select * from z_geo where list like'%,33979,%' -- 40 ehpads l'ayant dans ses coordonnées les plus proches
 */
     print_r($_mem);
-    die;
 }
 
 #cuj "https://ehpad.home/admin/config/content/residences_management" '' '{"residence_mgmt_department_select":["74"],"op":"Importation","form_build_id":"form-UygdJ54Z6PbVEJE1miIAremWXumjzAbzdRP_vXVOTus","form_token":"5niaHCGX4qiMShE7xcxzD1_lmJFRzoV6Gylwa0HJH0g","form_id":"residence_mgmt_admin_form"}' 1 "SESS02da88e2f02ccdeaa197b0dcdf4d100a=y-i9JGchnQTmin20XM0bOx6gEK6mB942fHOWpfIqyIM;SSESS02da88e2f02ccdeaa197b0dcdf4d100a=wNz6DGQ1m45ecM2E18vwm1ERJwt490dRJmiSg215Z4o;XDEBUG_SESSION=XDEBUG_ECLIPSE"

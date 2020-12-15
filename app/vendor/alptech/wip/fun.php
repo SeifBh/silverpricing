@@ -1021,7 +1021,7 @@ class fun /* extends base */
             $_ENV['_err']['sql'][$sql] = $err;
             $a = 1;
             if (isset($_ENV['dieOnFirstError'])) {
-                print_r($err);
+                print_r(compact('err','sql'));
                 fun::_die('first sql error');
             }
             return [];
@@ -1084,11 +1084,18 @@ class fun /* extends base */
         $sent=mail($to,$sub,$body,$head);
         if($sp){#todo:query postfix for messageId
             $f=$_SERVER['DOCUMENT_ROOT'].$sp.substr(preg_replace('~_+~','_',preg_replace('~[^a-z0-9@\.\-]~is','_',$mid.'-_-'.$to.'-_-'.time().'-_-'.$sub)),0,250).'.json';#
-            $_written=file_put_contents($f,json_encode(compact('to','sub','body','head')));
+            $_written=file_put_contents($f,json_encode(compact('sent','to','sub','body','head')));
         }
         return $sent;
     }
 
+    static function stripHtml($x, $violent = 0)
+    {
+        if ($violent) {
+            return preg_replace('~[^a-z0-9,\.:\-_ €\+]~is', '', strip_tags($x));
+        }
+        return preg_replace('~<[^>]+>~is', '', strip_tags($x));
+    }
 
 
 

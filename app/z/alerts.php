@@ -1,11 +1,17 @@
 <?php
 /*bootstraped action
+1) S'assurer que le processus d'update des résidences a bien lieu avant !
 php72 z/geo.php reindex
 php72 ~/home/ehpad/app/z/alerts.php '{"210007159":{"prixHebPermCs":1}}' ;
 
-php /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/alerts.php
+
+cd /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/;
+dat=`date +%y%m%d%H%M`;php7.1 alerts.php | tee alerts.$dat.log;
+
+php7.1 /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/alerts.php
+
  */
-if(!isset($argv))die;
+if(!isset($argv))die; $prod=1;
 $_SERVER['DOCUMENT_ROOT']=__DIR__.'/../';
 chdir(__DIR__);
 $_mem=[__line__=>memory_get_usage(1)];
@@ -13,11 +19,27 @@ $module='../sites/all/modules/residence_mgmt';
 require_once "../vendor/autoload.php";#alptech
 $_ENV['dieOnFirstError']=1;
 
+if($prod){
+#Your Composer dependencies require the following PHP extensions to be installed: curl, dom, mbstring, simplexml, xml, xmlreader, xmlwriter, zip --> phpcli.ini
+    require_once $module . "/vendor/autoload.php";#others -- dont need them
+    require_once $module . "/data/data_config.php";
+    require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
+    drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
+    require_once $module . "/residence_mgmt.module";
+
+    if(isset($GLOBALS['argv'][1]) and 0) {
+        $x = Alptech\Wip\io::isJson($GLOBALS['argv'][1]);
+        updateAllResidencesFromPersonnesAgeesJson(array_keys($x)[0],reset($x));
+    }else{
+        updateAllResidencesFromPersonnesAgeesJson();
+    }
+}
+$start=time();
 /* todo lock by date */
 $f=__file__.'.last';
 $now=1607679698;$rids=$cs0=$cs1=[];
 $x=Alptech\Wip\fun::sql("select max(date)as d from z_variations");if(!$x)die('#'.__line__);$now=$x[0]['d'];
-#if(!isset($_SERVER['WINDIR']) and is_file($f) and filemtime($f)>=$now)die(filemtime($f).'>='.$now);    touch($f,$now);/* */
+if($prod and !isset($_SERVER['WINDIR']) and is_file($f) and filemtime($f)>=$now)die(filemtime($f).'>='.$now);    touch($f,$now);/* */
 
 $x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1 from z_variations where cs_1 is not null and cs_0 is not null order by date desc");# -> rid
 foreach($x as $t){if(isset($cs0[$t['rid']]))continue;$cs0[$t['rid']]=$t['cs_0'];$cs1[$t['rid']]=$t['cs_1'];}#bcp de tarifs ..
@@ -129,51 +151,43 @@ foreach($rids as $rid){
     }
 }
 
+$sent=0;
 foreach($notifications as $mail=>$notifs){
+    if((!$prod and $sent)or !$notifs){continue;}#ne rien envoyer s'ils n'y a rien à notifier !
+    if(!$prod){$mail='ben@x24.fr';$sent=1;}
     if(strpos($mail,'@residence-management.dev')){
         $mail=str_replace('@residence-management.dev','-ehpad@x24.fr',$mail);
     }
-    $mailBody="<body>Bonjour, voici une alerte sur l'évolution des tarifs des Ehpad voisines de celle que vous gérez<hr><center><table border=1 style='border-collapse:collapse'><thead><tr><th>Résidence</th><th>Ancien tarif moyen</th><th>Nouveau tarif moyen</th><th>Évolution</th></tr></thead><tbody>";
+    $mailBody="<body>Bonjour, voici une alerte sur l'évolution des tarifs des Ehpad voisines de celle que vous gérez<hr><center><table border=1 style='border-collapse:collapse'><thead><tr><th>Résidence</th><th>Ancien tarif moyen</th><th>Nouveau tarif moyen</th><th>Évolution</th></tr></thead><tbody>\n";
+#mail html broken table
     foreach($notifs as $rid){
         $bef=round($evolutions[$rid][0],2);
         $aft=round($evolutions[$rid][1],2);
         $evol=round($aft-$bef,2);
         if($evol>0)$evol='+'.$evol;
-        $mailBody.="<tr><td>".stripmail($rid2title[$rid])."</td><td>$bef €</td><td>$aft €</td><td>$evol €</td></tr>";
+        #$texts[]=Alptech\Wip\fun::stripHtml($rid2title[$rid],1);
+        $mailBody.="\n<tr><td>".Alptech\Wip\fun::stripHtml($rid2title[$rid])."</td><td>$bef &euro;</td><td>$aft &euro;</td><td>$evol &euro;</td></tr>";
     }
-    $mailBody.="</tbody></table></center><style>body{font:16px Assistant,'Trebuchet MS',Sans-Serif} th:nth-child(n+2),td:nth-child(n+2){text-align:right} td:nth-child(1){ padding:0 10px; } thead,tr:nth-child(even){background:#DDD;}</style></body>";
-    Alptech\Wip\fun::sendMail(trim($mail),'Silverpricing : évolution des tarifs des ehpads voisines',$mailBody);
+    $mailBody.="\n</tbody></table></center><style>body{font:16px Assistant,'Trebuchet MS',Sans-Serif} th:nth-child(n+2),td:nth-child(n+2){text-align:right} td:nth-child(1){ padding:0 10px; } thead,tr:nth-child(even){background:#DDD;}</style></body>";
+    $sent=Alptech\Wip\fun::sendMail(trim($mail),'Silverpricing : évolution des tarifs des ehpads voisines',$mailBody);
+    if($prod)Alptech\Wip\fun::sendMail('bencopy@x24.fr','Silverpricing : évolution des tarifs des ehpads voisines',$mailBody);
     $a=1;
-}
 
-function stripmail($x){
-    return preg_replace('~<[^>]+>~is','',strip_tags($x));
 }
+#$texts=array_unique($texts);print_r($texts);
+
+
 
 $_mem[__line__]=memory_get_usage(1);
 #notifications par email : select email by residence, select group user email by residence, select chambres by residences
 
-$c=['mailsRecus'=>array_keys($notifications),'0:residenceTriggers'=>count($residencesTriggers),'1:notifiees'=>count($notifiees),'2:proxima10G utilisees pour calcul prix'=>count($proxima10G)];
+$c=['timeAlertes'=>(time()-$start),'mailsRecus'=>array_keys($notifications),'0:residenceTriggers'=>count($residencesTriggers),'1:notifiees'=>count($notifiees),'2:proxima10G utilisees pour calcul prix'=>count($proxima10G)];
 print_r(compact('c','_mem'));
 die;
 $a=1;
 foreach($evolutions as $rid=>$_rids){
     #$evolutions[$rid]
     $a=1;
-}
-
-
-require_once $module . "/vendor/autoload.php";#others
-require_once $module . "/data/data_config.php";
-require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
-drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
-require_once $module . "/residence_mgmt.module";
-
-if(isset($GLOBALS['argv'][1])) {
-    $x = Alptech\Wip\io::isJson($GLOBALS['argv'][1]);
-    residence_mgmt_cron(array_keys($x)[0],reset($x));
-}else{
-    residence_mgmt_cron();
 }
 
 
