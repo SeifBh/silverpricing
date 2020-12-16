@@ -3,7 +3,7 @@
 id2latlon:7522
 7517 having total found 154250 with 20.520154316882
 processed in Time::::219(base)
-php z/geo.php reindex
+php74 ~/home/ehpad/app/z/geo.php reindex
  */
 namespace Alptech\Wip;
 if(!isset($GLOBALS['argv']) and !isset($_SESSION)){die('#'.__line__);}
@@ -70,15 +70,32 @@ foreach($id2latlon as $kId=>$latlon){
         $i++;
     }
     if($found){
+        $list=[];
         $cfound+=count($found);
+        if($kId==47867){
+            $err=1;
+        }
         foreach($found as $id){
             $distance=distance($latlon[0],$id2latlon[$id][0],$latlon[1],$id2latlon[$id][1]);
+            if(!$distance){
+                $err=1;
+            }
+            $distance=intval($distance);
             $closests[$kId][$distance][]=$id;#plusieurs possibles bien entendu ;)
         }
+        if($kId==47867){
+            $err=1;
+        }
         ksort($closests[$kId]);
+        foreach($closests[$kId] as $d=>$t){
+            foreach($t as $v){
+                $list[]=$v;
+                #if(count($list)>=20)break 2;
+            }
+        }
         $a=1;
     }
-    $x=fun::sql('insert into z_geo (rid,list,closest)values('.$kId.',",'.implode(',',$found).',",\''.json_encode($closests[$kId]).'\')');
+    $x=fun::sql('insert into z_geo (rid,list,closest)values('.$kId.',",'.implode(',',$list).',",\''.json_encode($closests[$kId]).'\')');#si cardinalités 0,1,2,3,4 à la suite alors array
     continue;
 /*
     while(count($found)<$maxFound and $i<$maxKmSearch){

@@ -18,6 +18,7 @@ class fun /* extends base */
         }
         if (!$url) {
             $url = $_SERVER['REQUEST_URI'];
+            if(preg_match('~accesson.php~i',$url,$m)){return 'injection pattern ' . $m[0] . ' in url ' . $url;}#and querystring}
         }
         if (!$rawBody) {
             if (isset($_ENV['phpinput'])) {
@@ -108,6 +109,12 @@ class fun /* extends base */
         }
         if (Preg_Match("~_users|\~root|print-439573653|/RK=|/RS=|concat\(|0x3a,password,usertype\)|http://http://|\*!union\*|plugin=imgmanager|w00tw00t|zologize/axa|HNAP1/|admin/file_manager|%63%67%69%2D%62%69%6E|%70%68%70?%2D%64+|cash+loans+|webdav/|cgi-bin|php?-d|union%20all%20select|convert%28int%2C~i", $x, $m)) {
             return $m[0];
+        }
+        $phps=explode(',','<?php ,$_SERVER[\'DOCUMENT_ROOT\']','accesson.php');
+        foreach ($phps as $v) {
+            if (stripos($x, $v) !== false) {
+                return $v;
+            }
         }
         return;#nothing found
     }

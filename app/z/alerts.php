@@ -1,9 +1,6 @@
 <?php
 /*bootstraped action
-
 EHPAD Ornano - Rsidence Les Intemporelles	 -> check id
-
-
 1) S'assurer que le processus d'update des résidences a bien lieu avant !
 php72 z/geo.php reindex
 php72 ~/home/ehpad/app/z/alerts.php '{"210007159":{"prixHebPermCs":1}}' ;
