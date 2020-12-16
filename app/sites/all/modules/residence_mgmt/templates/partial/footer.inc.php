@@ -617,7 +617,7 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
 
     var requestMarkers = [];
 
-    <?php
+    <?php #
     foreach( $residences as $r ): ?>
         var m = { lat: <?php echo $r->field_latitude_value; ?>, lng: <?php echo $r->field_longitude_value; ?> };
         requestMarkers.push(m);

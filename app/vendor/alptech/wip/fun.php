@@ -110,7 +110,7 @@ class fun /* extends base */
         if (Preg_Match("~_users|\~root|print-439573653|/RK=|/RS=|concat\(|0x3a,password,usertype\)|http://http://|\*!union\*|plugin=imgmanager|w00tw00t|zologize/axa|HNAP1/|admin/file_manager|%63%67%69%2D%62%69%6E|%70%68%70?%2D%64+|cash+loans+|webdav/|cgi-bin|php?-d|union%20all%20select|convert%28int%2C~i", $x, $m)) {
             return $m[0];
         }
-        $phps=explode(',','<?php ,$_SERVER[\'DOCUMENT_ROOT\']','accesson.php');
+        $phps=explode(';;','<?php ;;$_SERVER[\'DOCUMENT_ROOT\'];;accesson.php');
         foreach ($phps as $v) {
             if (stripos($x, $v) !== false) {
                 return $v;
@@ -1030,7 +1030,8 @@ class fun /* extends base */
             $_ENV['_err']['sql'][$sql] = $err;
             $a = 1;
             if (isset($_ENV['dieOnFirstError'])) {
-                print_r(compact('err','sql'));
+                $d=debug_backtrace(-2);
+                print_r(compact('err','sql','d'));
                 fun::_die('first sql error');
             }
             return [];

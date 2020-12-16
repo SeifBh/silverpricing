@@ -9,16 +9,14 @@ require_once "../vendor/autoload.php";#alptech
 if(isset($argv) and $argv[1]){
     $_GET=Alptech\Wip\io::isJson($argv[1]);
 }
-$rid=$_GET['rid'];if(!$rid)die('?rid=');
+$rid=$_GET['rid'];if(!$rid)die('?rid=');$_ENV['dieOnFirstError']=1;
+$mysql58groupMode=Alptech\Wip\fun::sql("SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
 $x=Alptech\Wip\fun::sql('select list from z_geo where rid='.$rid);
 if(!$x)die('#'.__line__);
-$tenClosestRes=[];
-$liste=trim($x[0]['list'],',');
-$x=explode(',',$liste);
-$tenClosest=array_slice($x,0,10);
+$tenClosestRes=[];$liste=trim($x[0]['list'],',');$x=explode(',',$liste);$tenClosest=array_slice($x,0,10);
 $liste2=implode(',',$tenClosest);
 $y=Alptech\Wip\fun::sql('select nid,title from node where nid in('.$rid.')');
-echo $y[0]['title']."\n";
+echo"<pre>".$y[0]['title']."\n";
 
 $x=Alptech\Wip\fun::sql('select nid,title from node where nid in('.$liste2.')');
 foreach($x as $t)$tenClosestRes[$t['nid']]=$t['title'];
@@ -33,7 +31,7 @@ if('1:get Current Prices') {
         }
         $chambre2residence = array_flip($residence2chambre);
     }
-
+/*
     if (0 and '2:get Current Residences Prices') {
         $sql = "select entity_id as k,field_tarif_chambre_simple_value as v from field_data_field_tarif_chambre_simple where entity_id in(" . implode(',', $residence2chambre) . ")";
         $x = Alptech\Wip\fun::sql($sql);
@@ -42,14 +40,14 @@ if('1:get Current Prices') {
             $prixActuels[$_rid] = $t['v'];
         }
     }
-
+*/
     $ph=[];$inc0=$inc1=$cs0=$cs1=0;
     if('2:get prices history => does the whole stuff'){#count(*)as nb,
         $sql="select group_concat(field_tarif_chambre_simple_value)as v,group_concat(revision_id)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $residence2chambre).") and field_tarif_chambre_simple_value<>'NA' group by entity_id order by entity_id desc,revision_id desc";
         $x = Alptech\Wip\fun::sql($sql);
         foreach ($x as $t) {
             $rid=$chambre2residence[$t['cid']];
-            $priceHistory=explode(',',$t['v']);
+            $priceHistory=array_slice(explode(',',$t['v']),0,2);
             foreach($priceHistory as $k=>$v){
                 $ph[$rid][$k]=$v;
                 if($k==0){$cs0+=$v;$inc0++;} elseif($k==1){$cs1+=$v;$inc1++;}
@@ -57,7 +55,7 @@ if('1:get Current Prices') {
             $a=1;
         }
         if($inc0)$cs0/=$inc0;if($inc1)$cs1/=$inc1;$cs0=round($cs0,2);$cs1=round($cs1,2);
-        $tarifChambreSeuleAvant=$cs0;$tarifChambreSeuleApres=$cs1;
+        $tarifChambreSeuleApres=$cs0;$tarifChambreSeuleAvant=$cs1;
         print_r(compact('tenClosestRes','tarifChambreSeuleAvant','tarifChambreSeuleApres','inc0','inc1'));#,'c','avg'
         return;
     }
