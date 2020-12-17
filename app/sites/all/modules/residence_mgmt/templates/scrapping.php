@@ -129,7 +129,7 @@ function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForc
     echo'<pre>';
     $starts=time();
 /* Attention : ce ne sont pas toutes des Ehpad .. */
-    $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=$fin2rid=$tarifsModifies=$c2r=[];
+    $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=$fin2rid=$tarifsModifies=$c2r=[];$geomodif=$newResidences=0;
     $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';#finess:argv2, noFinesset/010001246
     #$url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/010001246';
     $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
@@ -215,7 +215,7 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
             }
         }
 
-        if(isset($resFit2Id[$finess])){#at 698
+        if(isset($resFit2Id[$finess])){#exists :: at 698
             $rid=$resFit2Id[$finess];
             if($res2date[$rid]){
                 $modifRes=$res2date[$rid];
@@ -287,8 +287,8 @@ if(isset($t['ehpadPrice'])){
 // $residence->field_groupe[$residence->language][0]['value'] = "";
 $residence->field_location['und'][0]['locality'] = $t['coordinates']['city'];
 $residence->field_location['und'][0]['postal_code'] = $t['coordinates']['postcode'];
-$residence->field_latitude['und'][0]['value'] =  $t['coordinates']['latitude'];
-$residence->field_longitude['und'][0]['value'] =  $t['coordinates']['longitude'];
+if($t['coordinates']['latitude'] != $residence->field_latitude['und'][0]['value']){$geomodif++;$residence->field_latitude['und'][0]['value'] =  $t['coordinates']['latitude'];}
+if($t['coordinates']['longitude'] != $residence->field_longitude['und'][0]['value']){$geomodif++;$residence->field_longitude['und'][0]['value'] =  $t['coordinates']['longitude'];}
 $b=node_save($residence);
 $rid=$residence->nid;
 $a=1;
@@ -306,6 +306,7 @@ $a=1;
             $a=1;
         } else{#y'à pas cette résidence, on la crée
             $a=1;#$residenceData from ça
+            $newResidences++;
             $residenceData->finess=$finess;
             $residenceData->title=$t['title'];
             $residenceData->email=$t["coordinates"]["emailContact"];
@@ -416,8 +417,10 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
 
     $took=time()-$starts;$starts=time();
     #echo"\n\nAlertsTook:$took";#
-    $_SESSION['geo']=1;
-    require_once rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/z/geo.php';
+    if($geomodif or $newResidences){#si seulement modifications géographique ou nouvelle résidence, recalcul des proximités
+        $_SESSION['geo']=1;
+        require_once rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/z/geo.php';
+    }
     $took=time()-$starts;$starts=time();
     echo"\n\nGeodingTook:$took";#
     return 1;
