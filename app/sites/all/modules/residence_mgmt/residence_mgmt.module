@@ -476,23 +476,16 @@ function residence_mgmt_dashboard() {
         $quickWins = fetchAll($query);
 
         foreach( $quickWins as $key => $r ) {
-
             $ranking = getRankingOfResidence( $r->nid, array( "CONCURRENCE_DIRECTE" ) );
             $residencesConcurrentes = getResidencesProchesByStatus( $r->nid, $statuses = [$r->field_statut_value ], $limit = 10);
-
             $residencesConcurrentesTarif = array_map(function( $residenceConcurrente ) {
                 return $residenceConcurrente->field_tarif_chambre_simple_value;
             }, $residencesConcurrentes);
-
             $tarifMoyenConcurrence = moyen($residencesConcurrentesTarif);
-
             // FIELDS
-
             $quickWins[$key]->tarif_concurrence_direct = round($tarifMoyenConcurrence, 2);
             $quickWins[$key]->ranking_direct = $ranking['concurrence_directe'];
-
             $quickWins[$key]->difference = round($quickWins[$key]->tarif_concurrence_direct - $quickWins[$key]->field_tarif_chambre_simple_value, 2);
-
         }
 
         // file_put_contents( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file, json_encode($quickWins));

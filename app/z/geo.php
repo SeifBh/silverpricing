@@ -4,6 +4,7 @@ id2latlon:7522
 7517 having total found 154250 with 20.520154316882
 processed in Time::::219(base)
 php74 ~/home/ehpad/app/z/geo.php reindex
+php7.1 /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/geo.php reindex
  */
 namespace Alptech\Wip;
 $maxFound=100;$maxKmSearch=$radius=round(200/2);
