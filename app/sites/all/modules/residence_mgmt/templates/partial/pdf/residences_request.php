@@ -8,15 +8,12 @@ $a='https://ehpad.home/ged/1/document/48165';?>
             table{border-collapse:collapse;}
             table td,table th{text-align:left;verticali-align:top;}
             .nowrap{white-space:nowrap;}
-            .results tr:nth-child(even){background:#EEEEEE;}
-            #h #b #content tr.black,.black{background:#DDD;color:#000;}
+            .results tr:nth-child(even){background:#e1edfe;}
+            #h #b #content tr.black,.black{background:#6BA5FA;color:#000;}
 
             img{max-height:30vh}
             body {font-family: "Times New Roman", Georgia, Serif;}
-
-            #header {
-              margin-bottom: 25px;
-            }
+            #header {margin-bottom: 25px;}
 
             #content table.table {
                 width: 100%;
@@ -25,33 +22,29 @@ $a='https://ehpad.home/ged/1/document/48165';?>
                 border-collapse: collapse;
             }
 
-            #content table.table td, #content table.table th {
-                border: 1px solid #000;
-            }
-
+            #content table.table td, #content table.table th {border: 1px solid #000;}
         </style>
     </head>
     <body id="b">
       <table id="header">
             <tr><td>
             <div>
-                <p><strong>Adresse : </strong><?php echo $historyResult->request->adresse; ?></p>
+                <p><b>Adresse : </b><?php echo $historyResult->request->adresse; ?></p>
+            </div>
+            <div>
+                <p><b>Latitude : </b><?php echo $historyResult->request->latitude; ?></p>
             </div>
 
             <div>
-                <p><strong>Latitude : </strong><?php echo $historyResult->request->latitude; ?></p>
+                <p><b>Longitude : </b><?php echo $historyResult->request->longitude; ?></p>
             </div>
 
             <div>
-                <p><strong>Longitude : </strong><?php echo $historyResult->request->longitude; ?></p>
+                <p><b>Statut : </b><?php echo $historyResult->request->statut; ?></p>
             </div>
 
             <div>
-                <p><strong>Statut : </strong><?php echo $historyResult->request->statut; ?></p>
-            </div>
-
-            <div>
-                <p><strong>Périmetre : </strong><?php echo $historyResult->request->perimetre; ?></p>
+                <p><b>Périmetre : </b><?php echo $historyResult->request->perimetre; ?></p>
             </div>
                     </td><td>
                         <?php

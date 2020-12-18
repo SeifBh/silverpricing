@@ -599,31 +599,29 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
         }, 1000);
     });
 
-    <?php if( residence_mgmt_user_plan_has_access('PAGE_DEPARTEMENT_SECTION_RECHERCHE') ):  ?>
+    <?php
+    if( residence_mgmt_user_plan_has_access('PAGE_DEPARTEMENT_SECTION_RECHERCHE') ):
+    ?>
+var popTot=<?=$totalPopulation?>,nbMaisonTot=<?=$statistique_globale['Nbre de maisons']?>,meslits=<?=$mesLits?>,nbLits=<?=$capaciteDepartement->nombre_lits?>,ratio=meslits/nbLits,mesRes=Math.round(ratio*100,2)<?php #echo round( 100 - (() * 100) , 2); ?>;
+nbMaisonSurPop=<?php echo round( (($statistique_globale['Nbre de maisons'] / $totalPopulation) * 100) , 2); ?>;//0.17
+pressionlits=<?php echo round( (( $capaciteDepartement->nombre_lits / $totalPopulation ) * 100) , 2 ); ?>;
+pressionlitsMin=3;//7.86 sur les bouches du Rhone
+pressionlitsMax=20;//Cantal
 
+console.log({meslits,nbLits,ratio,mesRes});
+
+    cl('mesRes',mesRes);cl('nbMaisonSurPop',nbMaisonSurPop);cl('pressionlits',pressionlits);
     // REQUEST FORM
 
-    $('#statut').select2({
-        placeholder: 'Statut',
-        maximumSelectionLength: 3
-    });
-
+    $('#statut').select2({placeholder: 'Statut', maximumSelectionLength: 3});
     // REQUEST MAP
-
-    var requestHereMap = initHereMap(
-        "XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8",
-        document.getElementById('french-residences-map-result')
-    );
-
+    var requestHereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('french-residences-map-result'));
     var requestMarkers = [];
-
     <?php #
     foreach( $residences as $r ): ?>
         var m = { lat: <?php echo $r->field_latitude_value; ?>, lng: <?php echo $r->field_longitude_value; ?> };
         requestMarkers.push(m);
-
         var markerObject = null;
-
         <?php
 
             switch($r->field_statut_value) {
@@ -637,7 +635,6 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
                 echo "markerObject = new H.map.Marker(m, { icon: icon.prive });";
                 break;
             }
-
         ?>
 
         addInfoBubble(requestHereMap, markerObject,
@@ -660,9 +657,10 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
 
     // GAUGE CHART
     // Pression Concurrentielle
+
     var pressionConcurrentielle = new JustGage({
     id: "pression_concurrentielle",
-    value: <?php echo round( 100 - (($mesLits / $capaciteDepartement->nombre_lits) * 100) , 2); ?>,
+    value: mesRes,
     min: 0,
     max: 100,
     levelColors: ['#a7d500', '#e4cb00', '#f90d00'],
@@ -673,9 +671,7 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
 
     var pressionConcurrentielle2 = new JustGage({
     id: "pression_concurrentielle_2",
-    value: <?php echo round( 100 - (($statistique_globale['Nbre de maisons'] / $totalPopulation) * 100) , 2); ?>,
-    min: 0,
-    max: 100,
+    value: nbMaisonSurPop, min: 0, max: 100,
     levelColors: ['#a7d500', '#e4cb00', '#f90d00'],
     hideValue: true,
     hideMinMax: true,
@@ -683,15 +679,13 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
     });
 
     // Pression lits par +75 ans
+
     var pressionLits = new JustGage({
-    id: "pression_lits",
-    value: <?php echo round( 100 - (( $capaciteDepartement->nombre_lits / $totalPopulation ) * 100) , 2 ); ?>,
-    min: 0,
-    max: 100,
-    levelColors: ['#a7d500', '#e4cb00', '#f90d00'],
-    hideValue: true,
-    hideMinMax: true,
-    relativeGaugeSize: true
+        id: "pression_lits", value: pressionlits, min: pressionlitsMin, max: pressionlitsMax,
+        levelColors: ['#a7d500', '#e4cb00', '#f90d00'],
+        hideValue: true,
+        hideMinMax: true,
+        relativeGaugeSize: true
     });
 
 

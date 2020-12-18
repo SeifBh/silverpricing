@@ -1300,7 +1300,11 @@ if ($statuses) {
         $clo[] = $t['entity_id'];
     }
 }
-$clo = array_splice($clo, 0, $limit);#anyways, ordinary love
+
+$clo1 = array_splice($clo, 0, $limit);#anyways, ordinary love
+if(!$clo){
+    $err=1;
+}
 $sql="SELECT n.nid AS nid, n.title AS title, $residenceNid AS primary_nid, /*di.distance AS distance,*/ s.field_statut_value AS field_statut_value, l.field_location_locality AS field_location_locality, l.field_location_postal_code AS field_location_postal_code, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value, lat.field_latitude_value AS field_latitude_value, lng.field_longitude_value AS field_longitude_value
 FROM node n
 -- INNER JOIN distance_indexation di ON di.secondary_nid = n.nid and di.primary_nid = $residenceNid
@@ -1310,7 +1314,7 @@ INNER JOIN field_data_field_residence rc ON rc.field_residence_target_id = n.nid
 INNER JOIN field_data_field_tarif_chambre_simple cs ON cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> 'NA'
 INNER JOIN field_data_field_latitude lat ON lat.entity_id = n.nid
 INNER JOIN field_data_field_longitude lng ON lng.entity_id = n.nid
-WHERE n.type = 'residence' and n.nid in(".implode(',',$clo).")";
+WHERE n.type = 'residence' and n.nid in(".implode(',',$clo1).")";
     $residences = Alptech\Wip\fun::sql($sql);
     foreach ($residences as &$t) {$t=(object)$t;}unset($t);
   return $residences;

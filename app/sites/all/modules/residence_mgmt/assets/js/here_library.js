@@ -68,7 +68,7 @@ function addMarker(hereMap, coordinate, icon) {
  * @param string html
  */
 function addInfoBubble(hereMap, markerObject, html) {
-    if(!markerObject) {console.error('missing');return,}
+    if(!markerObject) {console.error('missing');return;}
     var group = new H.map.Group();
     hereMap.map.addObject(group);
 
