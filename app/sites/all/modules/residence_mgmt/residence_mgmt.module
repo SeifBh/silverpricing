@@ -478,7 +478,7 @@ function residence_mgmt_dashboard() {
         foreach( $quickWins as $key => $r ) {
 
             $ranking = getRankingOfResidence( $r->nid, array( "CONCURRENCE_DIRECTE" ) );
-            $residencesConcurrentes = getResidencesProchesByStatus( $r->nid, $statuses = array( $r->field_statut_value ), $limit = 10);
+            $residencesConcurrentes = getResidencesProchesByStatus( $r->nid, $statuses = [$r->field_statut_value ], $limit = 10);
 
             $residencesConcurrentesTarif = array_map(function( $residenceConcurrente ) {
                 return $residenceConcurrente->field_tarif_chambre_simple_value;
@@ -2146,7 +2146,7 @@ function update_residences_latlong() {
 
 // METHOD FOR DISTANCE INDEXATION
 function residence_mgmt_distance_indexation() {
-
+die('#deprecated#'.__line__);
     set_time_limit(0);
 
     $start = microtime(true);

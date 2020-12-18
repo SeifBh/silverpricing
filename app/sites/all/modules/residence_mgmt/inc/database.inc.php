@@ -444,7 +444,7 @@ function getRankingOfResidence( $residenceNid, $rankingTypes = array() ) {
     // $residence = entity_load('node', array($residenceNid), array( 'type' => 'residence' ));
     $residenceRanking = array( 'departement' => 'NA', 'concurrence_directe' => 'NA' );
 
-    // RANKED RESIDENCE
+if('elle même'){// RANKED RESIDENCE
     $query = db_select('node', 'n');
     $query->condition('n.type', "residence", '=');
     $query->condition('n.nid', $residenceNid, '=');
@@ -458,28 +458,50 @@ function getRankingOfResidence( $residenceNid, $rankingTypes = array() ) {
     $query->fields('cs', array('field_tarif_chambre_simple_value'));
     $query->addExpression(0, 'distance', array());
     $rankedResidence = fetchObject($query);
-
+}
     // varDebug($rankedResidence);
     // exit();
 
     if( in_array("CONCURRENCE_DIRECTE", $rankingTypes) ) {
 #todo: greffer z_geo
-        // POSITION PAR RAPPORT A LA CONCURRENCE
-        $query = db_select('distance_indexation', 'di');
-        $query->condition('di.primary_nid', $residenceNid, "=");
-        $query->join('node', 'r', 'di.secondary_nid = r.nid', array());
-        $query->join('field_data_field_statut', 's', 's.entity_id = r.nid and s.field_statut_value = :statut', array(':statut'=> $rankedResidence->field_statut_value ));
-        $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = r.nid', array());
-        $query->join('field_data_field_tarif_chambre_simple', 'cs', 'cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> :tarif', array( ':tarif' => 'NA' ));
-        $query->fields('r', array('nid'));
-        $query->fields('cs', array('field_tarif_chambre_simple_value'));
-        $query->fields('di', array('distance'));
-        $query->orderBy('distance', 'ASC');
-        $query->range(0, 10);
-        $residences = fetchAll($query);
+        $x=Alptech\Wip\fun::sql("select list from z_geo where rid=".$residenceNid);#
+        $closests=trim($x[0]['list'],',');
 
-        array_unshift($residences, $rankedResidence);
+if(0 and 'oldway'){// POSITION PAR RAPPORT A LA CONCURRENCE
+    $query = db_select('distance_indexation', 'di');
+    $query->condition('di.primary_nid', $residenceNid, "=");
+    $query->join('node', 'r', 'di.secondary_nid = r.nid', array());
+    $query->join('field_data_field_statut', 's', 's.entity_id = r.nid and s.field_statut_value = :statut', array(':statut'=> $rankedResidence->field_statut_value ));
+    $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = r.nid', array());
+    $query->join('field_data_field_tarif_chambre_simple', 'cs', 'cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> :tarif', array( ':tarif' => 'NA' ));
+    $query->fields('r', array('nid'));
+    $query->fields('cs', array('field_tarif_chambre_simple_value'));
+    $query->fields('di', array('distance'));
+    $query->orderBy('distance', 'ASC');
+    $query->range(0, 10);
+    $residences = fetchAll($query);
+    $limit10a="SELECT r.nid AS nid, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value, di.distance AS distance FROM distance_indexation di INNER JOIN node r ON di.secondary_nid = r.nid
+INNER JOIN field_data_field_statut s ON s.entity_id = r.nid and s.field_statut_value = 'Privé'
+INNER JOIN field_data_field_residence rc ON rc.field_residence_target_id = r.nid
+INNER JOIN field_data_field_tarif_chambre_simple cs ON cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> 'NA'
+WHERE  (di.primary_nid = 40233) 
+ORDER BY distance ASC
+LIMIT 10 OFFSET 0";
+}
 
+$a="select entity_id from field_data_field_statut where field_statut_value='".$rankedResidence->field_statut_value."' and entity_id in(".$closests.") ORDER BY FIELD(entity_id,$closests) limit 0,10";
+$having=[];$x=Alptech\Wip\fun::sql($a);foreach($x as $t){$having[]=$t['entity_id'];}###"
+#field_departement_tid
+$limit10b="SELECT r.nid AS nid, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value FROM  node r 
+-- INNER JOIN field_data_field_statut s ON s.entity_id = r.nid -- and s.field_statut_value = '".$rankedResidence->field_statut_value."'
+INNER JOIN field_data_field_residence rc ON rc.field_residence_target_id = r.nid
+INNER JOIN field_data_field_tarif_chambre_simple cs ON cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> 'NA'
+WHERE  r.nid in (".implode(',',$having).")";#order by id
+$residences=Alptech\Wip\fun::sql($limit10b);##
+foreach($residences as &$t){$t=(object)$t;}unset($t);
+
+        array_unshift($residences, $rankedResidence);#remove::self
+#['distance'=>0,'field_departement_tid'=>60,'field_statut_value'=>'privé','field_tarif_chambre_value'=>1,'nid'=>1];
         // varDebug($residences);
         // exit();
 
@@ -1184,12 +1206,7 @@ function indexDistanceBetweenTwoPoints( $primaryNid, $secondaryNid ) {
     $query->fields('lng', array('field_longitude_value'));
     $residences = fetchAllAssoc($query,'nid');
 
-    $distance = getDistance(
-      $residences[$primaryNid]->field_latitude_value,
-      $residences[$primaryNid]->field_longitude_value,
-      $residences[$secondaryNid]->field_latitude_value,
-      $residences[$secondaryNid]->field_longitude_value
-    );
+    $distance = getDistance($residences[$primaryNid]->field_latitude_value, $residences[$primaryNid]->field_longitude_value, $residences[$secondaryNid]->field_latitude_value, $residences[$secondaryNid]->field_longitude_value);
 
     try {
       $residence = db_insert('distance_indexation')
@@ -1242,32 +1259,69 @@ function getResidencesByRadius( $residenceNid, $radius = 5) {
 
 }
 
-function getResidencesProchesByStatus( $residenceNid, $statuses = array(), $limit = 10) {
+function getClosests($residenceNid){
+    $x=Alptech\Wip\fun::sql("select list from z_geo where rid=".$residenceNid);#
+    return trim($x[0]['list'],',');
+    #return explode(',',trim($x[0]['list'],','));
+}
 
-  if( empty($statuses) ) { $statuses = array('Public', 'Associatif', 'Privé'); }
+function getResidencesProchesByStatus( $residenceNid, $statuses = [], $limit = 10)
+{
+if(isset($_COOKIE['old']) and $_COOKIE['old']){#simple commutateur le piu simple ever !
+    if (empty($statuses))$statuses = array('Public', 'Associatif', 'Privé');
+    $query = db_select('node', 'n');
+    $query->condition('n.type', "residence", '=');
+    $query->join('distance_indexation', 'di', 'di.secondary_nid = n.nid and di.primary_nid = :pnid', array(':pnid' => $residenceNid));
+    $query->join('field_data_field_statut', 's', 's.entity_id = n.nid and s.field_statut_value IN (:statuses)', array(':statuses' => $statuses));
+    $query->join('field_data_field_location', 'l', 'l.entity_id = n.nid', array());
+    $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
+    $query->join('field_data_field_tarif_chambre_simple', 'cs', 'cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> :tarif', array(':tarif' => 'NA'));
+    $query->join('field_data_field_latitude', 'lat', 'lat.entity_id = n.nid', array());
+    $query->join('field_data_field_longitude', 'lng', 'lng.entity_id = n.nid', array());
+    $query->fields('n', array('nid', 'title'));
+    $query->fields('di', array('primary_nid', 'distance'));
+    $query->fields('s', array('field_statut_value'));
+    $query->fields('l', array('field_location_locality', 'field_location_postal_code'));
+    $query->fields('cs', array('field_tarif_chambre_simple_value'));
+    $query->fields('lat', array('field_latitude_value'));
+    $query->fields('lng', array('field_longitude_value'));
+    $query->orderBy('di.distance', 'ASC');
+    $query->range(0, $limit);
+    $residences = fetchAll($query);#->execute()->fetchAll();
+    return $residences;
+}
 
-  $query = db_select('node', 'n');
-  $query->condition('n.type', "residence", '=');
-  $query->join('distance_indexation', 'di', 'di.secondary_nid = n.nid and di.primary_nid = :pnid', array( ':pnid' => $residenceNid ));
-  $query->join('field_data_field_statut', 's', 's.entity_id = n.nid and s.field_statut_value IN (:statuses)', array(':statuses'=> $statuses));
-  $query->join('field_data_field_location', 'l', 'l.entity_id = n.nid', array());
-  $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
-  $query->join('field_data_field_tarif_chambre_simple', 'cs', 'cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> :tarif', array(':tarif' => 'NA'));
-  $query->join('field_data_field_latitude', 'lat', 'lat.entity_id = n.nid', array());
-  $query->join('field_data_field_longitude', 'lng', 'lng.entity_id = n.nid', array());
-
-  $query->fields('n', array('nid', 'title'));
-  $query->fields('di', array('primary_nid', 'distance'));
-  $query->fields('s', array('field_statut_value'));
-  $query->fields('l', array('field_location_locality', 'field_location_postal_code'));
-  $query->fields('cs', array('field_tarif_chambre_simple_value'));
-  $query->fields('lat', array('field_latitude_value'));
-  $query->fields('lng', array('field_longitude_value'));
-  $query->orderBy('di.distance', 'ASC');
-  $query->range(0, $limit);
-  $residences = fetchAll($query);#->execute()->fetchAll();
-
+$clo = getClosests($residenceNid);
+if ($statuses) {
+    $s = "select entity_id from field_data_field_statut where field_statut_value IN ('" . implode("','", $statuses) . "') and entity_id in($clo) ORDER BY FIELD(entity_id,$clo) limit $limit";#
+    $clo = [];
+    $x = Alptech\Wip\fun::sql($s);
+    foreach ($x as $t) {
+        $clo[] = $t['entity_id'];
+    }
+}
+$clo = array_splice($clo, 0, $limit);#anyways, ordinary love
+$sql="SELECT n.nid AS nid, n.title AS title, $residenceNid AS primary_nid, /*di.distance AS distance,*/ s.field_statut_value AS field_statut_value, l.field_location_locality AS field_location_locality, l.field_location_postal_code AS field_location_postal_code, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value, lat.field_latitude_value AS field_latitude_value, lng.field_longitude_value AS field_longitude_value
+FROM node n
+-- INNER JOIN distance_indexation di ON di.secondary_nid = n.nid and di.primary_nid = $residenceNid
+INNER JOIN field_data_field_statut s ON s.entity_id = n.nid -- and s.field_statut_value IN ('')
+INNER JOIN field_data_field_location l ON l.entity_id = n.nid
+INNER JOIN field_data_field_residence rc ON rc.field_residence_target_id = n.nid
+INNER JOIN field_data_field_tarif_chambre_simple cs ON cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> 'NA'
+INNER JOIN field_data_field_latitude lat ON lat.entity_id = n.nid
+INNER JOIN field_data_field_longitude lng ON lng.entity_id = n.nid
+WHERE n.type = 'residence' and n.nid in(".implode(',',$clo).")";
+    $residences = Alptech\Wip\fun::sql($sql);
+    foreach ($residences as &$t) {$t=(object)$t;}unset($t);
   return $residences;
 }
 
-
+function distance($lat1,$lat2,$lng1,$lng2)
+{
+    $r = 6372.797;$pi80 = M_PI / 180;/*1rad*/$lat1 *= $pi80;$lng1 *= $pi80;$lat2 *= $pi80;$lng2 *= $pi80;
+    $dlat = $lat2 - $lat1;$dlng = $lng2 - $lng1;
+    $a = sin($dlat / 2) * sin($dlat / 2) + cos($lat1) * cos($lat2) * sin($dlng / 2) * sin($dlng / 2);
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    $km = $r * $c;
+    return $km;
+}

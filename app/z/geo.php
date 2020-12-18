@@ -6,6 +6,8 @@ processed in Time::::219(base)
 php74 ~/home/ehpad/app/z/geo.php reindex
  */
 namespace Alptech\Wip;
+$maxFound=100;$maxKmSearch=$radius=round(200/2);
+
 if(!isset($GLOBALS['argv']) and !isset($_SESSION)){die('#'.__line__);}
 $_mem=[__line__=>memory_get_usage(1)];
 chdir(__DIR__);
@@ -13,8 +15,9 @@ $a=getcwd();
 require_once'../autoload.php';
 #use Alptech\Wip\fun as fun;
 $a1=time();
-$maxFound=20;
-$maxKmSearch=round(50/2);
+echo "\nmaxFound:$maxFound,maxKmSearch:$maxKmSearch";
+
+
 /*
 phpx ~/home/ehpad/app/z/geo.php
 */
@@ -77,7 +80,7 @@ foreach($id2latlon as $kId=>$latlon){
         }
         foreach($found as $id){
             $distance=distance($latlon[0],$id2latlon[$id][0],$latlon[1],$id2latlon[$id][1]);
-            if(!$distance){
+            if(!$distance){#Might be 0 ;) same neighbourhood
                 $err=1;
             }
             $distance=intval($distance);
