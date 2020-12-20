@@ -6,6 +6,8 @@ if(!isset($argv))die;
 $_SERVER['DOCUMENT_ROOT']=__DIR__.'/../';chdir(__DIR__);
 $module='../sites/all/modules/residence_mgmt';
 require_once "../vendor/autoload.php";#alptech
+
+require_once "../vendor/autoload.php";#alptech
 if(isset($argv) and $argv[1]){
     $_GET=Alptech\Wip\io::isJson($argv[1]);
 }
@@ -20,28 +22,6 @@ echo"<pre>".$y[0]['title']."\n";
 
 $x=Alptech\Wip\fun::sql('select nid,title from node where nid in('.$liste2.')');
 foreach($x as $t)$tenClosestRes[$t['nid']]=$t['title'];
-
-
-function res2ch($liste2){
-    $x = Alptech\Wip\fun::sql("select entity_id,field_residence_target_id from field_data_field_residence where bundle='chambre' and field_residence_target_id in(" . $liste2 . ")");
-    $residence2chambre = $_missingChambre = [];
-    foreach ($x as $t) {
-        $residence2chambre[$t['field_residence_target_id']] = $t['entity_id'];
-    }
-    return $residence2chambre;
-}
-
-function chprix($chambres=[]){
-    $chambre2residence=array_flip($chambres);
-    $sql="select substring_index(group_concat(field_tarif_chambre_simple_value order by revision_id desc),',',20)as v,substring_index(group_concat(revision_id order by revision_id desc),',',20) as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $chambres).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";# order by revision_id desc
-    #$sql="select group_concat(field_tarif_chambre_simple_value order by revision_id desc limit 3)as v,group_concat(revision_id order by revision_id desc limit 3)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $chambres).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";# order by revision_id desc
-    $x = Alptech\Wip\fun::sql($sql);
-    foreach ($x as $t) {
-        $rid=$chambre2residence[$t['cid']];
-        $priceHistory[$rid]=explode(',',$t['v']);#array_slice(,0,2);
-    }
-    return $priceHistory;
-}
 
 $r2c=res2ch($rid);$chp=chprix($r2c);$historiquePrix=implode(',',$chp[$rid]);
 

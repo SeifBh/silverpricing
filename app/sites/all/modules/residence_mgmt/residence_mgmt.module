@@ -1,4 +1,5 @@
 <?php #
+require_once __DIR__ . "/ben.php";
 require_once __DIR__ . "/vendor/autoload.php";
 require_once __DIR__ . "/inc/config.inc.php";
 require_once __DIR__ . "/inc/http_client.inc.php";

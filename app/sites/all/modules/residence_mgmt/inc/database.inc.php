@@ -920,6 +920,18 @@ function addTMHMaquetteToFavoris( $fieldFavoris, $maquetteId ) {
  */
 
 function addHistory($historyData = array()) {
+    $tel=$groupe=$lits=$adresse=$aidesoc=$tarifs=$alz=$ids=[];foreach($historyData['body']['response'] as $t){$ids[]=intval($t->nid);}
+#$r2c=res2ch($ids);$tarifs=chprix($r2c,1);foreach($tarifs as &$t){$t=end($t);}unset($t);#dernière historique $historiquePrix=implode(',',$chp[$rid]);
+    $sql="select entity_id as k,field_telephone_value as v from field_data_field_telephone where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$tel[$t['k']]=$t['v'];
+    $sql="select entity_id as k,field_alzheimer_value as v from field_data_field_alzheimer where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$alz[$t['k']]=$t['v'];
+    $sql="select entity_id as k,field_aide_sociale_value as v from field_data_field_aide_sociale where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$aidesoc[$t['k']]=$t['v'];
+    $sql="select entity_id as k,field_capacite_value as v from field_data_field_capacite where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$lits[$t['k']]=$t['v'];
+    $sql="select entity_id as k,field_location_thoroughfare as v from field_data_field_location where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$adresse[$t['k']]=$t['v'];
+    $sql="select entity_id as k,b.name as v from field_data_field_groupe a inner join taxonomy_term_data b on a.field_groupe_tid=b.tid where a.entity_id in (".implode(',',$ids).") and a.bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$groupe[$t['k']]=$t['v'];
+#£:todo: Date de construction
+# / Groupe /
+$a=1;
+
       $history = new stdClass();
       $history->type = 'history';
       $history->title = $historyData['title'];
@@ -931,8 +943,8 @@ function addHistory($historyData = array()) {
     if(1 and 'excel'){
         $fn=$historyData['body']['request']['adresse'].'-'.$historyData['body']['request']['perimetre'];
         $t=(array)$historyData['body']['response'][0];unset($t['nid'],$t['field_logo_fid'],$t['grp_term_name']);
-        $headers=array_keys($t);
-        $translate=['title'=>'titre','field_statut_value'=>'type','field_location_locality'=>'ville','field_location_postal_code'=>'code postal','field_tarif_chambre_simple_value'=>'tarif chambre','field_gestionnaire_value'=>'gestionnaire','field_latitude_value'=>'latitude','field_longitude_value'=>'longitude','name'=>'département','distance'=>'distance en km'];
+        $headers=array_merge(array_keys($t),['Addresse','Telephone',/*'Tarifs',*/'Alzeihmer','Aide sociale','Lits','Groupe']);#
+        $translate=['title'=>'Nom','field_statut_value'=>'type','field_location_locality'=>'ville','field_location_postal_code'=>'code postal','field_tarif_chambre_simple_value'=>'tarif chambre','field_gestionnaire_value'=>'gestionnaire','field_latitude_value'=>'latitude','field_longitude_value'=>'longitude','name'=>'département','distance'=>'distance en km'];
         foreach($headers as &$v){
             if(isset($translate[$v])){$v=$translate[$v];}
             $v=str_replace(['field_','_value',],'',$v);
@@ -940,23 +952,31 @@ function addHistory($historyData = array()) {
         $lines=[$headers];
 
         foreach($historyData['body']['response'] as $k=>$t){
-            if(is_object($t))$t=(array)$t;
+            if(is_object($t))$t=(array)$t;$id=$t['nid'];
             unset($t['nid'],$t['field_logo_fid'],$t['grp_term_name']);
+
+            $t['adresse']=(isset($adresse[$id])?$adresse[$id]:'');
+            $t['tel']=(isset($tel[$id])?$tel[$id]:'');
+            #$t['tarif']=(isset($tarifs[$id])?$tarifs[$id]:'');#déjà listés
+            $t['alz']=(isset($alz[$id])?($alz[$id]==1?'oui':'non'):'');
+            $t['aids']=(isset($adresse[$id])?($aidesoc[$id]==1?'oui':'non'):'');
+            $t['lits']=(isset($lits[$id])?$lits[$id]:'');
+            $t['groupe']=(isset($groupe[$id])?$groupe[$id]:'');
             $lines[]=array_values($t);
-        }
+        }#
 
         try{
 #1ère ligne:nom complet de la recherche
-#£:todo:Département / Date de construction / Groupe / Nom résidence /Type / Ville / Adresse /CP / Tel / TARIF / gestionnaire / distance en km / Nombre de lits / Alzheimer oui-non / Aide sociale oui-non
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->setTitle(substr(preg_replace('~[^a-z0-9 \.]+~is','',$historyData['body']['request']['adresse']),0,31));#31 max chars '.$historyData['body']['request']['adresse'].','.$historyData['body']['request']['perimetre']);
             $cols=[];$letter = 'A';while ($letter !== 'AAA') {$cols[] = $letter++;}
+            $sheet->getCell('A1')->setValue($historyData['name']);
             if ('parcours des données') {
                 foreach ($lines as $l => $t) {
                     foreach ($t as $c => $v) {
                         $x = $cols[$c];
-                        $coord = $x . '' . ($l + 1);
+                        $coord = $x . '' . ($l + 2);#démarre à la seconde ligne
                         $sheet->getCell($coord)->setValue($v);
                     }
                 }
