@@ -34,15 +34,12 @@ $a='https://ehpad.home/ged/1/document/48165';?>
             <div>
                 <p><b>Latitude : </b><?php echo $historyResult->request->latitude; ?></p>
             </div>
-
             <div>
                 <p><b>Longitude : </b><?php echo $historyResult->request->longitude; ?></p>
             </div>
-
             <div>
                 <p><b>Statut : </b><?php echo $historyResult->request->statut; ?></p>
             </div>
-
             <div>
                 <p><b>Périmetre : </b><?php echo $historyResult->request->perimetre; ?></p>
             </div>

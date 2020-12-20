@@ -466,6 +466,10 @@ if('elle même'){// RANKED RESIDENCE
 #todo: greffer z_geo
         $x=Alptech\Wip\fun::sql("select list from z_geo where rid=".$residenceNid);#
         $closests=trim($x[0]['list'],',');
+        if(!$closests){
+            \Alptech\Wip\fun::dbm('missing zgeo for:'.$residenceNid,'zgeo');
+        }else{
+
 
 if(0 and 'oldway'){// POSITION PAR RAPPORT A LA CONCURRENCE
     $query = db_select('distance_indexation', 'di');
@@ -520,8 +524,8 @@ foreach($residences as &$t){$t=(object)$t;}unset($t);
                 break;
             }
         }
-
-    }
+        }
+    }#end concurrencedirecte
     
     if( in_array("DEPARTEMENT", $rankingTypes) ) {
 
@@ -942,9 +946,11 @@ function addHistory($historyData = array()) {
         }
 
         try{
+#1ère ligne:nom complet de la recherche
+#£:todo:Département / Date de construction / Groupe / Nom résidence /Type / Ville / Adresse /CP / Tel / TARIF / gestionnaire / distance en km / Nombre de lits / Alzheimer oui-non / Aide sociale oui-non
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            $sheet->setTitle($historyData['body']['request']['adresse']);#31 max chars '.$historyData['body']['request']['adresse'].','.$historyData['body']['request']['perimetre']);
+            $sheet->setTitle(substr(preg_replace('~[^a-z0-9 \.]+~is','',$historyData['body']['request']['adresse']),0,31));#31 max chars '.$historyData['body']['request']['adresse'].','.$historyData['body']['request']['perimetre']);
             $cols=[];$letter = 'A';while ($letter !== 'AAA') {$cols[] = $letter++;}
             if ('parcours des données') {
                 foreach ($lines as $l => $t) {

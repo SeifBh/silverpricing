@@ -7,6 +7,7 @@ php74 ~/home/ehpad/app/z/geo.php reindex
 php7.1 /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/geo.php reindex
  */
 namespace Alptech\Wip;
+ini_set('memory_limit',-1);ini_set('max_execution_time',-1);
 $maxFound=100;$maxKmSearch=$radius=round(200/2);
 
 if(!isset($GLOBALS['argv']) and !isset($_SESSION)){die('#'.__line__);}
@@ -38,9 +39,8 @@ foreach($x as $t){
 }
 $_mem=[__line__=>memory_get_usage(1)];
 echo"\ngeo.php => nb ResidencesLatLon:".count($id2latlon);
-$closests=[];$cfound=0;
+$_inserts=$closests=[];$cfound=0;
 
-$x=fun::sql("truncate table z_geo");
 
 foreach($id2latlon as $kId=>$latlon){
     $x1=$x2=$i=0;$j++;
@@ -99,7 +99,7 @@ foreach($id2latlon as $kId=>$latlon){
         }
         $a=1;
     }
-    $x=fun::sql('insert into z_geo (rid,list,closest)values('.$kId.',",'.implode(',',$list).',",\''.json_encode($closests[$kId]).'\')');#si cardinalités 0,1,2,3,4 à la suite alors array
+    $_inserts[]='insert into z_geo (rid,list,closest)values('.$kId.',",'.implode(',',$list).',",\''.json_encode($closests[$kId]).'\')';
     continue;
 /*
     while(count($found)<$maxFound and $i<$maxKmSearch){
@@ -132,7 +132,15 @@ file_put_contents('closests.json',json_encode($closests));
 $a2=time();
 $ratio=$cfound/count($closests);
 $_mem=[__line__=>memory_get_usage(1)];
-echo"\n".count($closests)." having total found $cfound with $ratio\nprocessed in :".($a2-$a1).' seconds';
+
+$x=fun::sql("truncate table z_geo");$i=0;
+foreach($_inserts as $insert){
+    $ok=fun::sql($insert);#si cardinalités 0,1,2,3,4 à la suite alors array
+    if($ok)$i++;
+}
+
+echo"\n".count($closests)." having total found $cfound with $ratio\n$i insertions
+\nprocessed in :".($a2-$a1).' seconds';
 print_r($_mem);
 return;
 

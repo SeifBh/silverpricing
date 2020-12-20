@@ -116,10 +116,9 @@ my -u a -pb silverpricing_db < ../db/silverpricing_db.sql;drushy cc all;
 a;cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'sql=(insert|update) ';b;say done;
 on second update shall stop uneccessary updates
 */
-function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForces=null){
+function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForces=null,$_c=null){
 #todo:lock##ini_set('max_execution_time',9999999);
-    ini_set('max_execution_time',-1);
-    ini_set('memory_limit',-1);
+    ini_set('max_execution_time',-1);ini_set('memory_limit',-1);
     if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE){
         $lf=__file__.__function__.'.lock';if(is_file($lf) and filemtime($lf)>time()-70000)die("locked:$lf");touch($lf);
         register_shutdown_function(function()use($lf){
@@ -132,18 +131,21 @@ function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForc
     $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=$fin2rid=$tarifsModifies=$c2r=[];$geomodif=$newResidences=0;
     $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';#finess:argv2, noFinesset/010001246
     #$url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/010001246';
-    $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
-    if(is_file($f)){
-        $_a=['contents'=>file_get_contents($f)];#cached
-    }else{
-        $_a=Alptech\Wip\fun::cup(['url'=>$url,'timeout'=>1600]);
-        if(!$_a['contents'] or $_a['info']['http_code']!=200 or $_a['error']){
-            \Alptech\Wip\fun::dbm([__FILE__.__line__,'scrappingError:'.$currentUrl,$_a],'php500');
-            return null;
+    if(!$_c){
+        $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
+        if(is_file($f)){
+            $_a=['contents'=>file_get_contents($f)];#cached
+        }else{
+            $_a=Alptech\Wip\fun::cup(['url'=>$url,'timeout'=>1600]);
+            if(!$_a['contents'] or $_a['info']['http_code']!=200 or $_a['error']){
+                \Alptech\Wip\fun::dbm([__FILE__.__line__,'scrappingError:'.$currentUrl,$_a],'php500');
+                return null;
+            }
+            $_written=file_put_contents($f,$_a['contents']);#
+            $_c=json_decode($_a['contents'],1);
         }
-        $_written=file_put_contents($f,$_a['contents']);#
     }
-    $_c=json_decode($_a['contents'],1);unset($_a);
+    unset($_a);
     $_mem[__line__]=memory_get_usage(1);
     foreach($_c as $k=>&$t){
         $finesses[]=ltrim($t['noFinesset']);
@@ -333,7 +335,7 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
             $a=1;
         }#array_keys($chambreIdtoResId,31210)[0] == 31209
 
-        if($lastmod>$modifCh){#room needs update
+        if($lastmod>$modifCh){#room needs update ??? #£Si modification Manuelle ne devrait pas être écrasée
             if(isset($res2chambre[$rid])) {
                 $chambres = $res2chambre[$rid];#$chambres=array_keys($chambreIdtoResId,$residence->nid);x
                 $cnid = reset($chambres);
@@ -419,10 +421,10 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
     #echo"\n\nAlertsTook:$took";#
     if($geomodif or $newResidences){#si seulement modifications géographique ou nouvelle résidence, recalcul des proximités
         $_SESSION['geo']=1;
+        $took=time()-$starts;$starts=time();
         require_once rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/z/geo.php';
+        echo"\n\nGeocodingTook: $took";#
     }
-    $took=time()-$starts;$starts=time();
-    echo"\n\nGeodingTook:$took";#
     return 1;
     if($__inserts['residences']){#do the geo recoding
 

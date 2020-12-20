@@ -30,7 +30,7 @@ if($prod){
 
     if(isset($GLOBALS['argv'][1]) and 0) {
         $x = Alptech\Wip\io::isJson($GLOBALS['argv'][1]);
-        updateAllResidencesFromPersonnesAgeesJson(array_keys($x)[0],reset($x));
+        updateAllResidencesFromPersonnesAgeesJson(array_keys($x)[0],reset($x));#£:todo:forcedJsonDataForVariations
     }else{
         updateAllResidencesFromPersonnesAgeesJson();
     }
@@ -39,7 +39,7 @@ $start=time();
 /* todo lock by date */
 $now=1607679698;$rids=$cs0=$cs1=[];
 $x=Alptech\Wip\fun::sql("select max(date)as d from z_variations");if(!$x)die('#'.__line__);$now=$x[0]['d'];
-$f=__file__.'.last';if($prod and !isset($_SERVER['WINDIR']) and is_file($f) and filemtime($f)>=$now)die(filemtime($f).'>='.$now);    touch($f,$now);/* */
+$f=__file__.'.last';if($prod and !isset($_SERVER['WINDIR']) and is_file($f) and filemtime($f)>=$now)die("\n".__line__.' :: '.filemtime($f).'>='.$now);    touch($f,$now);/* */
 
 $x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1 from z_variations where cs_1 is not null and cs_0 is not null order by date desc");# ->choper les dernières variations listées dans le temps
 foreach($x as $t){if(isset($cs0[$t['rid']]))continue;$cs0[$t['rid']]=$t['cs_0'];$cs1[$t['rid']]=$t['cs_1'];}#bcp de tarifs ..
@@ -96,13 +96,13 @@ if(1 or $missingPrices){#shouldnt be necessary
 
     $ph=[];
     if('2:get prices history => does the whole stuff'){#count(*)as nb,
-        $sql="select group_concat(field_tarif_chambre_simple_value)as v,group_concat(revision_id)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $residence2chambre).") and field_tarif_chambre_simple_value<>'NA' group by entity_id order by entity_id desc,revision_id desc";
+        $sql="select group_concat(field_tarif_chambre_simple_value order by revision_id desc limit 3)as v,group_concat(revision_id order by revision_id desc limit 3)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $residence2chambre).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";# order by entity_id desc,revision_id desc
         $x = Alptech\Wip\fun::sql($sql);
         foreach ($x as $t) {
             $rid=$chambre2residence[$t['cid']];
             $priceHistory=array_slice(explode(',',$t['v']),0,2);
             foreach($priceHistory as $k=>$v){
-                if($k==0)$tarifCs[$rid]=$v;
+                if($k==0)$tarifCs[$rid]=$v;#by revision desc, so it should be the latest one
                 $ph[$rid][$k]=$v;
             }
         }
