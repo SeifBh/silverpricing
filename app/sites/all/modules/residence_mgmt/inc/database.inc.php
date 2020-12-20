@@ -1297,8 +1297,10 @@ if(isset($_COOKIE['old']) and $_COOKIE['old']){#simple commutateur le piu simple
     return $residences;
 }
 
-$clo = getClosests($residenceNid);
-if ($statuses) {
+$clo = getClosests($residenceNid);#sans limites, as a list
+if (!$statuses) {
+    $clo=explode(',',$clo);
+}else{
     $s = "select entity_id from field_data_field_statut where field_statut_value IN ('" . implode("','", $statuses) . "') and entity_id in($clo) ORDER BY FIELD(entity_id,$clo) limit $limit";#
     $clo = [];
     $x = Alptech\Wip\fun::sql($s);
@@ -1307,8 +1309,9 @@ if ($statuses) {
     }
 }
 
-$clo1 = array_splice($clo, 0, $limit);#anyways, ordinary love
-if(!$clo){
+$clo1 = array_slice($clo, 0, $limit);#anyways, ordinary love, mais trimme
+if(!$clo1){
+    fun::dbm($residenceNid,'noClosestPoints');
     $err=1;
 }
 $sql="SELECT n.nid AS nid, n.title AS title, $residenceNid AS primary_nid, /*di.distance AS distance,*/ s.field_statut_value AS field_statut_value, l.field_location_locality AS field_location_locality, l.field_location_postal_code AS field_location_postal_code, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value, lat.field_latitude_value AS field_latitude_value, lng.field_longitude_value AS field_longitude_value

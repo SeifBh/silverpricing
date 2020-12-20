@@ -13,8 +13,8 @@ if (isset($_POST['imgURI'])) {
     $name = 'markers/' . $_POST['name'] . '.png';#uniqid()
     $img = $_POST['imgURI'];
     $len = strlen($img);
-    if ($len < 990) {
-        die('#'.$len);
+    if ($len < 200) {
+        die('#lenght<200:'.$len);
     }
     $img = str_replace('data:image/png;base64,', '', $img);//replace the name of image
     #str_replace('data:image/png;base64,','

@@ -1552,11 +1552,11 @@ if(count($residences)>99){$fs=11;$w=50;}#plus large, dégressif
 elseif(count($residences)>10){$fs=13;$w=40;}
 $w=40;#anyways-- stupid otherwise
 $h=round($w*$r);
-$zoom=1.6;#minima
+$zoom=1;#minima
 
-if(count($residences)>200)$zoom=0.3;#plus de résultats, moins de zoom
-elseif(count($residences)>100)$zoom=0.5;#plus de résultats, moins de zoom
-elseif(count($residences)>50)$zoom=1;
+if(count($residences)>200)$zoom=0.7;#plus de résultats, moins de zoom
+elseif(count($residences)>100)$zoom=0.8;#plus de résultats, moins de zoom
+elseif(count($residences)>50)$zoom=0.9;
 
 $a='https://ehpad.home/recherche-silverex';#rechercher
 foreach( $residences as $k=>$residence ){
@@ -1644,14 +1644,13 @@ defer(
 });//end docready
 
     <?php
-    elseif( $currentMenu == "history" ):#
-$a='https://ehpad.home/history/46822';
+elseif( $currentMenu == "history" ):#http://ehpad.silverpricing.fr/history/47908
 $fs=14;$w=28;$h=36;$r=$h/$w;
-$w=40;$h=round($w*$r);$zoom=1.6;##anyways-- stupid otherwise
-
-if(count($historyBody->response)>200)$zoom=0.3;#plus de résultats, moins de zoom
-elseif(count($historyBody->response)>100)$zoom=0.5;#plus de résultats, moins de zoom
-elseif(count($historyBody->response)>50)$zoom=1;
+$w=40;$h=round($w*$r);$zoom=1;##anyways-- stupid otherwise
+#0.5 = vraiment petits
+if(count($historyBody->response)>200)$zoom=0.7;#plus de résultats, moins de zoom
+elseif(count($historyBody->response)>100)$zoom=0.8;#plus de résultats, moins de zoom
+elseif(count($historyBody->response)>50)$zoom=0.9;
 
     ?>
 w=32;h=32;toload=[];markers = [];needSvgToCanvas();ajax('/z/ajax.php?markers=1','GET','',function(r){pngMarkers=JSON.parse(r);/*cl(pngMarkers);*/});

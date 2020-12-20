@@ -96,7 +96,8 @@ if(1 or $missingPrices){#shouldnt be necessary
 
     $ph=[];
     if('2:get prices history => does the whole stuff'){#count(*)as nb,
-        $sql="select group_concat(field_tarif_chambre_simple_value order by revision_id desc limit 3)as v,group_concat(revision_id order by revision_id desc limit 3)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $residence2chambre).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";# order by entity_id desc,revision_id desc
+        $sql="select substring_index(group_concat(field_tarif_chambre_simple_value order by revision_id desc),',',3)as v,substring_index(group_concat(revision_id order by revision_id desc),',',3)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $residence2chambre).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";# order by entity_id desc,revision_id desc
+        #$sql="select group_concat(field_tarif_chambre_simple_value order by revision_id desc limit 3)as v,group_concat(revision_id order by revision_id desc limit 3)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $residence2chambre).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";# order by entity_id desc,revision_id desc
         $x = Alptech\Wip\fun::sql($sql);
         foreach ($x as $t) {
             $rid=$chambre2residence[$t['cid']];

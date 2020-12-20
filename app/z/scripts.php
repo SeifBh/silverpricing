@@ -33,18 +33,17 @@ function res2ch($liste2){
 
 function chprix($chambres=[]){
     $chambre2residence=array_flip($chambres);
-    $sql="select group_concat(field_tarif_chambre_simple_value order by revision_id desc limit 3)as v,group_concat(revision_id order by revision_id desc limit 3)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $chambres).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";# order by revision_id desc
+    $sql="select substring_index(group_concat(field_tarif_chambre_simple_value order by revision_id desc),',',20)as v,substring_index(group_concat(revision_id order by revision_id desc),',',20) as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $chambres).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";# order by revision_id desc
+    #$sql="select group_concat(field_tarif_chambre_simple_value order by revision_id desc limit 3)as v,group_concat(revision_id order by revision_id desc limit 3)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $chambres).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";# order by revision_id desc
     $x = Alptech\Wip\fun::sql($sql);
     foreach ($x as $t) {
         $rid=$chambre2residence[$t['cid']];
-        $priceHistory[$rid]=array_slice(explode(',',$t['v']),0,2);
+        $priceHistory[$rid]=explode(',',$t['v']);#array_slice(,0,2);
     }
     return $priceHistory;
 }
 
-$r2c=res2ch($rid);
-$chp=chprix($r2c);
-$historiquePrix=$chp[$rid];
+$r2c=res2ch($rid);$chp=chprix($r2c);$historiquePrix=implode(',',$chp[$rid]);
 
 if('1:get Current Prices') {
     if ('2:chambresByResidences') {
@@ -67,7 +66,7 @@ if('1:get Current Prices') {
 */
     $ph=[];$inc0=$inc1=$cs0=$cs1=0;
     if('2:get prices history => does the whole stuff'){#count(*)as nb,
-        $sql="select group_concat(field_tarif_chambre_simple_value order by revision_id desc  limit 3)as v,group_concat(revision_id order by revision_id desc  limit 3)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $residence2chambre).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";#order by entity_id desc,revision_id desc
+        $sql="select substring_index(group_concat(field_tarif_chambre_simple_value order by revision_id desc),',',2)as v,substring_index(group_concat(revision_id order by revision_id desc),',',2)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $residence2chambre).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";#order by entity_id desc,revision_id desc
         $x = Alptech\Wip\fun::sql($sql);
         foreach ($x as $t) {
             $rid=$chambre2residence[$t['cid']];
