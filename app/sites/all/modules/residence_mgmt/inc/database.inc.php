@@ -938,9 +938,9 @@ $a=1;
       $history->uid = $historyData['creator'];
       $history->language = LANGUAGE_NONE;
         #$history->field_name = $historyData['name'];#[$history->language][0]['value']
-        $history->field_name[LANGUAGE_NONE][0]['value'] = $historyData['name'];#
+         if($historyData['name']) {$history->field_name[LANGUAGE_NONE][0]['value'] = $historyData['name'];}#
       node_object_prepare($history);
-    if(1 and 'excel'){
+    if($historyData['name'] and 1 and 'excel'){
         $fn=$historyData['body']['request']['adresse'].'-'.$historyData['body']['request']['perimetre'];
         $t=(array)$historyData['body']['response'][0];unset($t['nid'],$t['field_logo_fid'],$t['grp_term_name']);
         $headers=array_merge(array_keys($t),['Addresse','Telephone',/*'Tarifs',*/'Alzeihmer','Aide sociale','Lits','Groupe']);#
@@ -964,6 +964,7 @@ $a=1;
             $t['groupe']=(isset($groupe[$id])?$groupe[$id]:'');
             $lines[]=array_values($t);
         }#
+        $lines=array_filter($lines);
 
         try{
 #1ère ligne:nom complet de la recherche
