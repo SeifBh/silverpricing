@@ -1,6 +1,9 @@
 /*
 #a #b #c
  */
+.pointer,.label,.zoom{cursor:pointer;}
+.zoom:hover{opacity:0.5}
+#a .modal-dialog{max-width:99vw;width: fit-content;}
 .hidden{display:none;}
 .svgpointer{cursor:pointer}
 .heremap{height:350px}

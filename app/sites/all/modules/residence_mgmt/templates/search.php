@@ -143,10 +143,7 @@ function historyCheck(el){
                                 <td>
                                     <?php
                                         if( isset($residence->field_logo_fid) ) {
-                                            echo theme('image', array(
-                                              'path' => file_create_url(file_load($residence->field_logo_fid)->uri),
-                                              'width' => 16
-                                            ));
+                                            echo theme('image', array('path' => file_create_url(file_load($residence->field_logo_fid)->uri), 'width' => 16));
                                         }
                                     ?>
                                     <a href="<?php echo '/residence/' . $residence->nid; ?>"><?php echo ($k+1).' '.$residence->title ?></a>

@@ -69,14 +69,18 @@ $a='https://ehpad.home/ged/1/document/48165';?>
                     <?php $rows = 0;
                     foreach( $historyResult->response as $k=>$residence ): ?>
                     <tr>
-                        <td><?php echo $k+1 ?></td>
+                        <td class="nowrap"><?php
+                            if( isset($residence->field_logo_fid) ) {
+                                echo theme('image', array('path' => file_create_url(file_load($residence->field_logo_fid)->uri), 'width' => 16));
+                            }
+                            echo $k+1;?></td>
                         <td><?php echo $residence->title ?></td>
                         <td><?php echo $residence->field_location_postal_code; ?></td>
                         <td><?php echo $residence->field_location_locality; ?></td>
                         <td><?php echo $residence->name; ?></td>
                         <td><?php echo round($residence->distance, 2); ?> KM</td>
                         <td><?php echo $residence->field_statut_value; ?></td>
-                        <td class="nowrap"><?php echo $residence->field_tarif_chambre_simple_value; ?> €</td>
+                        <td class="nowrap"> &nbsp; <?php echo $residence->field_tarif_chambre_simple_value; ?> €</td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

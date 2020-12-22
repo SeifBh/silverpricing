@@ -1,3 +1,77 @@
+<?php /*
+ https://ehpad.home/residence/40233
+ js img modal popup
+
+$("#pop").on("click", function() {
+   $(this).modal();
+});
+ */
+$images=[];
+$imp='/sites/default/files/ehpad/';
+$tnp='/sites/default/styles/thumbnail/public/ehpad/';
+
+if(isset($residence->field_images['und'][0])){foreach($residence->field_images["und"] as $t){
+    #$images[]=file_create_url($t['uri']);
+    $images[]=$t['filename'];
+    /*+thumbnail
+    https://ehpad.home/sites/default/files/ehpad/590804613-be24ab601d9f9dfed47df2ef35d2a824.jpg
+    */
+}}
+
+if($images){?>
+    <link rel="stylesheet" type="text/css" href="/z/glider.min.css">
+    <style>.glider-slide{text-align: center;}.glider-next, .glider-prev{top: 14%;} .gl1{width:50%;margin:auto;}</style>
+    <script src="/z/glider.min.js"></script>
+
+    <div class="modal fade" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Fermer</span>Fermer</button>
+                    <!--<h4 class="modal-title" id="myModalLabel"></h4>-->
+                </div>
+                <div class="modal-body">
+                    <img src="" id="imagepreview">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div class="gl1">
+    <div class="glider-contain">
+        <div class="glider">
+            <?foreach($images as $f)echo"<div><a class='zoom' data-img='$imp$f'><img src='$tnp$f'></a></div>";?>
+        </div>
+        <button aria-label="Previous" class="glider-prev">«</button>
+        <button aria-label="Next" class="glider-next">»</button>
+        <div role="tablist" class="dots"></div>
+    </div>
+</div>
+
+
+<script>
+//window.addEventListener('load', function(){
+    new Glider(document.querySelector('.glider'), {
+        slidesToShow: 5,
+        slidesToScroll: 5,
+        draggable: false,/*click*/
+        dots: '.dots',
+        arrows: {prev: '.glider-prev', next: '.glider-next'}
+    });
+    $('.zoom').on('click', function() {
+        x=this.getAttribute('data-img');
+        cl(x);
+        $('#imagepreview').attr('src',x);
+        $('#imagemodal').modal('show');
+    });
+
+//});
+</script>
+<?php }?>
+
 <div class="row">
     <div class="col-md-4">
         <h3 class="mg-b-0 tx-spacing--1 residence-name">
@@ -962,3 +1036,4 @@
   </div>
 
 </div>
+<?php return;?>
