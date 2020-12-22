@@ -1,6 +1,10 @@
 /*
 #a #b #c
  */
+#imagepreview{max-width:90vw;}
+
+.p30{padding:0 30px;}
+.nowrap{wrap:none}
 .pointer,.label,.zoom{cursor:pointer;}
 .zoom:hover{opacity:0.5}
 #a .modal-dialog{max-width:99vw;width: fit-content;}
@@ -15,3 +19,13 @@
 .fullScreen{
     position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-2;opacity:0;
 }
+@media (max-width: 1300px){
+    .p30{padding:0}
+    .t1300 nav{display:inline-block;}
+    .t1300 tr{display:block}
+    .t1300 td{display:block;width:100%;margin:auto;text-align:center;}
+    /*.glider-next{right:-23px;}*/
+}
+
+.glider-contain{max-width: 95vw;}
+.glider-slide{text-align: center;}.glider-next, .glider-prev{top: 14%;} .gl1{width:50%;margin:auto;} .glider-prev{left: 0px} .glider-next{right:0px;}

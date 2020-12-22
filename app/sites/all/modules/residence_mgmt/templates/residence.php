@@ -20,7 +20,6 @@ if(isset($residence->field_images['und'][0])){foreach($residence->field_images["
 
 if($images){?>
     <link rel="stylesheet" type="text/css" href="/z/glider.min.css">
-    <style>.glider-slide{text-align: center;}.glider-next, .glider-prev{top: 14%;} .gl1{width:50%;margin:auto;}</style>
     <script src="/z/glider.min.js"></script>
 
     <div class="modal fade" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -39,87 +38,87 @@ if($images){?>
             </div>
         </div>
     </div>
-
-<div class="gl1">
-    <div class="glider-contain">
-        <div class="glider">
-            <?foreach($images as $f)echo"<div><a class='zoom' data-img='$imp$f'><img src='$tnp$f'></a></div>";?>
-        </div>
-        <button aria-label="Previous" class="glider-prev">«</button>
-        <button aria-label="Next" class="glider-next">»</button>
-        <div role="tablist" class="dots"></div>
-    </div>
-</div>
-
-
-<script>
-//window.addEventListener('load', function(){
-    new Glider(document.querySelector('.glider'), {
-        slidesToShow: 5,
-        slidesToScroll: 5,
-        draggable: false,/*click*/
-        dots: '.dots',
-        arrows: {prev: '.glider-prev', next: '.glider-next'}
-    });
-    $('.zoom').on('click', function() {
-        x=this.getAttribute('data-img');
-        cl(x);
-        $('#imagepreview').attr('src',x);
-        $('#imagemodal').modal('show');
-    });
-
-//});
-</script>
 <?php }?>
 
 <div class="row">
-    <div class="col-md-4">
-        <h3 class="mg-b-0 tx-spacing--1 residence-name">
-            <?php
-                if( isset($groupe->field_logo['und'][0]['fid']) ) {
-                    echo theme('image', array(
-                      'path' => file_create_url(file_load($groupe->field_logo['und'][0]['fid'])->uri),
-                      'width' => 32
-                    ));
-                }
-            ?>
-            <?php echo $residence->title; ?>
-        </h3>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb breadcrumb-style1 mg-b-10">
-                <li class="breadcrumb-item"><a href="/departement/<?php echo $departement->tid; ?>"><?php echo $departement->name; ?></a></li>
-                <li class="breadcrumb-item"><a href="#"><?php echo $residence->field_statut['und'][0]['value'] ?></a></li>
-                <?php if( $groupe != null ): ?>
-                <li class="breadcrumb-item"><a href="/groupe/<?php echo $groupe->tid; ?>"><?php echo $groupe->name; ?></a></li>
-                <?php endif; ?>
-              </ol>
-        </nav>
-    </div>
-    <div class="col-md-4 text-center">
-        <div class="mg-t-5">
-            <span class="text-left">
-              <?php echo ( isset($residence->field_location['und'][0]["thoroughfare"]) ) ? $residence->field_location['und'][0]["thoroughfare"]:""; ?>
-              <?php echo ", " . $residence->field_location['und'][0]['postal_code']; ?>
-              <?php echo ", " . $residence->field_location['und'][0]['locality']; ?>
-            </span>
+<table class="t1300"><tr><td nowrap="nowrap">
+    <h3 class="mg-b-0 tx-spacing--1 residence-name">
+        <?php
+        if( isset($groupe->field_logo['und'][0]['fid']) ) {
+            echo theme('image', array(
+                'path' => file_create_url(file_load($groupe->field_logo['und'][0]['fid'])->uri),
+                'width' => 32
+            ));
+        }
+        ?>
+        <?php echo $residence->title; ?>
+    </h3>
 
-        </div>
-        <div class="mg-b-5">
-            <span class="text-left"><?php echo $residence->field_telephone['und'][0]['value']; ?></span>
-        </div>
-    </div>
-    <div class="col-md-4 text-center">
-        <div class="mg-t-10 mg-b-10">
-            <?php if( strlen($residence->field_site['und'][0]['value']) >= 5 ): ?>
-            <a href="<?php echo $residence->field_site['und'][0]['value']; ?>" target="_blank" class="btn btn-sm btn-white btn-uppercase pd-x-15"><i data-feather="globe"></i>
-              Site Internet</a>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-style1 mg-b-10">
+            <li class="breadcrumb-item"><a href="/departement/<?php echo $departement->tid; ?>"><?php echo $departement->name; ?></a></li>
+            <li class="breadcrumb-item"><a href="#"><?php echo $residence->field_statut['und'][0]['value'] ?></a></li>
+            <?php if( $groupe != null ): ?>
+                <li class="breadcrumb-item"><a href="/groupe/<?php echo $groupe->tid; ?>"><?php echo $groupe->name; ?></a></li>
             <?php endif; ?>
-            <a href="mailto:<?php echo $residence->field_email['und'][0]['value']; ?>" class="btn btn-sm btn-white btn-uppercase pd-x-15 mg-t-5 mg-sm-t-0 mg-sm-l-5"><i data-feather="send"></i>
-              Email</a>
-            <!-- <a href="<?php //echo $residence->field_telephone['und'][0]['value']; ?>" class="btn btn-sm btn-white btn-uppercase pd-x-15 mg-t-5 mg-sm-t-0 mg-sm-l-5"><i data-feather="share-2"></i>
-              Téléphone</a> -->
+        </ol>
+    </nav>
+</td>
+<td class="p 2 middle">
+<?php if($images){?>
+    <div class="gl1_ p30">
+        <div class="glider-contain">
+            <div class="glider">
+                <?foreach($images as $f)echo"<div><a class='zoom' data-img='$imp$f'><img src='$tnp$f'></a></div>";?>
+            </div>
+            <button aria-label="Previous" class="glider-prev">«</button>
+            <button aria-label="Next" class="glider-next">»</button>
+            <div role="tablist" class="dots"></div>
         </div>
     </div>
+    <script>
+        //window.addEventListener('load', function(){
+        new Glider(document.querySelector('.glider'), {
+            slidesToShow: 5,
+            slidesToScroll: 5,
+            draggable: false,/*click*/
+            dots: '.dots',
+            arrows: {prev: '.glider-prev', next: '.glider-next'}
+        });
+//jquery loaded at footer, not async relatively strange ..
+        window.addEventListener('load', function(){
+            $(document).ready(function(){
+                $('.zoom').on('click', function() {
+                    x=this.getAttribute('data-img');
+                    cl(x);
+                    $('#imagepreview').attr('src',x);
+                    $('#imagemodal').modal('show');
+                });
+            });
+        });
+    </script>
+<?php }?>
+</td><td class="3" nowrap="nowrap">
+    <div class="mg-t-10 mg-b-10">
+        <?php if( strlen($residence->field_site['und'][0]['value']) >= 5 ): ?>
+            <a href="<?php echo $residence->field_site['und'][0]['value']; ?>" target="_blank" class="btn btn-sm btn-white btn-uppercase pd-x-15"><i data-feather="globe"></i>
+                Site Internet</a>
+        <?php endif; ?>
+        <a href="mailto:<?php echo $residence->field_email['und'][0]['value']; ?>" class="btn btn-sm btn-white btn-uppercase pd-x-15 mg-t-5 mg-sm-t-0 mg-sm-l-5"><i data-feather="send"></i>
+            Email</a>
+        <!-- <a href="<?php //echo $residence->field_telephone['und'][0]['value']; ?>" class="btn btn-sm btn-white btn-uppercase pd-x-15 mg-t-5 mg-sm-t-0 mg-sm-l-5"><i data-feather="share-2"></i>
+      Téléphone</a> -->
+    </div>
+
+<span class="text-left"><?php echo $residence->field_telephone['und'][0]['value']; ?></span>
+<span class="text-left">
+  <?php echo ( isset($residence->field_location['und'][0]["thoroughfare"]) ) ? $residence->field_location['und'][0]["thoroughfare"]:""; ?>
+  <?php echo ",<br> " . $residence->field_location['und'][0]['postal_code']; ?>
+  <?php echo ", " . $residence->field_location['und'][0]['locality']; ?>
+</span>
+
+</td>
+</tr></table>
 </div>
 <div class="row pt-3">
     <div class="col-md-6">

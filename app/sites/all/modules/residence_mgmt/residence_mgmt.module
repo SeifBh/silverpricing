@@ -1439,6 +1439,7 @@ function residence_mgmt_development_tools() {
     include_once __DIR__ . "/templates/layouts/default.php";
 }
 
+#https://ehpad.home/ajax/get-evolution-menusuelle-des-tarifs/40233
 function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null ) {
     if( $residenceId == null ) {
         return;
