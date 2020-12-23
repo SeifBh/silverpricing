@@ -10,7 +10,6 @@ $_SERVER['DOCUMENT_ROOT']=__DIR__.'/../';chdir(__DIR__);
 $module='../sites/all/modules/residence_mgmt';
 require_once "../vendor/autoload.php";#alptech
 
-require_once "../vendor/autoload.php";#alptech
 if(isset($argv) and $argv[1]){
     $_GET=Alptech\Wip\io::isJson($argv[1]);
 }

@@ -1,21 +1,155 @@
 <?php
 /*
-php72 ~/home/ehpad/app/z/scripts.php '{"rid":42871}'
-if(!isset($argv))die;
-
+ ?rids=47236,32855
+php -r 'echo json_encode([47236,32855]);'
+x=`php -r 'echo md5(json_encode([47236,32855]));'`;echo $x;#Par liste de résidence connaissant des variations
+php72 ~/home/ehpad/app/z/resFullAlert.php '{"rids":"47236,32855","m83":"'$x'"}'
 obtenir les variations les plus récentes de prix
-
 */
-$_SERVER['DOCUMENT_ROOT']=__DIR__.'/../';chdir(__DIR__);
-$module='../sites/all/modules/residence_mgmt';
-require_once "../vendor/autoload.php";#alptech
-
-require_once "../vendor/autoload.php";#alptech
-if(isset($argv) and $argv[1]){
-    $_GET=Alptech\Wip\io::isJson($argv[1]);
+if('cli emulation'){
+    $_SERVER['DOCUMENT_ROOT']=__DIR__.'/../';chdir(__DIR__);
+    require_once "../vendor/autoload.php";#alptech
+    if(isset($argv) and $argv[1]){
+        $_GET=Alptech\Wip\io::isJson($argv[1]);
+    }
 }
-$rid=$_GET['rid'];if(!$rid)die('?rid=');$_ENV['dieOnFirstError']=1;
+
+if('verifs'){
+    if(!isset($_GET['rids']))die('#'.__line__);if(!isset($_GET['m83']))die('#'.__line__);
+    $rids=explode(',',$_GET['rids']);if(!$rids)die('?rids=');$_ENV['dieOnFirstError']=1;
+    foreach($rids as &$rid){$rid=intval($rid);}unset($rid);$j=json_encode($rids);$md5=md5($j);
+    if($_GET['m83'] != $md5)die('#'.__line__);#die('#'.implode(',',$rids).'<>'.$j.'<>'.$_GET['m83'].'<>'.$md5.'#'.__line__);
+}
+
+$dateLimite=strtotime('1 month ago');
+
+if('1:variations valides'){
+    $residencesTriggers=[];
+    $sql="select group_concat(rid)as rids from z_variations where rid in(".implode(',',$rids).") and btime>".$dateLimite."  and cs_1 is not null and cs_0 is not null order by date desc";
+    $x=Alptech\Wip\fun::sql($sql);
+    if(!$x)die('#'.__line__);
+    $residencesTriggers=explode(',',$x[0]['rids']);
+    foreach($residencesTriggers as &$t)$t=intval($t);unset($t);
+    $a=2;
+}
+
+
+if('2:proxima10'){
+    $maxNeighbours=10;$proxima20=$origin2notifies=$notifiee2alerteOrigine=[];
+    $regexp=','.implode(',|,',$residencesTriggers).',';
+    #$sql="select rid,list from z_geo where closest is not null and `list` regexp '".$regexp."'";
+    $sql="select rid,clo10 from z_geo where clo10 is not null and clo10 regexp '".$regexp."'";#dont need more values, being Obviously Within in that list
+    $dansLeVoisinage=Alptech\Wip\fun::sql($sql);#il nous faut tout
+    foreach($dansLeVoisinage as $t){
+        $liste=trim($t['clo10'],',');$xliste=explode(',',$liste);
+        $closests=array_splice($xliste,0,$maxNeighbours);#la résidence qui déclenche l'alerte fait-elle partie des 10 les plus proches ???
+        $hasIntersections=array_intersect($closests,$residencesTriggers);
+        if($hasIntersections){
+            $proxima10[$t['rid']]=[];
+            foreach($hasIntersections as $baseRid){
+                $baseRid=intval($baseRid);
+                if(!isset($notifiee2alerteOrigine[$t['rid']])){$notifiee2alerteOrigine[$t['rid']]=[];}
+                $notifiee2alerteOrigine[$t['rid']][]=$baseRid;
+                $origin2notifies[$baseRid][]=$t['rid'];
+            }
+            $proxima10[$t['rid']]=$xliste;#afin de limiter à 10
+            $proxima20=array_merge($proxima20,$xliste);
+        }else{
+            $err='pasnormal';
+        }
+    }
+    $proxima20=array_unique($proxima20);
+}
+/*
+if(0 and $proxima20 and "3rd :: les 10 résidences les plus proches des notifiées ( pas mal d'intersections également ) "){
+    $regexp=','.implode(',|,',array_keys($proxima10)).',';
+    $sql="select rid,clo10 from z_geo where clo10 is not null and clo10 regexp '".$regexp."'";#dont need more values,
+}
+*/
+
+$tutti=array_unique(array_merge($proxima20,array_keys($proxima10),$residencesTriggers));
+#$proxima10G=$residencesTriggers#=$residencesTriggers de base
+
+if('4:choper tous tarifs then and now, nb: certain peuvent ne jamais avoir varié, done non présents ici'){
+    $tarifs=$cs0=$cs1=[];
+    $x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1 from z_variations where rid in(".implode(',',$tutti).") and btime>".$dateLimite."  and cs_1 is not null and cs_0 is not null order by date desc");if(!$x)die('#'.__line__);$found=[];
+    foreach($x as $t){
+        if(!in_array($t['rid'],$found))$found[]=$t['rid'];
+        $cs0[$t['rid']]=$t['cs_0'];
+        $cs1[$t['rid']]=$t['cs_1'];
+    }
+    $notFound=array_diff($tutti,$found);
+    if("5: tous les prix n'ayant subi aucune violence, ni variation"){
+        $x = Alptech\Wip\fun::sql("select entity_id,field_residence_target_id from field_data_field_residence where bundle='chambre' and field_residence_target_id in(" . implode(',',$tutti) . ")");
+        $residence2chambre=$chambres=$_missingChambre=[];foreach($x as $t){$residence2chambre[$t['field_residence_target_id']]=$t['entity_id'];}
+        $chambre2residence=array_flip($residence2chambre);
+
+        $sql="select substring_index(group_concat(field_tarif_chambre_simple_value order by revision_id desc),',',3)as v,substring_index(group_concat(revision_id order by revision_id desc),',',3)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $residence2chambre).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";
+        $x = Alptech\Wip\fun::sql($sql);$ph=[];#de toutes façons
+        foreach ($x as $t) {
+            $rid=$chambre2residence[$t['cid']];
+            $priceHistory=array_slice(explode(',',$t['v']),0,2);
+            foreach($priceHistory as $k=>$v){
+                if(isset($cs0[$t['rid']])){
+                    $err='déjà présent';
+                }else{
+                    if($k==0)$cs0[$rid]=$v;#by revision desc, so it should be the latest one
+                    elseif($k==1)$cs1[$rid]=$v;#by revision desc, so it should be the latest one
+                    $ph[$rid][$k]=$v;
+                }
+            }
+        }
+    }
+    $a=1;
+}
+
+if('9: tous les titres'){
+    $rid2title=$dep=[];
+    $sql="select b.name as v,entity_id as k from field_data_field_departement a inner join taxonomy_term_data b on b.tid=a.field_departement_tid where entity_id in(".implode(',',$tutti).")";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t){$dep[$t['k']]=$t['v'];}
+    $sql="select nid,title from node where nid in(".implode(',',$tutti).") and title is not null";$x=Alptech\Wip\fun::sql($sql); foreach($x as $t){$rid2title[$t['nid']]=$t['title'];}
+}
+
+if('10 >> pour chacune des notifiees'){
+    foreach($proxima10 as $rid=>$_rids){
+        $inc0=$inc1=$_cs0=$_cs1=0;
+        foreach($_rids as $_rid) {
+            foreach ($ph[$_rid] as $k => $v) {
+                if ($k == 0) {
+                    $_cs1 += $v;
+                    $inc1++;
+                } elseif ($k == 1) {
+                    $_cs0 += $v;
+                    $inc0++;
+                }
+            }
+        }
+        if($inc0)$_cs0/=$inc0;
+        if($inc1)$_cs1/=$inc1;
+        $evolutions[$rid]=[$_cs0,$_cs1];
+    }
+}
+$a=1;
+die;
+
+
+
+foreach($rids as $rid){
+
+    foreach($x as $t){if(isset($cs0[$t['rid']]))Continue;$cs0[$t['rid']]=$t['cs_0'];$cs1[$t['rid']]=$t['cs_1'];}#bcp de tarifs ..
+}#end foreach rids
+
+die;
+$module='../sites/all/modules/residence_mgmt';
+
 $mysql58groupMode=Alptech\Wip\fun::sql("SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
+
+if(1){
+
+}
+
+
+
+
 $x=Alptech\Wip\fun::sql('select list from z_geo where rid='.$rid);
 if(!$x)die('#'.__line__);
 $tenClosestRes=[];$liste=trim($x[0]['list'],',');$x=explode(',',$liste);$tenClosest=array_slice($x,0,10);

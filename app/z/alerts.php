@@ -68,24 +68,25 @@ $sql="select rid,list from z_geo where closest is not null and `list` regexp '".
 $notifiees=Alptech\Wip\fun::sql($sql);#il nous faut tout
 if(!$notifiees)die('#'.__line__);
 
+#attention, ce filtrage peut ne pas faire partir des 10 les plus proches ..
 $proxima10G=$proxima10=$notifiee2alerteOrigine=[];
 foreach($notifiees as $notifiee){#paddys 4 avenue du jura et de la poterie
-    $proxima10[$notifiee['rid']]=[];
     $liste=trim($notifiee['list'],',');$xliste=explode(',',$liste);
-    foreach($xliste as $_rid){
-        if(in_array($_rid,$residencesTriggers) and isset($cs0[$_rid])){
-            if(!isset($notifiee2alerteOrigine[$notifiee['rid']])){$notifiee2alerteOrigine[$notifiee['rid']]=[];}
-            $notifiee2alerteOrigine[$notifiee['rid']][]=$_rid;
-            $a=1;
+    $closests=array_splice($xliste,0,$maxNeighbours);#parmi les 10 les plus proches
+    $hasIntersections=array_intersect($closests,$residencesTriggers);
+    if($hasIntersections){
+        $proxima10[$notifiee['rid']]=[];
+        #$closests=Alptech\Wip\io::isJson($notifiee['closest']);
+        #foreach($closests as $distance=>$_rids){foreach($_rids as $rid){
+        foreach($hasIntersections as $rid){
+            if(in_array($rid,$residencesTriggers) and isset($cs0[$rid])){
+                if(!isset($notifiee2alerteOrigine[$notifiee['rid']])){$notifiee2alerteOrigine[$notifiee['rid']]=[];}
+                $notifiee2alerteOrigine[$notifiee['rid']][]=$rid;
+                $proxima10G[]=$proxima10[$notifiee['rid']][]=$rid;#afin de limiter à 10
+                $a=1;
+            }
+            #if(count($proxima10[$notifiee['rid']])>=$maxNeighbours)break;
         }
-    }
-
-    $closests=array_splice($xliste,0,$maxNeighbours);
-    #$closests=Alptech\Wip\io::isJson($notifiee['closest']);
-    #foreach($closests as $distance=>$_rids){foreach($_rids as $rid){
-    foreach($closests as $rid){
-        $proxima10G[]=$proxima10[$notifiee['rid']][]=$rid;#afin de limiter à 10
-        #if(count($proxima10[$notifiee['rid']])>=$maxNeighbours)break;
     }
     $b=1;
 }
@@ -231,9 +232,8 @@ foreach($notifications as $mail=>$notifs){
         $mail=str_replace('@residence-management.dev','-ehpad@x24.fr',$mail);
     }
     if($notifs){
-        $mailBody="<body>Bonjour, voici une alerte sur l'évolution des tarifs des Ehpad voisines de celle que vous gérez<hr><center><table border=1 style='border-collapse:collapse'><thead style='background:#DDD;'><tr><th>Résidence</th><th>Département</th><th>Tarif actuel</th><th>Ancien tarif moyen</th><th>Nouveau tarif moyen</th><th>Évolution</th></tr></thead><tbody>\n";
+        $mailBody="<body>Bonjour, voici une <a href='/z/resFullAlert.php?m83=".md5sum(json_encode($notifs))."&rids=".implode(',',$notifs)."'>alerte</a> sur l'évolution des tarifs des Ehpad voisines de celle que vous gérez<hr><center><table border=1 style='border-collapse:collapse'><thead style='background:#DDD;'><tr><th>Résidence</th><th>Département</th><th>Tarif actuel</th><th>Ancien tarif moyen</th><th>Nouveau tarif moyen</th><th>Évolution</th></tr></thead><tbody>\n";
     #mail html broken table
-
         foreach($notifs as $k=>$rid){
             $detail=$s='';
             #$s2=" style='background:#EEE;'";if($k % 2==1)$s2=" style='background:#DDD;'";
@@ -255,7 +255,7 @@ foreach($notifications as $mail=>$notifs){
             if($evol>0)$evol='+'.$evol;
             #$texts[]=Alptech\Wip\fun::stripHtml($rid2title[$rid],1);
 
-            $mailBody.="\n<tr$s><td id=$rid title=$rid>•".Alptech\Wip\fun::stripHtml($rid2title[$rid])."</td><td>".trim(substr($dep[$rid],0,3))."</td><td>".$tarifCs[$rid]."&euro;</td><td>$bef &euro;</td><td>$aft &euro;</td><td>$evol &euro;</td></tr>";
+            $mailBody.="\n<tr$s><td id=$rid title=$rid>•<a href='/z/resFullAlert.php?rids=".$rid."'>".Alptech\Wip\fun::stripHtml($rid2title[$rid])."</a></td><td>".trim(substr($dep[$rid],0,3))."</td><td>".$tarifCs[$rid]."&euro;</td><td>$bef &euro;</td><td>$aft &euro;</td><td>$evol &euro;</td></tr>";
             if($detail)$mailBody.=$detail;
         }
         $mailBody.="\n</tbody></table></center><style>body{font:16px Assistant,'Trebuchet MS',Sans-Serif} th:nth-child(n+2),td:nth-child(n+2){text-align:right} td:nth-child(1){ padding:0 10px; } </style>".implode(',',$allRids)."</body>";#thead,tr:nth-child(even){background:#DDD;}

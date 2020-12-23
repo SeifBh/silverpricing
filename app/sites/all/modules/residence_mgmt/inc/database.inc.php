@@ -1341,7 +1341,7 @@ if (!$statuses) {
 
 $clo1 = array_slice($clo, 0, $limit);#anyways, ordinary love, mais trimme
 if(!$clo1){
-    fun::dbm($residenceNid,'noClosestPoints');
+    Alptech\Wip\fun::dbm($residenceNid,'noClosestPoints');
     $err=1;
 }
 asort($r2dist);
