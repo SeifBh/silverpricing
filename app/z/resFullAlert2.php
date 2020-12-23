@@ -1,8 +1,8 @@
 <?php
 /*
-https://ehpad.home/z/resFullAlert2.php?m83=d6692fcc251ea8dde49296f06dfd1a90&rids=47236,32855
-x1=`php -r 'echo md5(json_encode([47236,32855]));'`;echo $x;#Par liste de notifiées
-php72 ~/home/ehpad/app/z/resFullAlert2.php '{"rids":"47236,32855","m83":"'$x1'"}'
+https://ehpad.home/z/resFullAlert2.php?m83=00a3f83475e28a9d536d17dc00f93ff6&rids=31889,32855
+x1=`php -r 'echo md5(json_encode([31889,32855]));'`;echo $x1;#Par liste de notifiées
+php72 ~/home/ehpad/app/z/resFullAlert2.php '{"rids":"31889,32855","m83":"'$x1'"}'
 obtenir les variations les plus récentes de prix
 */
 $dateLimite=strtotime('1 month ago');

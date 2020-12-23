@@ -10,6 +10,7 @@ php72 ~/home/ehpad/app/z/alerts.php
 
 ssh ubuntu@ehpad.silverpricing.fr
 cd /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/;
+
 dat=`date +%y%m%d%H%M`;rm alerts.php.last;php7.1 alerts.php | tee alerts.$dat.log;
 php7.1 /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/alerts.php
 
@@ -64,16 +65,16 @@ $residencesTriggers=$rids=array_unique($rids);
 #$x=Alptech\Wip\fun::sql("select * from z_variations where date=1607679698 cs_1 is not null and cs_0 is not null order by id desc limit 1");# choper les chambres associées à ces résidence, le tarif simple uniquement
 $regexp=','.implode(',|,',$rids).',';
 #$notifiees=Alptech\Wip\fun::sql("select group_concat(rid) from z_geo where `list` regexp '".$regexp."' desc limit 1");
-$sql="select rid,list from z_geo where closest is not null and `list` regexp '".$regexp."'";
+$sql="select rid,cl10 from z_geo where cl10 is not null and `cl10` regexp '".$regexp."'";
 $notifiees=Alptech\Wip\fun::sql($sql);#il nous faut tout
 if(!$notifiees)die('#'.__line__);
 
 #attention, ce filtrage peut ne pas faire partir des 10 les plus proches ..
 $proxima10G=$proxima10=$notifiee2alerteOrigine=[];
 foreach($notifiees as $notifiee){#paddys 4 avenue du jura et de la poterie
-    $liste=trim($notifiee['list'],',');$xliste=explode(',',$liste);
+    $liste=trim($notifiee['cl10'],',');$xliste=explode(',',$liste);
     $closests=array_splice($xliste,0,$maxNeighbours);#parmi les 10 les plus proches
-    $hasIntersections=array_intersect($closests,$residencesTriggers);
+    $hasIntersections=array_intersect($closests,$residencesTriggers);#bien entendu, toujours
     if($hasIntersections){
         $proxima10[$notifiee['rid']]=[];
         #$closests=Alptech\Wip\io::isJson($notifiee['closest']);
@@ -232,7 +233,7 @@ foreach($notifications as $mail=>$notifs){
         $mail=str_replace('@residence-management.dev','-ehpad@x24.fr',$mail);
     }
     if($notifs){
-        $mailBody="<body>Bonjour, voici une <a href='/z/resFullAlert.php?m83=".md5sum(json_encode($notifs))."&rids=".implode(',',$notifs)."'>alerte</a> sur l'évolution des tarifs des Ehpad voisines de celle que vous gérez<hr><center><table border=1 style='border-collapse:collapse'><thead style='background:#DDD;'><tr><th>Résidence</th><th>Département</th><th>Tarif actuel</th><th>Ancien tarif moyen</th><th>Nouveau tarif moyen</th><th>Évolution</th></tr></thead><tbody>\n";
+        $mailBody="<body>Bonjour, voici une <a href='/z/resFullAlert2.php?m83=".md5sum(json_encode($notifs))."&rids=".implode(',',$notifs)."'>alerte</a> sur l'évolution des tarifs des Ehpad voisines de celle que vous gérez<hr><center><table border=1 style='border-collapse:collapse'><thead style='background:#DDD;'><tr><th>Résidence</th><th>Département</th><th>Tarif actuel</th><th>Ancien tarif moyen</th><th>Nouveau tarif moyen</th><th>Évolution</th></tr></thead><tbody>\n";
     #mail html broken table
         foreach($notifs as $k=>$rid){
             $detail=$s='';
@@ -255,11 +256,15 @@ foreach($notifications as $mail=>$notifs){
             if($evol>0)$evol='+'.$evol;
             #$texts[]=Alptech\Wip\fun::stripHtml($rid2title[$rid],1);
 
-            $mailBody.="\n<tr$s><td id=$rid title=$rid>•<a href='/z/resFullAlert.php?rids=".$rid."'>".Alptech\Wip\fun::stripHtml($rid2title[$rid])."</a></td><td>".trim(substr($dep[$rid],0,3))."</td><td>".$tarifCs[$rid]."&euro;</td><td>$bef &euro;</td><td>$aft &euro;</td><td>$evol &euro;</td></tr>";
+            $mailBody.="\n<tr$s><td id=$rid title=$rid>•<a href='/z/resFullAlert2.php?rids=".$rid."'>".Alptech\Wip\fun::stripHtml($rid2title[$rid])."</a></td><td>".trim(substr($dep[$rid],0,3))."</td><td>".$tarifCs[$rid]."&euro;</td><td>$bef &euro;</td><td>$aft &euro;</td><td>$evol &euro;</td></tr>";
             if($detail)$mailBody.=$detail;
         }
         $mailBody.="\n</tbody></table></center><style>body{font:16px Assistant,'Trebuchet MS',Sans-Serif} th:nth-child(n+2),td:nth-child(n+2){text-align:right} td:nth-child(1){ padding:0 10px; } </style>".implode(',',$allRids)."</body>";#thead,tr:nth-child(even){background:#DDD;}
-        if(0 and 'benOnly'){
+        if(1 and 'benOnly'){
+/*
+dat=`date +%y%m%d%H%M`;rm alerts.php.last;php7.1 alerts.php | tee alerts.$dat.log;
+php7.1 /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/alerts.php
+ */
             Alptech\Wip\fun::sendMail(str_replace('@','_',trim($mail)).'@x24.fr', 'Silverpricing : évolution des tarifs des ehpads voisines', $mailBody);
             continue;
         }
