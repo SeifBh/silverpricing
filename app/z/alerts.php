@@ -40,16 +40,25 @@ if($prod){
 $start=time();
 /* todo lock by date */
 $now=1607679698;$rids=$cs0=$cs1=[];
-$x=Alptech\Wip\fun::sql("select max(date)as d from z_variations");if(!$x)die('#'.__line__);$now=$x[0]['d'];
+$sql="select v from where k='lastAlert";$x=Alptech\Wip\fun::sql($sql);#
+$lastAlert=$x[0]['v'];
+
+$x=Alptech\Wip\fun::sql("select max(btime)as d from z_variations");if(!$x)die('#'.__line__);$now=$x[0]['d'];
+#pas de modificationis relevantes entre temps
 $f=__file__.'.last';if($prod and !isset($_SERVER['WINDIR']) and is_file($f) and filemtime($f)>=$now)die("\n".__line__.' :: '.filemtime($f).'>='.$now);    touch($f,$now);/* */
 
-#cs_0 then, cs_1 now
+
+
+
+
+#Tous les dernières évolutions de tarifs possibles :: cs_0 then, cs_1 now
 $x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1 from z_variations where cs_1 is not null and cs_0 is not null order by date desc");# ->choper les dernières variations listées dans le temps mais toutes en fait donc limitée à 1 qquepart .. FAIRE GROUP_CONCAT(cs_0 order by date desc limit 1)
 foreach($x as $t){if(isset($cs0[$t['rid']]))Continue;$cs0[$t['rid']]=$t['cs_0'];$cs1[$t['rid']]=$t['cs_1'];}#bcp de tarifs ..
 
-#seulement les ehpads concernées par dernier update
+#ou simplement group_concat des tarifs order by variation_id desc -- seulement les ehpads concernées par dernier update
 #todo:#£:
-$sql="select rid,cs_0,cs_1 from z_variations where date=".$now." and cs_1 is not null and cs_0 is not null order by rid desc";$x=Alptech\Wip\fun::sql($sql);   if(!$x)die('#'.__line__);foreach($x as $t){$rids[]=$t['rid'];}
+#date>$now, incluant les modification manuelles
+$sql="select rid,cs_0,cs_1 from z_variations where btime>".$lastAlert." and cs_1 is not null and cs_0 is not null order by rid desc";$x=Alptech\Wip\fun::sql($sql);   if(!$x)die('#'.__line__);foreach($x as $t){$rids[]=$t['rid'];}
 $residencesTriggers=$rids=array_unique($rids);
 #$x=Alptech\Wip\fun::sql("select * from z_variations where date=1607679698 and cs_1 is not null and cs_0 is not null order by id desc limit 1");# -> rid
 #$x=Alptech\Wip\fun::sql("select * from z_variations where date=1607679698 cs_1 is not null and cs_0 is not null order by id desc limit 1");# choper les chambres associées à ces résidence, le tarif simple uniquement
@@ -264,6 +273,9 @@ foreach($notifications as $mail=>$notifs){
     $a=1;
 
 }
+
+$sql="update z_rkv set v='".time()."' where k='lastAlert";$ok=Alptech\Wip\fun::sql($sql);#
+
 #$texts=array_unique($texts);print_r($texts);
 
 

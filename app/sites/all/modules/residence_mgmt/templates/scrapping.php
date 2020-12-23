@@ -126,7 +126,7 @@ function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForc
             unlink($lf);});#
     }
     echo'<pre>';
-    $starts=time();
+    $btime=$starts=time();
 /* Attention : ce ne sont pas toutes des Ehpad .. */
     $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=$fin2rid=$tarifsModifies=$c2r=[];$geomodif=$newResidences=0;
     $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';#finess:argv2, noFinesset/010001246
@@ -382,8 +382,10 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
     echo $msg;###<<<  $_ENV['loggedSql']
     unset($msg,$__inserts,$__updates,$notModified,$_c,$tarifs);
     $_mem[__line__]=memory_get_usage(1);
-    $btime=time();
+
     if($tarifsModifies){
+        $sql="update z_rkv set v='".$btime."' where k='lastScrapping";$ok=Alptech\Wip\fun::sql($sql);#
+
         $_inserts=[];
         foreach($tarifsModifies as $type=>$t){
             if($type=='c'){
