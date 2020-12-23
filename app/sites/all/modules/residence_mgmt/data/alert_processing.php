@@ -1,5 +1,5 @@
 <?php
-
+die('#huh?');
 require_once __DIR__ . "/../vendor/autoload.php";
 
 include __DIR__ . "/data_config.php";

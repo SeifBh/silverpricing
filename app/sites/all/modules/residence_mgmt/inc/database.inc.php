@@ -339,7 +339,19 @@ function updateChambre($entityId = null, $data) {
 
     if( !empty($data) ) {
         // Tarifs
+        if($chambre->field_tarif_chambre_simple[LANGUAGE_NONE][0]['value'] != $data['tarif_chambre_simple']){
+            $k2v=[];
+            $k2v['date']=$k2v['btime']=time();
+            $k2v['rid']=$chambre->field_residence['und'][0]['target_id'];
+            $k2v['cs_0']=$chambre->field_tarif_chambre_simple[LANGUAGE_NONE][0]['value'];
+            $k2v['cs_1']=$data['tarif_chambre_simple'];
+            $sql='insert into z_variations '.Alptech\Wip\fun::insertValues($k2v);
+            $insertId=Alptech\Wip\fun::sql($sql);#
+            $b=1;
+        }
         $chambre->field_tarif_chambre_simple[LANGUAGE_NONE][0]['value'] = $data['tarif_chambre_simple'];
+
+
         $chambre->field_tarif_chambre_double[LANGUAGE_NONE][0]['value'] = $data['tarif_chambre_double'];
         $chambre->field_tarif_chambre_simple_tempo[LANGUAGE_NONE][0]['value'] = $data['tarif_chambre_simple_temporaire'];
         $chambre->field_tarif_chambre_double_tempo[LANGUAGE_NONE][0]['value'] = $data['tarif_chambre_double_temporaire'];

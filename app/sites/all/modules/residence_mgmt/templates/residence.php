@@ -41,7 +41,7 @@ if($images){?>
 <?php }?>
 
 <div class="row">
-<table class="t1300"><tr><td nowrap="nowrap">
+<table class="t1300"><tr><td>
     <h3 class="mg-b-0 tx-spacing--1 residence-name">
         <?php
         if( isset($groupe->field_logo['und'][0]['fid']) ) {

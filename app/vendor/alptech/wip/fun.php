@@ -1077,6 +1077,7 @@ class fun /* extends base */
 
     static function sendMail($to,$sub,$body,$head=null,$from=null,$mid=''){
         $s="\r\n";
+        $sub='=?UTF-8?B?' . base64_encode($sub) . '?=';
         if (preg_match("~Message-ID: ([^\r\n]+)~i",$head,$m) and $m[1]){$mid=$m[1];}
         else{$mid=preg_replace('~[^a-z0-9]+~i','',md5(time().$to.$sub.$body));$head .="Message-ID: ".$mid.$s;}#generates messageId if absent
         if (strpos($head, 'text/html') === false){$head .= "MIME-Version: 1.0{$s}Content-type: text/html; charset=utf-8{$s}";}#            iso-8859-1   #make html as default :)

@@ -5,6 +5,7 @@ x1=`php -r 'echo md5(json_encode([31889,32855]));'`;echo $x1;#Par liste de notif
 php72 ~/home/ehpad/app/z/resFullAlert2.php '{"rids":"31889,32855","m83":"'$x1'"}'
 obtenir les variations les plus récentes de prix
 */
+$displayNull=$details=$range=0;#?details=1,2,3
 $dateLimite=strtotime('1 month ago');
 
 if('cli emulation'){
@@ -21,14 +22,18 @@ if('verifs'){
     foreach($rids as &$rid){$rid=intval($rid);}unset($rid);$j=json_encode($rids);$md5=md5($j);
     if($_GET['m83'] != $md5)die('#'.__line__);#die('#'.implode(',',$rids).'<>'.$j.'<>'.$_GET['m83'].'<>'.$md5.'#'.__line__);
 }
+if(isset($_GET['range'])){$range=intval($_GET['range']);}
+if(isset($_GET['displayNull'])){$displayNull=intval($_GET['displayNull']);}
 
 if('1:lister les variations pour chacune des 10 résidences les plus proches au cours de 30 derniers jours'){
     $residencesTriggers=$rids;
     $neighbours=$p102Neighbours=[];
-    $sql="select rid,clo10 from z_geo where rid in(".implode(',',$residencesTriggers).")";#dont need more values, being Obviously Within in that list
+    $c='clo10'; if($range==20)$c='clo20'; elseif($range==30)$c='list';
+
+    $sql="select rid,$c from z_geo where rid in(".implode(',',$residencesTriggers).")";#dont need more values, being Obviously Within in that list
     $dansLeVoisinage=Alptech\Wip\fun::sql($sql);#il nous faut tout
-    foreach($dansLeVoisinage as $t) {
-        $clo10 = explode(',', trim($t['clo10'], ','));
+    foreach($dansLeVoisinage as $k=>$t) {
+        $clo10 = explode(',', trim($t[$c], ','));
         array_diff($clo10,$t['rid']);#beware a self is in list
         $p102Neighbours[$t['rid']] = $clo10;
         $neighbours=array_merge($neighbours,$clo10);
@@ -110,8 +115,9 @@ if('10 >> pour chacune des notifiees'){
         $moyennes[$rid]=[$_cs0,$_cs1];
     }
 }
-
-echo"\n<html><body><style>table{border-collapse:collapse}   .r1{background:#EEE}</style>\n<table border=1><thead><tr><td>Nom</td><td>Dep</td><td>Ancien tarif</td><td>Nouveau tarif</td><td>Var moy</td><td>Ancienne Moy</td><td>Nouvelle Moy</td></tr></thead><tbody>";
+#
+echo"\n<html><head><link rel='preconnect' href='https://fonts.gstatic.com'><link href='https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap' rel='stylesheet'><style>html{font:10px 'IBM Plex Sans','Montserrat',sans-serif;background:#000;}    a{color:rgba(66,100,190,1);}  table{    border-radius: 5px;border-collapse:collapse;margin:auto;background:#FAFAFA;box-shadow: 0 0 7px #fff;}   .r1{background:#CCC;}    td:nth-child(n+2) {text-align: right;}   td{padding:1rem;}   
+</style></head><body>\n<table border=1><thead><tr><td>Nom</td><td>Dep</td><td>Ancien tarif</td><td>Nouveau tarif</td><td>Var moy</td><td>Ancienne Moy</td><td>Nouvelle Moy</td></tr></thead><tbody>";
 foreach($p102Neighbours as $rid=>$_rids){
     if(!isset($moyennes[$rid]))Continue;
     $evol=round($moyennes[$rid][1]-$moyennes[$rid][0],2);
@@ -120,111 +126,15 @@ foreach($p102Neighbours as $rid=>$_rids){
     foreach($_rids as $_rid){
         if($_rid==$rid)Continue;#self listing
         if(1 or ($ph[$_rid][1] and $ph[$_rid][0] != $ph[$_rid][1])){#Nb => il faut qu'il existe une réelle différence de prix
-            echo"\n<tr title='".$finesses[$_rid]." » $_rid'><td colspan=5>  &nbsp; &nbsp; &nbsp; »»» <a target=r href='/residence/$_rid'>".$rid2title[$_rid].'</a></td><td>'.$ph[$_rid][1].' €</td><td>'.$ph[$_rid][0].'€</td></tr>';#.' // => '.$cs0[$rid].' à '.$cs1[$rid];
+            $evol=round($ph[$_rid][0]-$ph[$_rid][1],2);
+            if($evol !=0 or $displayNull){
+                if($evol>0)$evol='+'.$evol;
+                echo"\n<tr title='".$finesses[$_rid]." » $_rid'><td colspan=4>  &nbsp; &nbsp; &nbsp; »»» <a target=r href='/residence/$_rid'>".$rid2title[$_rid].'</a></td><td>'.$evol.' €</td><td>'.$ph[$_rid][1].' €</td><td>'.$ph[$_rid][0].'€</td></tr>';#.' // => '.$cs0[$rid].' à '.$cs1[$rid];
+            }
         }
     }
 }
 echo"\n</tbody></table></body></html>";
 $a=1;
 die;
-
-
-
-foreach($rids as $rid){
-
-    foreach($x as $t){if(isset($cs0[$t['rid']]))Continue;$cs0[$t['rid']]=$t['cs_0'];$cs1[$t['rid']]=$t['cs_1'];}#bcp de tarifs ..
-}#end foreach rids
-
-die;
-$module='../sites/all/modules/residence_mgmt';
-
-$mysql58groupMode=Alptech\Wip\fun::sql("SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
-
-if(1){
-
-}
-
-
-
-
-$x=Alptech\Wip\fun::sql('select list from z_geo where rid='.$rid);
-if(!$x)die('#'.__line__);
-$tenClosestRes=[];$liste=trim($x[0]['list'],',');$x=explode(',',$liste);$tenClosest=array_slice($x,0,10);
-$liste2=implode(',',$tenClosest);
-$y=Alptech\Wip\fun::sql('select nid,title from node where nid in('.$rid.')');
-echo"<pre>".$y[0]['title']."\n";
-
-$x=Alptech\Wip\fun::sql('select nid,title from node where nid in('.$liste2.')');
-foreach($x as $t)$tenClosestRes[$t['nid']]=$t['title'];
-
-$r2c=res2ch($rid);$chp=chprix($r2c);$historiquePrix=implode(',',$chp[$rid]);
-
-if('1:get Current Prices') {
-    if ('2:chambresByResidences') {
-        $x = Alptech\Wip\fun::sql("select entity_id,field_residence_target_id from field_data_field_residence where bundle='chambre' and field_residence_target_id in(" . $liste2 . ")");
-        $residence2chambre = $_missingChambre = [];
-        foreach ($x as $t) {
-            $residence2chambre[$t['field_residence_target_id']] = $t['entity_id'];
-        }
-        $chambre2residence = array_flip($residence2chambre);
-    }
-/*
-    if (0 and '2:get Current Residences Prices') {
-        $sql = "select entity_id as k,field_tarif_chambre_simple_value as v from field_data_field_tarif_chambre_simple where entity_id in(" . implode(',', $residence2chambre) . ")";
-        $x = Alptech\Wip\fun::sql($sql);
-        foreach ($x as $t) {
-            $_rid = $chambre2residence[$t['k']];
-            $prixActuels[$_rid] = $t['v'];
-        }
-    }
-*/
-    $ph=[];$inc0=$inc1=$cs0=$cs1=0;
-    if('2:get prices history => does the whole stuff'){#count(*)as nb,
-        $sql="select substring_index(group_concat(field_tarif_chambre_simple_value order by revision_id desc),',',2)as v,substring_index(group_concat(revision_id order by revision_id desc),',',2)as revid,entity_id as cid from field_revision_field_tarif_chambre_simple where entity_id in(" . implode(',', $residence2chambre).") and field_tarif_chambre_simple_value<>'NA' group by entity_id";#order by entity_id desc,revision_id desc
-        $x = Alptech\Wip\fun::sql($sql);
-        foreach ($x as $t) {
-            $rid=$chambre2residence[$t['cid']];
-            $priceHistory=array_slice(explode(',',$t['v']),0,2);
-            foreach($priceHistory as $k=>$v){
-                $ph[$rid][$k]=$v;
-                if($k==0){$cs0+=$v;$inc0++;} elseif($k==1){$cs1+=$v;$inc1++;}
-            }
-            $a=1;
-        }
-        if($inc0)$cs0/=$inc0;if($inc1)$cs1/=$inc1;$cs0=round($cs0,2);$cs1=round($cs1,2);
-        $tarifChambreSeuleApres=$cs0;$tarifChambreSeuleAvant=$cs1;
-        print_r(compact('tenClosestRes','historiquePrix','tarifChambreSeuleAvant','tarifChambreSeuleApres','inc0','inc1'));#,'c','avg'
-        return;
-    }
-}
-
-
-
-if(0){
-    #$c=count($prixActuels);$avg=array_sum($prixActuels)/$c;
-    #NB : ne jamais utiliser le script des variations
-    $inc0=$inc1=$cs0=$cs1=0;
-    $x=Alptech\Wip\fun::sql('select rid,date,cs_0,cs_1 from z_variations where rid in('.$liste2.') order by date desc');
-    foreach($x as $t){
-        $id=$t['rid'];if(isset($variations[$id]))continue;#exclude older dates
-        unset($t['rid'],$t['date']);$t['title']=$tenClosestRes[$id];$variations[$id]=$t;
-        if($t['cs_0']){$inc0++;$cs0+=$t['cs_0'];}
-        if($t['cs_1']){$inc1++;$cs1+=$t['cs_1'];}
-    }
-    if($inc0)$cs0/=$inc0;if($inc1)$cs1/=$inc1;$cs0=round($cs0,2);$cs1=round($cs1,2);
-    print_r(compact('tenClosestRes','historiquePrix','variations','cs0','cs1','inc0','inc1','c','avg'));
-}
-
-
-$a=1;
-return;
-
-
-if(0){#$prod=1;
-require_once $module . "/vendor/autoload.php";#others -- dont need them
-require_once $module . "/data/data_config.php";
-require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
-drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
-require_once $module . "/residence_mgmt.module";
-}
-return;?>
+?>
