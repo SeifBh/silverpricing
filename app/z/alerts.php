@@ -1,9 +1,12 @@
 <?php
-/*bootstraped action
+/*bootstraped action :: happens after a scrapping
 EHPAD Ornano - Rsidence Les Intemporelles	 -> check id
 1) S'assurer que le processus d'update des résidences a bien lieu avant !
 php72 z/geo.php reindex
-php72 ~/home/ehpad/app/z/alerts.php '{"210007159":{"prixHebPermCs":1}}' ;
+
+php72 ~/home/ehpad/app/z/alerts.php '{"210007159":{"prixHebPermCs":1}}' ;#forcer une variation soudaine sur une résidence
+
+php72 ~/home/ehpad/app/z/alerts.php
 
 
 cd /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/;
@@ -41,8 +44,9 @@ $now=1607679698;$rids=$cs0=$cs1=[];
 $x=Alptech\Wip\fun::sql("select max(date)as d from z_variations");if(!$x)die('#'.__line__);$now=$x[0]['d'];
 $f=__file__.'.last';if($prod and !isset($_SERVER['WINDIR']) and is_file($f) and filemtime($f)>=$now)die("\n".__line__.' :: '.filemtime($f).'>='.$now);    touch($f,$now);/* */
 
-$x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1 from z_variations where cs_1 is not null and cs_0 is not null order by date desc");# ->choper les dernières variations listées dans le temps
-foreach($x as $t){if(isset($cs0[$t['rid']]))continue;$cs0[$t['rid']]=$t['cs_0'];$cs1[$t['rid']]=$t['cs_1'];}#bcp de tarifs ..
+#cs_0 then, cs_1 now
+$x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1 from z_variations where cs_1 is not null and cs_0 is not null order by date desc");# ->choper les dernières variations listées dans le temps mais toutes en fait donc limitée à 1 qquepart .. FAIRE GROUP_CONCAT(cs_0 order by date desc limit 1)
+foreach($x as $t){if(isset($cs0[$t['rid']]))Continue;$cs0[$t['rid']]=$t['cs_0'];$cs1[$t['rid']]=$t['cs_1'];}#bcp de tarifs ..
 
 #seulement les ehpads concernées par dernier update
 $sql="select rid,cs_0,cs_1 from z_variations where date=".$now." and cs_1 is not null and cs_0 is not null order by rid desc";$x=Alptech\Wip\fun::sql($sql);   if(!$x)die('#'.__line__);foreach($x as $t){$rids[]=$t['rid'];}
@@ -54,11 +58,20 @@ $regexp=','.implode(',|,',$rids).',';
 $sql="select rid,list from z_geo where closest is not null and `list` regexp '".$regexp."'";
 $notifiees=Alptech\Wip\fun::sql($sql);#il nous faut tout
 if(!$notifiees)die('#'.__line__);
-$proxima10G=$proxima10=[];
+
+$proxima10G=$proxima10=$notifiee2alerteOrigine=[];
 foreach($notifiees as $notifiee){#paddys 4 avenue du jura et de la poterie
     $proxima10[$notifiee['rid']]=[];
-    $liste=trim($notifiee['list'],',');
-    $closests=array_splice(explode(',',$liste),0,$maxNeighbours);
+    $liste=trim($notifiee['list'],',');$xliste=explode(',',$liste);
+    foreach($xliste as $_rid){
+        if(isset($cs0[$_rid])){
+            if(!isset($notifiee2alerteOrigine[$notifiee['rid']])){$notifiee2alerteOrigine[$notifiee['rid']]=[];}
+            $notifiee2alerteOrigine[$notifiee['rid']][]=$_rid;
+            $a=1;
+        }
+    }
+
+    $closests=array_splice($xliste,0,$maxNeighbours);
     #$closests=Alptech\Wip\io::isJson($notifiee['closest']);
     #foreach($closests as $distance=>$_rids){foreach($_rids as $rid){
     foreach($closests as $rid){
@@ -161,10 +174,19 @@ $sql="select entity_id,field_groupe_tid from field_data_field_groupe where entit
 foreach($x as $t){$rid2groupe[$t['entity_id']]=$t['field_groupe_tid'];}
 $x=Alptech\Wip\fun::sql("select uid,mail from users where mail is not null and mail<>''");foreach($x as $t){$uid2mail[$t['uid']]=$t['mail'];}
 $x=Alptech\Wip\fun::sql("select entity_id,field_email_value from field_data_field_email where bundle='residence'");foreach($x as $t){$rid2mail[$t['entity_id']]=$t['field_email_value'];}
+
+if('plans et toggle alert'){
+    $userPlans=$u2alert=[];
+    $x=Alptech\Wip\fun::sql("select entity_id as k,field_alerts_value as v from field_data_field_alerts");  foreach($x as $t){$u2alert[$t['k']]=$t['v'];}
+    $x=Alptech\Wip\fun::sql("select entity_id as k,field_plan_target_id as v from field_data_field_plan");  foreach($x as $t){$userPlans[$t['k']]=$t['v'];}
+}
+
+#field_plan['und']['tid']==281;#luxe
 if('accès et permissions'){
     $x=Alptech\Wip\fun::sql("select field_acces_groupes_target_id as k,group_concat(distinct(entity_id)) as v from field_data_field_acces_groupes group by field_acces_groupes_target_id");foreach($x as $t){$users=explode(',',$t['v']);foreach($users as $user){$groupe2uid[$t['k']][]=$user;}}
     $x=Alptech\Wip\fun::sql("select field_acces_residences_target_id as k,group_concat(distinct(entity_id))as v from field_data_field_acces_residences group by field_acces_residences_target_id");foreach($x as $t){$users=explode(',',$t['v']);foreach($users as $user){$res2uid[$t['k']][]=$user;}}
 }
+
 $_mem[__line__]=memory_get_usage(1);
 #ayant des notifications .. mais les détailler résidence par résidence ???
 $notifications=[];
@@ -172,16 +194,20 @@ foreach($rids as $rid){
     #if(isset($rid2mail[$rid]));#public email
     if(isset($res2uid[$rid])){
         foreach($res2uid[$rid] as $uid){
-            $notifications[$uid2mail[$uid]][]=$rid;#la plus directe, sinon par groupe, puis par utilisateur
-            $a=1;
+            if(isset($userPlans[$uid]) and isset($u2alert[$uid]) and $userPlans[$uid]==281 and $u2alert[$uid]){
+                $notifications[$uid2mail[$uid]][]=$rid;#la plus directe, sinon par groupe, puis par utilisateur
+                $a=1;
+            }
         }
     }
     if(isset($rid2groupe[$rid])){
         $grp=$rid2groupe[$rid];
         if(isset($groupe2uid[$grp])){#126 ok
             foreach($groupe2uid[$grp] as $uid){
-                $notifications[$uid2mail[$uid]][]=$rid;
-                $a=1;
+                if(isset($userPlans[$uid]) and isset($u2alert[$uid]) and $userPlans[$uid]==281  and $u2alert[$uid]) {
+                    $notifications[$uid2mail[$uid]][] = $rid;
+                    $a = 1;
+                }
             }
         }
     }
@@ -197,13 +223,24 @@ foreach($notifications as $mail=>$notifs){
     $mailBody="<body>Bonjour, voici une alerte sur l'évolution des tarifs des Ehpad voisines de celle que vous gérez<hr><center><table border=1 style='border-collapse:collapse'><thead style='background:#DDD;'><tr><th>Résidence</th><th>Département</th><th>Tarif actuel</th><th>Ancien tarif moyen</th><th>Nouveau tarif moyen</th><th>Évolution</th></tr></thead><tbody>\n";
 #mail html broken table
     foreach($notifs as $k=>$rid){
+        $detail=$s='';if($k % 2==1)$s=" style='background:#DDD;'";
+        #$notifiee2alerteOrigine =>array_keys($cs0)  $cs0[$t['rid']] $cs1[$t['rid']]
+        if(isset($notifiee2alerteOrigine[$rid])){
+            foreach($notifiee2alerteOrigine[$rid] as $_rid){
+                $bef=$cs0[$_rid];$aft=$cs1[$_rid];$evol=round($aft-$bef,2);if($evol>0)$evol='+'.$evol;
+                $detail.="\n<tr$s><td> - </td><td colspan=5>".Alptech\Wip\fun::stripHtml($rid2title[$_rid]).' de '.$bef." à ".$aft." (".$evol."€)</td></tr>";
+                $a=1;
+            }
+        }
+
         $bef=round($evolutions[$rid][0],2);
         $aft=round($evolutions[$rid][1],2);
         $evol=round($aft-$bef,2);
         if($evol>0)$evol='+'.$evol;
         #$texts[]=Alptech\Wip\fun::stripHtml($rid2title[$rid],1);
-        $s='';if($k % 2==1)$s=" style='background:#DDD;'";
+
         $mailBody.="\n<tr$s><td id=$rid title=$rid>".Alptech\Wip\fun::stripHtml($rid2title[$rid])."</td><td>".trim(substr($dep[$rid],0,3))."</td><td>".$tarifCs[$rid]."&euro;</td><td>$bef &euro;</td><td>$aft &euro;</td><td>$evol &euro;</td></tr>";
+        if($detail)$mailBody.=$detail;
     }
     $mailBody.="\n</tbody></table></center><style>body{font:16px Assistant,'Trebuchet MS',Sans-Serif} th:nth-child(n+2),td:nth-child(n+2){text-align:right} td:nth-child(1){ padding:0 10px; } </style></body>";#thead,tr:nth-child(even){background:#DDD;}
     if ($prod and !$sent) {
