@@ -8,10 +8,9 @@ php72 ~/home/ehpad/app/z/alerts.php '{"210007159":{"prixHebPermCs":1}}' ;#forcer
 
 php72 ~/home/ehpad/app/z/alerts.php
 
-
+ssh ubuntu@ehpad.silverpricing.fr
 cd /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/;
-dat=`date +%y%m%d%H%M`;php7.1 alerts.php | tee alerts.$dat.log;
-
+dat=`date +%y%m%d%H%M`;rm alerts.php.last;php7.1 alerts.php | tee alerts.$dat.log;
 php7.1 /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/alerts.php
 
  */
@@ -49,8 +48,9 @@ $x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1 from z_variations where cs_1 is no
 foreach($x as $t){if(isset($cs0[$t['rid']]))Continue;$cs0[$t['rid']]=$t['cs_0'];$cs1[$t['rid']]=$t['cs_1'];}#bcp de tarifs ..
 
 #seulement les ehpads concernées par dernier update
+#todo:#£:
 $sql="select rid,cs_0,cs_1 from z_variations where date=".$now." and cs_1 is not null and cs_0 is not null order by rid desc";$x=Alptech\Wip\fun::sql($sql);   if(!$x)die('#'.__line__);foreach($x as $t){$rids[]=$t['rid'];}
-$rids=array_unique($rids);$residencesTriggers=$rids;
+$residencesTriggers=$rids=array_unique($rids);
 #$x=Alptech\Wip\fun::sql("select * from z_variations where date=1607679698 and cs_1 is not null and cs_0 is not null order by id desc limit 1");# -> rid
 #$x=Alptech\Wip\fun::sql("select * from z_variations where date=1607679698 cs_1 is not null and cs_0 is not null order by id desc limit 1");# choper les chambres associées à ces résidence, le tarif simple uniquement
 $regexp=','.implode(',|,',$rids).',';
@@ -64,7 +64,7 @@ foreach($notifiees as $notifiee){#paddys 4 avenue du jura et de la poterie
     $proxima10[$notifiee['rid']]=[];
     $liste=trim($notifiee['list'],',');$xliste=explode(',',$liste);
     foreach($xliste as $_rid){
-        if(isset($cs0[$_rid])){
+        if(in_array($_rid,$residencesTriggers) and isset($cs0[$_rid])){
             if(!isset($notifiee2alerteOrigine[$notifiee['rid']])){$notifiee2alerteOrigine[$notifiee['rid']]=[];}
             $notifiee2alerteOrigine[$notifiee['rid']][]=$_rid;
             $a=1;
@@ -168,8 +168,9 @@ $res2uid=$rid2groupe=$groupe2uid=$uid2mail=$rid2mail=$rid2title=$dep=[];
 $rids=array_keys($proxima10);#same as evolutions
 $sql="select b.name as v,entity_id as k from field_data_field_departement a inner join taxonomy_term_data b on b.tid=a.field_departement_tid where entity_id in(".implode(',',array_keys($proxima10)).")";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t){$dep[$t['k']]=$t['v'];}
 
-$sql="select nid,title from node where nid in(".implode(',',$rids).")";$x=Alptech\Wip\fun::sql($sql);
-foreach($x as $t){$rid2title[$t['nid']]=$t['title'];}
+$allRids=array_unique(array_merge($rids/*les plus proches*/,$residencesTriggers));
+$sql="select nid,title from node where nid in(".implode(',',$allRids).") and title is not null";$x=Alptech\Wip\fun::sql($sql); foreach($x as $t){$rid2title[$t['nid']]=$t['title'];}
+
 $sql="select entity_id,field_groupe_tid from field_data_field_groupe where entity_id in(".implode(',',$rids).")";$x=Alptech\Wip\fun::sql($sql);
 foreach($x as $t){$rid2groupe[$t['entity_id']]=$t['field_groupe_tid'];}
 $x=Alptech\Wip\fun::sql("select uid,mail from users where mail is not null and mail<>''");foreach($x as $t){$uid2mail[$t['uid']]=$t['mail'];}
@@ -220,35 +221,46 @@ foreach($notifications as $mail=>$notifs){
     if(strpos($mail,'@residence-management.dev')){
         $mail=str_replace('@residence-management.dev','-ehpad@x24.fr',$mail);
     }
-    $mailBody="<body>Bonjour, voici une alerte sur l'évolution des tarifs des Ehpad voisines de celle que vous gérez<hr><center><table border=1 style='border-collapse:collapse'><thead style='background:#DDD;'><tr><th>Résidence</th><th>Département</th><th>Tarif actuel</th><th>Ancien tarif moyen</th><th>Nouveau tarif moyen</th><th>Évolution</th></tr></thead><tbody>\n";
-#mail html broken table
-    foreach($notifs as $k=>$rid){
-        $detail=$s='';if($k % 2==1)$s=" style='background:#DDD;'";
-        #$notifiee2alerteOrigine =>array_keys($cs0)  $cs0[$t['rid']] $cs1[$t['rid']]
-        if(isset($notifiee2alerteOrigine[$rid])){
-            foreach($notifiee2alerteOrigine[$rid] as $_rid){
-                $bef=$cs0[$_rid];$aft=$cs1[$_rid];$evol=round($aft-$bef,2);if($evol>0)$evol='+'.$evol;
-                $detail.="\n<tr$s><td> - </td><td colspan=5>".Alptech\Wip\fun::stripHtml($rid2title[$_rid]).' de '.$bef." à ".$aft." (".$evol."€)</td></tr>";
-                $a=1;
+    if($notifs){
+        $mailBody="<body>Bonjour, voici une alerte sur l'évolution des tarifs des Ehpad voisines de celle que vous gérez<hr><center><table border=1 style='border-collapse:collapse'><thead style='background:#DDD;'><tr><th>Résidence</th><th>Département</th><th>Tarif actuel</th><th>Ancien tarif moyen</th><th>Nouveau tarif moyen</th><th>Évolution</th></tr></thead><tbody>\n";
+    #mail html broken table
+
+        foreach($notifs as $k=>$rid){
+            $detail=$s='';
+            #$s2=" style='background:#EEE;'";if($k % 2==1)$s2=" style='background:#DDD;'";
+            #$notifiee2alerteOrigine =>array_keys($cs0)  $cs0[$t['rid']] $cs1[$t['rid']]
+            if(0){
+                if(isset($notifiee2alerteOrigine[$rid])){
+                    foreach($notifiee2alerteOrigine[$rid] as $_rid){
+                        $bef=$cs0[$_rid];$aft=$cs1[$_rid];$evol=round($aft-$bef,2);if($evol>0)$evol='+'.$evol;
+                        $detail.="\n<tr$s2><td colspan=3 style='text-align:left' title='$_rid'> &nbsp; &nbsp; &nbsp; »»» ".Alptech\Wip\fun::stripHtml($rid2title[$_rid]).'</td><td>'.$bef." €</td><td>".$aft." €</td><td>".$evol."€</td></tr>";
+                        $a=1;
+                    }
+                }
             }
+            if($k % 2==1)$s=" style='background:#DDD;'";
+
+            $bef=round($evolutions[$rid][0],2);
+            $aft=round($evolutions[$rid][1],2);
+            $evol=round($aft-$bef,2);
+            if($evol>0)$evol='+'.$evol;
+            #$texts[]=Alptech\Wip\fun::stripHtml($rid2title[$rid],1);
+
+            $mailBody.="\n<tr$s><td id=$rid title=$rid>•".Alptech\Wip\fun::stripHtml($rid2title[$rid])."</td><td>".trim(substr($dep[$rid],0,3))."</td><td>".$tarifCs[$rid]."&euro;</td><td>$bef &euro;</td><td>$aft &euro;</td><td>$evol &euro;</td></tr>";
+            if($detail)$mailBody.=$detail;
+        }
+        $mailBody.="\n</tbody></table></center><style>body{font:16px Assistant,'Trebuchet MS',Sans-Serif} th:nth-child(n+2),td:nth-child(n+2){text-align:right} td:nth-child(1){ padding:0 10px; } </style>".implode(',',$allRids)."</body>";#thead,tr:nth-child(even){background:#DDD;}
+        if(0 and 'benOnly'){
+            Alptech\Wip\fun::sendMail(str_replace('@','_',trim($mail)).'@x24.fr', 'Silverpricing : évolution des tarifs des ehpads voisines', $mailBody);
+            continue;
         }
 
-        $bef=round($evolutions[$rid][0],2);
-        $aft=round($evolutions[$rid][1],2);
-        $evol=round($aft-$bef,2);
-        if($evol>0)$evol='+'.$evol;
-        #$texts[]=Alptech\Wip\fun::stripHtml($rid2title[$rid],1);
-
-        $mailBody.="\n<tr$s><td id=$rid title=$rid>".Alptech\Wip\fun::stripHtml($rid2title[$rid])."</td><td>".trim(substr($dep[$rid],0,3))."</td><td>".$tarifCs[$rid]."&euro;</td><td>$bef &euro;</td><td>$aft &euro;</td><td>$evol &euro;</td></tr>";
-        if($detail)$mailBody.=$detail;
+        if ($prod and !$sent) {
+            Alptech\Wip\fun::sendMail('kgandrille@wynter.fr', 'Silverpricing : évolution des tarifs des ehpads voisines', $mailBody);
+            Alptech\Wip\fun::sendMail('bencopy@x24.fr', 'Silverpricing : évolution des tarifs des ehpads voisines', $mailBody);
+        }
+        $sent=Alptech\Wip\fun::sendMail(trim($mail),'Silverpricing : évolution des tarifs des ehpads voisines',$mailBody);
     }
-    $mailBody.="\n</tbody></table></center><style>body{font:16px Assistant,'Trebuchet MS',Sans-Serif} th:nth-child(n+2),td:nth-child(n+2){text-align:right} td:nth-child(1){ padding:0 10px; } </style></body>";#thead,tr:nth-child(even){background:#DDD;}
-    if ($prod and !$sent) {
-        Alptech\Wip\fun::sendMail('kgandrille@wynter.fr', 'Silverpricing : évolution des tarifs des ehpads voisines', $mailBody);
-        Alptech\Wip\fun::sendMail('bencopy@x24.fr', 'Silverpricing : évolution des tarifs des ehpads voisines', $mailBody);
-    }
-    $sent=Alptech\Wip\fun::sendMail(trim($mail),'Silverpricing : évolution des tarifs des ehpads voisines',$mailBody);
-
     $a=1;
 
 }

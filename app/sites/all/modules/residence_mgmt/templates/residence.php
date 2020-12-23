@@ -77,12 +77,11 @@ if($images){?>
         </div>
     </div>
     <script>
+        var nbs=4;if(window.innerWidth<500){nbs=2;}
         //window.addEventListener('load', function(){
         new Glider(document.querySelector('.glider'), {
-            slidesToShow: 5,
-            slidesToScroll: 5,
-            draggable: false,/*click*/
-            dots: '.dots',
+            slidesToShow: nbs, slidesToScroll: nbs,
+            dots: '.dots',draggable: false,/*click*/
             arrows: {prev: '.glider-prev', next: '.glider-next'}
         });
 //jquery loaded at footer, not async relatively strange ..
@@ -98,7 +97,7 @@ if($images){?>
         });
     </script>
 <?php }?>
-</td><td class="3" nowrap="nowrap">
+</td><td class="td3 3" nowrap="nowrap">
     <div class="mg-t-10 mg-b-10">
         <?php if( strlen($residence->field_site['und'][0]['value']) >= 5 ): ?>
             <a href="<?php echo $residence->field_site['und'][0]['value']; ?>" target="_blank" class="btn btn-sm btn-white btn-uppercase pd-x-15"><i data-feather="globe"></i>
@@ -870,8 +869,10 @@ if($images){?>
               </tr>
             </thead>
             <tbody>
-              <?php foreach( $residencesConcurrentes['direct'] as $residenceConcurrent ): ?>
-              <tr>
+              <?php
+              $i=0;
+              foreach( $residencesConcurrentes['direct'] as $residenceConcurrent ):
+                  ?><tr class="_r<?php echo $i;?>">
                 <td class="text-left">
                     <?php echo create_link($residenceConcurrent->title, "/residence/$residenceConcurrent->nid" , residence_mgmt_user_plan_has_access("PAGE_DETAIL_RESIDENCE_CONCURRENTE")); ?>
                 </td>
@@ -880,7 +881,7 @@ if($images){?>
                 <td class="text-center"><?php print round($residenceConcurrent->distance) ?></td>
                 <td class="text-center"><?php print $residenceConcurrent->field_tarif_chambre_simple_value ?></td>
               </tr>
-              <?php endforeach; ?>
+              <?php $i++;endforeach; ?>
             </tbody>
           </table>
         </div>
@@ -991,8 +992,8 @@ if($images){?>
               </tr>
             </thead>
             <tbody>
-              <?php foreach( $residencesConcurrentes['indirect'] as $residenceConcurrent ): ?>
-              <tr>
+              <?php $i=0; foreach( $residencesConcurrentes['indirect'] as $residenceConcurrent ): ?>
+              <tr class="_r<?php echo $i;?>">
                 <td class="text-left">
                     <?php echo create_link($residenceConcurrent->title, "/residence/$residenceConcurrent->nid" , residence_mgmt_user_plan_has_access("PAGE_DETAIL_RESIDENCE_CONCURRENTE")); ?>
                 </td>
@@ -1001,7 +1002,7 @@ if($images){?>
                 <td class="text-center"><?php print round($residenceConcurrent->distance) ?></td>
                 <td class="text-center"><?php print $residenceConcurrent->field_tarif_chambre_simple_value ?></td>
               </tr>
-              <?php endforeach; ?>
+              <?php $i++;endforeach; ?>
             </tbody>
           </table>
         </div>

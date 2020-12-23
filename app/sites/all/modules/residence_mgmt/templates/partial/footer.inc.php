@@ -709,6 +709,7 @@ console.log({meslits,nbLits,ratio,mesRes});
             columnDefs: [
                 { type: 'natural-nohtml', targets: [3,4] }
             ]
+            ,"order":[[3,"asc"]]
         });
 
         $('#table-residences-indirect').DataTable( {
@@ -721,6 +722,7 @@ console.log({meslits,nbLits,ratio,mesRes});
             columnDefs: [
                 { type: 'natural-nohtml', targets: [3,4] }
             ]
+            ,"order":[[3,"asc"]]
         });
     });
 

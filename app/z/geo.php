@@ -8,7 +8,7 @@ php7.1 /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/geo.php rei
  */
 namespace Alptech\Wip;
 ini_set('memory_limit',-1);ini_set('max_execution_time',-1);
-$maxFound=100;$maxKmSearch=$radius=round(200/2);
+$maxFound=200;$maxKmSearch=$radius=round(200/2);
 
 if(!isset($GLOBALS['argv']) and !isset($_SESSION)){die('#'.__line__);}
 $_mem=[__line__=>memory_get_usage(1)];

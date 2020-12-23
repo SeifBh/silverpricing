@@ -676,7 +676,7 @@ function residence_mgmt_get_quick_win() {
     foreach( $quickWins as $key => $r ) {
 
         $ranking = getRankingOfResidence( $r->nid, array( "CONCURRENCE_DIRECTE" ) );
-        $residencesConcurrentes = getResidencesProchesByStatus( $r->nid, $statuses = array( $r->field_statut_value ), $limit = 10);
+        $residencesConcurrentes = getResidencesProchesByStatus( $r->nid, [$r->field_statut_value], $limit = 10);
 
         $residencesConcurrentesTarif = array_map(function( $residenceConcurrente ) {
             return $residenceConcurrente->field_tarif_chambre_simple_value;
@@ -1200,8 +1200,9 @@ function residence_mgmt_get_residence_details($residenceId = null) {
 
     $residenceRanking = getRankingOfResidence( $residenceId, array("CONCURRENCE_DIRECTE", "DEPARTEMENT") );
 
-    $residencesConcurrentes['direct'] = getResidencesProchesByStatus( $residenceId, $statuses = array( $residence->field_statut['und'][0]['value'] ), $limit = 10);
-    $residencesConcurrentes['indirect'] = getResidencesProchesByStatus( $residenceId, $statuses = array(), $limit = 10);
+    $residencesConcurrentes['direct'] = getResidencesProchesByStatus( $residenceId, [$residence->field_statut['und'][0]['value']], 10);
+    $a=1;
+    $residencesConcurrentes['indirect'] = getResidencesProchesByStatus( $residenceId, [],10);
 
     foreach( $residencesConcurrentes as $concurrence => $residences ) {
         foreach( $residences  as $r ) {

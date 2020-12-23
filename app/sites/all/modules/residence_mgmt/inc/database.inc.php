@@ -1292,6 +1292,12 @@ function getClosests($residenceNid){
     #return explode(',',trim($x[0]['list'],','));
 }
 
+function getDistances($residenceNid)
+{
+    $x=Alptech\Wip\fun::sql("select closest from z_geo where rid=".$residenceNid);#
+    return json_decode($x[0]['closest'],1);
+}
+
 function getResidencesProchesByStatus( $residenceNid, $statuses = [], $limit = 10)
 {
 if(isset($_COOKIE['old']) and $_COOKIE['old']){#simple commutateur le piu simple ever !
@@ -1319,6 +1325,9 @@ if(isset($_COOKIE['old']) and $_COOKIE['old']){#simple commutateur le piu simple
 }
 
 $clo = getClosests($residenceNid);#sans limites, as a list
+$distances=getDistances($residenceNid);
+$r2dist=[];foreach($distances as $km=>$rids){foreach($rids as $rid){$r2dist[$rid]=$km;}}
+
 if (!$statuses) {
     $clo=explode(',',$clo);
 }else{
@@ -1335,7 +1344,11 @@ if(!$clo1){
     fun::dbm($residenceNid,'noClosestPoints');
     $err=1;
 }
-$sql="SELECT n.nid AS nid, n.title AS title, $residenceNid AS primary_nid, /*di.distance AS distance,*/ s.field_statut_value AS field_statut_value, l.field_location_locality AS field_location_locality, l.field_location_postal_code AS field_location_postal_code, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value, lat.field_latitude_value AS field_latitude_value, lng.field_longitude_value AS field_longitude_value
+asort($r2dist);
+$dist=[];foreach($clo as $rid){$dist[$rid]=$r2dist[$rid];}
+#dans quel ordre sont-elles présentées ?
+
+$sql="SELECT n.nid AS nid, n.title AS title, $residenceNid AS primary_nid,  s.field_statut_value AS field_statut_value, l.field_location_locality AS field_location_locality, l.field_location_postal_code AS field_location_postal_code, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value, lat.field_latitude_value AS field_latitude_value, lng.field_longitude_value AS field_longitude_value
 FROM node n
 -- INNER JOIN distance_indexation di ON di.secondary_nid = n.nid and di.primary_nid = $residenceNid
 INNER JOIN field_data_field_statut s ON s.entity_id = n.nid -- and s.field_statut_value IN ('')
@@ -1344,9 +1357,13 @@ INNER JOIN field_data_field_residence rc ON rc.field_residence_target_id = n.nid
 INNER JOIN field_data_field_tarif_chambre_simple cs ON cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> 'NA'
 INNER JOIN field_data_field_latitude lat ON lat.entity_id = n.nid
 INNER JOIN field_data_field_longitude lng ON lng.entity_id = n.nid
-WHERE n.type = 'residence' and n.nid in(".implode(',',$clo1).")";
+WHERE n.type = 'residence' and n.nid in(".implode(',',$clo).") order by FIELD(n.nid,".implode(',',$clo).") limit $limit";
     $residences = Alptech\Wip\fun::sql($sql);
-    foreach ($residences as &$t) {$t=(object)$t;}unset($t);
+    foreach ($residences as &$t) {
+        $a=1;#$r2dist
+        if(isset($r2dist[$t['nid']]))$t['distance']=$r2dist[$t['nid']];
+        $t=(object)$t;
+    }unset($t);
   return $residences;
 }
 

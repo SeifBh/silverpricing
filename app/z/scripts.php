@@ -2,6 +2,9 @@
 /*
 php72 ~/home/ehpad/app/z/scripts.php '{"rid":42871}'
 if(!isset($argv))die;
+
+obtenir les variations les plus récentes de prix
+
 */
 $_SERVER['DOCUMENT_ROOT']=__DIR__.'/../';chdir(__DIR__);
 $module='../sites/all/modules/residence_mgmt';

@@ -382,6 +382,7 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
     echo $msg;###<<<  $_ENV['loggedSql']
     unset($msg,$__inserts,$__updates,$notModified,$_c,$tarifs);
     $_mem[__line__]=memory_get_usage(1);
+    $btime=time();
     if($tarifsModifies){
         $_inserts=[];
         foreach($tarifsModifies as $type=>$t){
@@ -405,10 +406,13 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
                 }
             }
         }#end foreach tarif modifié
-        $now=time();
+
         foreach($_inserts as $rid=>$k2v){
             $k2v['rid']=$rid;
-            $k2v['date']=$now;
+            #$_inserts[]['$lastmod'] =strtotime($t["updatedAt"]);
+            #$k2v['date']=$now;
+            $k2v['btime']=$btime;
+            $k2v['date']=$lastmod;
             $sql='insert into z_variations '.Alptech\Wip\fun::insertValues($k2v);
             $insertId=Alptech\Wip\fun::sql($sql);#
             $b=1;
