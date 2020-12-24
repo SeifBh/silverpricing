@@ -5,23 +5,28 @@ x1=`php -r 'echo md5(json_encode([31889,32855]));'`;echo $x1;#Par liste de notif
 php72 ~/home/ehpad/app/z/resFullAlert2.php '{"rids":"31889,32855","m83":"'$x1'"}'
 obtenir les variations les plus récentes de prix
 */
-$displayNull=$details=$range=0;#?details=1,2,3
+$standAlone=$displayNull=$details=$range=0;#?details=1,2,3
+if(strpos($_SERVER['REQUEST_URI'],'resFullAlert2.php'))$standAlone=1;
 $dateLimite=strtotime('1 month ago');
 
-if('cli emulation'){
-    $_SERVER['DOCUMENT_ROOT']=__DIR__.'/../';chdir(__DIR__);
-    require_once "../vendor/autoload.php";#alptech
-    if(isset($argv) and $argv[1]){
-        $_GET=Alptech\Wip\io::isJson($argv[1]);
+require_once __DIR__."/../vendor/autoload.php";#chdir(__DIR__);#alptech
+
+if(isset($argv) and 'cli emulation'){
+    $_SERVER['DOCUMENT_ROOT']=__DIR__.'/../';
+    if($argv[1]){$_GET=Alptech\Wip\io::isJson($argv[1]);}
+}else{#http
+    if(0 and $standAlone){
+        Alptech\Wip\fun::r302('/ra/?'.$_SERVER["QUERY_STRING"]);
     }
 }
 
 if('verifs'){
-    if(!isset($_GET['rids']))die('#'.__line__);if(!isset($_GET['m83']))die('#'.__line__);
+    if(!isset($_GET['rids']))die('#'.__line__);if(!isset($_GET['m83']))Alptech\Wip\fun::r404('nothing here#'.__line__);
     $rids=explode(',',$_GET['rids']);if(!$rids)die('?rids=');$_ENV['dieOnFirstError']=1;
     foreach($rids as &$rid){$rid=intval($rid);}unset($rid);$j=json_encode($rids);$md5=md5($j);
     if($_GET['m83'] != $md5)die('#'.__line__);#die('#'.implode(',',$rids).'<>'.$j.'<>'.$_GET['m83'].'<>'.$md5.'#'.__line__);
 }
+
 if(isset($_GET['range'])){$range=intval($_GET['range']);}
 if(isset($_GET['displayNull'])){$displayNull=intval($_GET['displayNull']);}
 
@@ -116,8 +121,17 @@ if('10 >> pour chacune des notifiees'){
     }
 }
 #
-echo"\n<html><head><link rel='preconnect' href='https://fonts.gstatic.com'><link href='https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap' rel='stylesheet'><style>html{font:10px 'IBM Plex Sans','Montserrat',sans-serif;background:#000;}    a{color:rgba(66,100,190,1);}  table{    border-radius: 5px;border-collapse:collapse;margin:auto;background:#FAFAFA;box-shadow: 0 0 7px #fff;}   .r1{background:#CCC;}    td:nth-child(n+2) {text-align: right;}   td{padding:1rem;}   
-</style></head><body>\n<table border=1><thead><tr><td>Nom</td><td>Dep</td><td>Ancien tarif</td><td>Nouveau tarif</td><td>Var moy</td><td>Ancienne Moy</td><td>Nouvelle Moy</td></tr></thead><tbody>";
+if($standAlone){
+echo"\n<html><head><link rel='preconnect' href='https://fonts.gstatic.com'><link href='https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap' rel='stylesheet'><style>html{font:10px 'IBM Plex Sans','Montserrat',sans-serif;background:#000;}    </style></head><body>";
+}
+
+echo"\n<style>
+.r1{background:#CCC;}
+#fullPriceAlert a{color:rgba(66,100,190,1);}  
+#fullPriceAlert{    border-radius: 5px;border-collapse:collapse;margin:auto;background:#FAFAFA;box-shadow: 0 0 7px #fff;}       
+#fullPriceAlert td:nth-child(n+2) {text-align: right;}  #fullPriceAlert td{padding:1rem;}
+</style>
+<table border=1 id='fullPriceAlert'><thead><tr><td>Nom</td><td>Dep</td><td>Ancien tarif</td><td>Nouveau tarif</td><td>Variation</td><td>Ancienne moyenne concurrence</td><td>Nouvelle moyenne concurrence</td></tr></thead><tbody>";
 foreach($p102Neighbours as $rid=>$_rids){
     if(!isset($moyennes[$rid]))Continue;
     $evol=round($moyennes[$rid][1]-$moyennes[$rid][0],2);
@@ -134,7 +148,6 @@ foreach($p102Neighbours as $rid=>$_rids){
         }
     }
 }
-echo"\n</tbody></table></body></html>";
-$a=1;
-die;
+echo"\n</tbody></table>";
+return;
 ?>

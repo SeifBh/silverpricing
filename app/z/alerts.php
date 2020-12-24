@@ -233,7 +233,7 @@ foreach($notifications as $mail=>$notifs){
         $ids=implode("\n",str_split($ids,900));
 $mailBody="\n<link rel='preconnect' href='https://fonts.gstatic.com'><link href='https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap' rel='stylesheet'>
 <style>body{font:10px 'IBM Plex Sans','sans-serif;} td{padding:1rem;}  td:nth-child(n+2) {text-align: right;} </style>
-<body>Bonjour, voici une <a href='$bd/z/resFullAlert2.php?m83=".md5(json_encode($notifs))."&rids=".$ids."'>alerte</a> sur l'évolution des tarifs des Ehpad voisines de celle que vous gérez<hr><center><table border=1 style='border-collapse:collapse'><thead style='background:#DDD;'><tr><th>Résidence</th><th>Département</th><th>Tarif actuel</th><th>Ancien tarif moyen</th><th>Nouveau tarif moyen</th><th>Évolution</th></tr></thead><tbody>\n";
+<body>Bonjour, voici une <a href='$bd/ra?m83=".md5(json_encode($notifs))."&rids=".$ids."'>alerte</a> sur l'évolution des tarifs des Ehpad voisines de celle que vous gérez<hr><center><table border=1 style='border-collapse:collapse'><thead style='background:#DDD;'><tr><th>Résidence</th><th>Département</th><th>Tarif actuel</th><th>Ancien tarif moyen</th><th>Nouveau tarif moyen</th><th>Évolution</th></tr></thead><tbody>\n";
     #mail html broken table
         foreach($notifs as $k=>$rid){
             $detail=$s='';
@@ -255,7 +255,7 @@ $mailBody="\n<link rel='preconnect' href='https://fonts.gstatic.com'><link href=
             $evol=round($aft-$bef,2);
             if($evol>0)$evol='+'.$evol;
             #$texts[]=Alptech\Wip\fun::stripHtml($rid2title[$rid],1);
-            $mailBody.="\n<tr$s><td id=$rid title='$rid - ".count($proxima10[$rid]). '-'.implode(',',$proxima10[$rid])."'> • <a href='$bd/z/resFullAlert2.php?m83=".md5(json_encode([$rid]))."&rids=".$rid."'>".Alptech\Wip\fun::stripHtml($rid2title[$rid])."</a></td><td>".trim(substr($dep[$rid],0,3))."</td><td>".$tarifCs[$rid]."&euro;</td><td>$bef &euro;</td><td>$aft &euro;</td><td>$evol &euro;</td></tr>";
+            $mailBody.="\n<tr$s><td id=$rid title='$rid - ".count($proxima10[$rid]). '-'.implode(',',$proxima10[$rid])."'> • <a href='$bd/ra?m83=".md5(json_encode([$rid]))."&rids=".$rid."'>".Alptech\Wip\fun::stripHtml($rid2title[$rid])."</a></td><td>".trim(substr($dep[$rid],0,3))."</td><td>".$tarifCs[$rid]."&euro;</td><td>$bef &euro;</td><td>$aft &euro;</td><td>$evol &euro;</td></tr>";
             if($detail)$mailBody.=$detail;
         }
         $mailBody.="\n</tbody></table></center><style>body{font:16px Assistant,'Trebuchet MS',Sans-Serif} th:nth-child(n+2),td:nth-child(n+2){text-align:right} td:nth-child(1){ padding:0 10px; } </style></body>";#thead,tr:nth-child(even){background:#DDD;} #".implode(',',$allRids)."

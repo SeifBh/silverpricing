@@ -16,6 +16,16 @@ require_once __DIR__ . "/inc/user.inc.php";
 require_once __DIR__ . "/inc/routing.inc.php";
 require_once __DIR__.'/../../../../autoload.php';#-> maps to composer
 
+#/ra/?=m83/$md5/rids/$rids
+function fullAlert2(){
+    ob_start();
+    require_once $_SERVER['DOCUMENT_ROOT'] . "/z/resFullAlert2.php";
+    $content = ob_get_clean();
+    global $user;#not logged in ?
+    require_once __DIR__ . "/templates/layouts/default.php";
+    return;
+}
+
 function fastAccess(){#pour les updates
     if(!isset($_COOKIE['ben']) and !strpos($_SERVER['HTTP_HOST'],'.home')){
         #die('/*nothing*/');

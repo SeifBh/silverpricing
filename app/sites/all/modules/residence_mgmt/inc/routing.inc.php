@@ -7,6 +7,14 @@
 function residence_mgmt_menu() {$items = array();
 /**  } START BEN {*****/
 #drushy cc all
+    $items['ra'] = array(#uuid#/%
+        'title'             =>  'Evolution des prix',
+        'page callback'     =>  'fullAlert2',
+        'page arguments'    => array( 1 ),
+        'access callback'   => true,
+        #'access callback'   => 'fastAccess','access arguments' => array('PAGE_MES_RESIDENCES'),
+    );
+
     $items['updateAllRoomsUuid'] = array(
         'title'             =>  'updateAllRoomsUuid',
         'page callback'     =>  'updateAllRoomsUuid',
