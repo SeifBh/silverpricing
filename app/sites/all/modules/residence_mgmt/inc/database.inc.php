@@ -480,6 +480,7 @@ if('elle même'){// RANKED RESIDENCE
         $closests=trim($x[0]['list'],',');
         if(!$closests){
             \Alptech\Wip\fun::dbm('missing zgeo for:'.$residenceNid,'zgeo');
+            return [];
         }else{
 
 
@@ -1298,7 +1299,7 @@ function getResidencesByRadius( $residenceNid, $radius = 5) {
 
 }
 
-function getClosests($residenceNid){
+function getClosests($residenceNid,$field='list'){
     $x=Alptech\Wip\fun::sql("select list from z_geo where rid=".$residenceNid);#
     return trim($x[0]['list'],',');
     #return explode(',',trim($x[0]['list'],','));
@@ -1353,7 +1354,8 @@ if (!$statuses) {
 
 $clo1 = array_slice($clo, 0, $limit);#anyways, ordinary love, mais trimme
 if(!$clo1){
-    Alptech\Wip\fun::dbm($residenceNid,'noClosestPoints');
+    Alptech\Wip\fun::dbm($residenceNid,'noClosestPoints');#
+    return [];
     $err=1;
 }
 asort($r2dist);

@@ -144,7 +144,7 @@ foreach($id2latlon as $kId=>$latlon){
         $s='update z_geo set upd='.$now.',jeu="'.$jeubase.'",clo10=",'.implode(',',$clo10).',",clo20=",'.implode(',',$clo20).',",list="'.$ilist.'",closest=\''.json_encode($closests[$kId]).'\' where rid='.$kId;#values('.$kId.',",'.implode(',',$clo10).',",",'.implode(',',
         #$ok=fun::sql($s);if(!$ok){$err=1;}#si cardinalités 0,1,2,3,4 à la suite alors array
     }else{#delayed, atomic opeations
-        $s='insert into z_geo (rid,clo10,clo20,list,closest,upd,jeu)values('.$kId.',",'.implode(',',$clo10).',",",'.implode(',',$clo20).',"'.$ilist.'","'.json_encode($closests[$kId]).'",'.$now.',"'.$jeubase.'")';
+        $s='insert into z_geo (rid,clo10,clo20,list,closest,upd,jeu)values('.$kId.',",'.implode(',',$clo10).',",",'.implode(',',$clo20).',"'.$ilist.'",\''.json_encode($closests[$kId]).'\','.$now.',"'.$jeubase.'")';
         #$ok=fun::sql($s);if(!$ok){$err=1;}
     }
     $_inserts[]=$s;
