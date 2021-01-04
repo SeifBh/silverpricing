@@ -1004,9 +1004,9 @@ class fun /* extends base */
     }
 
 #fun::sql(['sql'=>'request','s'=>compact('h,u,p,db,names']);
-    static function sql($sql)
+    static function sql($sql,$conf='mysql')
     {
-        $s = fun::getConf('mysql');
+        $s = fun::getConf($conf);
         $names = $s['names'];
         if (is_array($sql)) {
             extract($sql);

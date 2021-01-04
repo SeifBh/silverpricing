@@ -1,5 +1,6 @@
 <?php
-
+#??? Who launches this ?
+die(__FILE__);
 include __DIR__ . "/data_config.php";
 
 require_once DRUPAL_ROOT . '/includes/bootstrap.inc';

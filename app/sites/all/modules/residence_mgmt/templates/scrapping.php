@@ -60,7 +60,7 @@ function residence_mgmt_page_scrapping($departmentNumber = null) {
 
 function _data2object($_c, $currentUrl = null, $residence = null)
 {
-    if(!$residence) $residence = new StdClass();#noFinesset
+    if(!$residence) $residence = new StdClass();
     if($currentUrl)$residence->urlSource = $currentUrl;
     $residence->modificationDate = date('YmdHis',strtotime($_c['updatedAt']));
     $residence->title = $_c['title'];#$title->getNode()->nodeValue;
@@ -129,7 +129,7 @@ function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForc
     $btime=$starts=time();
 /* Attention : ce ne sont pas toutes des Ehpad .. */
     $ch2date=$res2date=$__inserts=$__updates=$chambreIdtoResId=$resFit2Id=$ch2date=$res2date=$notModified=$fin2rid=$tarifsModifies=$c2r=[];$geomodif=$newResidences=0;
-    $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';#finess:argv2, noFinesset/010001246
+    $url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/';#finess:argv2,/010001246
     #$url='https://www.pour-les-personnes-agees.gouv.fr/api/v1/establishment/010001246';
     if(!$_c){
         $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
@@ -148,7 +148,7 @@ function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForc
     unset($_a);
     $_mem[__line__]=memory_get_usage(1);
     foreach($_c as $k=>&$t){
-        $finesses[]=ltrim($t['noFinesset']);
+        $finesses[]=$t['noFinesset'];
     }
     $finesses=array_unique($finesses);
 

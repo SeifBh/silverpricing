@@ -8,7 +8,6 @@ php74 ~/home/ehpad/app/z/geo.php reindex
 ssh ubuntu@ehpad.silverpricing.fr
 php7.1 /home/ubuntu/SilverPricing/public_html/app.silverpricing.fr/z/geo.php reindex
 
-
 8122 having total found 1637712 with 201.63900517114
 8123 insertions
 processed in :3105 secondsArray
@@ -25,7 +24,6 @@ require_once'../autoload.php';
 #use Alptech\Wip\fun as fun;
 $a1=$now=time();
 echo "\nmaxFound:$maxFound,maxKmSearch:$maxKmSearch";
-
 
 /*
 phpx ~/home/ehpad/app/z/geo.php
@@ -131,8 +129,8 @@ foreach($id2latlon as $kId=>$latlon){
             #if(count($list)>=20)break 2;
         }
     }
-    $clo10=array_slice($list,0,10);
     $clo20=array_slice($list,0,20);
+    $clo10=array_slice($list,0,10);
     $a=1;
 
     $ilist=','.implode(',',$list).',';
@@ -142,10 +140,10 @@ foreach($id2latlon as $kId=>$latlon){
             Continue;#dont need to update a single thing !
         }
         $s='update z_geo set upd='.$now.',jeu="'.$jeubase.'",clo10=",'.implode(',',$clo10).',",clo20=",'.implode(',',$clo20).',",list="'.$ilist.'",closest=\''.json_encode($closests[$kId]).'\' where rid='.$kId;#values('.$kId.',",'.implode(',',$clo10).',",",'.implode(',',
-        #$ok=fun::sql($s);if(!$ok){$err=1;}#si cardinalités 0,1,2,3,4 à la suite alors array
+        $ok=fun::sql($s);if(!$ok){$err=1;}#si cardinalités 0,1,2,3,4 à la suite alors array
     }else{#delayed, atomic opeations
-        $s='insert into z_geo (rid,clo10,clo20,list,closest,upd,jeu)values('.$kId.',",'.implode(',',$clo10).',",",'.implode(',',$clo20).',"'.$ilist.'",\''.json_encode($closests[$kId]).'\','.$now.',"'.$jeubase.'")';
-        #$ok=fun::sql($s);if(!$ok){$err=1;}
+        $s='insert into z_geo (rid,clo10,clo20,list,closest,upd,jeu)values('.$kId.',",'.implode(',',$clo10).',",",'.implode(',',$clo20).'","'.$ilist.'",\''.json_encode($closests[$kId]).'\','.$now.',"'.$jeubase.'")';
+        $ok=fun::sql($s);if(!$ok){$err=1;}
     }
     $_inserts[]=$s;
 }
@@ -159,6 +157,7 @@ $ratio=$cfound/count($closests);
 $_mem=[__line__=>memory_get_usage(1)];
 
 $i=0;
+if(0){
 foreach($_inserts as $insert){
     $ok=fun::sql($insert);#si cardinalités 0,1,2,3,4 à la suite alors array
     if(!$ok){
@@ -166,7 +165,7 @@ foreach($_inserts as $insert){
     }
     $i++;
 }
-
+}
 echo"\n".count($closests)." having total found $cfound with $ratio\n".count($_inserts)." insertions
 \nprocessed in :".($a2-$a1).' seconds';
 print_r($_mem);
