@@ -1,3 +1,4 @@
+<div class="departement">
 <h3 class="mg-b-0 tx-spacing--1 text-uppercase"><?php echo $departement->name; ?></h3>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb breadcrumb-style1 mg-b-10">
@@ -290,3 +291,4 @@
     </div>
 </section>
 <?php endif; ?>
+</div>

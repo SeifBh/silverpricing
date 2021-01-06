@@ -601,16 +601,20 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
 
     <?php
     if( residence_mgmt_user_plan_has_access('PAGE_DEPARTEMENT_SECTION_RECHERCHE') ):
+#todo:définition dynamique des minimum / maximums
     ?>
 var popTot=<?=$totalPopulation?>,nbMaisonTot=<?=$statistique_globale['Nbre de maisons']?>,meslits=<?=$mesLits?>,nbLits=<?=$capaciteDepartement->nombre_lits?>,ratio=meslits/nbLits,mesRes=Math.round(ratio*100,2)<?php #echo round( 100 - (() * 100) , 2); ?>;
 nbMaisonSurPop=<?php echo round( (($statistique_globale['Nbre de maisons'] / $totalPopulation) * 100) , 2); ?>;//0.17
 pressionlits=<?php echo round( (( $capaciteDepartement->nombre_lits / $totalPopulation ) * 100) , 2 ); ?>;
 pressionlitsMin=3;//7.86 sur les bouches du Rhone
 pressionlitsMax=20;//Cantal
+if(pressionlits>pressionlitsMax)pressionlitsMax=pressionlits;
 
-console.log({meslits,nbLits,ratio,mesRes});
+prespopmin=0;prespopmax=1;if(nbMaisonSurPop>prespopmax)prespopmax=nbMaisonSurPop;
 
-    cl('mesRes',mesRes);cl('nbMaisonSurPop',nbMaisonSurPop);cl('pressionlits',pressionlits);
+cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressionlits,pressionlitsMin,pressionlitsMax});
+
+//cl('mesRes',mesRes);cl('nbMaisonSurPop',nbMaisonSurPop);cl('pressionlits',pressionlits);
     // REQUEST FORM
 
     $('#statut').select2({placeholder: 'Statut', maximumSelectionLength: 3});
@@ -660,22 +664,20 @@ console.log({meslits,nbLits,ratio,mesRes});
 
     var pressionConcurrentielle = new JustGage({
     id: "pression_concurrentielle",
-    value: mesRes,
-    min: 0,
-    max: 100,
+    value: mesRes, min: 0, max: 100,
     levelColors: ['#a7d500', '#e4cb00', '#f90d00'],
-    hideValue: true,
-    hideMinMax: true,
-    relativeGaugeSize: true
+    hideValue: false, hideMinMax: false, relativeGaugeSize: true
+        //,label: "%",labelFontSize: "16px"
+        ,title:"%",titleMinFontSize: 20,titlePosition: "below"
     });
 
     var pressionConcurrentielle2 = new JustGage({
     id: "pression_concurrentielle_2",
-    value: nbMaisonSurPop, min: 0, max: 100,
+    value: nbMaisonSurPop, min: prespopmin, max: prespopmax,
     levelColors: ['#a7d500', '#e4cb00', '#f90d00'],
-    hideValue: true,
-    hideMinMax: true,
-    relativeGaugeSize: true
+    hideValue: false,hideMinMax: false, relativeGaugeSize: true
+        //,label: "%",labelFontSize: "16px"
+        ,title:"%",titleMinFontSize: 20,titlePosition: "below"
     });
 
     // Pression lits par +75 ans
@@ -683,9 +685,9 @@ console.log({meslits,nbLits,ratio,mesRes});
     var pressionLits = new JustGage({
         id: "pression_lits", value: pressionlits, min: pressionlitsMin, max: pressionlitsMax,
         levelColors: ['#a7d500', '#e4cb00', '#f90d00'],
-        hideValue: true,
-        hideMinMax: true,
-        relativeGaugeSize: true
+        hideValue: false, hideMinMax: false, relativeGaugeSize: true
+        ,title:"%",titleMinFontSize: 20,titlePosition: "below"
+        //, label: "%",labelFontSize: "16px"
     });
 
 
