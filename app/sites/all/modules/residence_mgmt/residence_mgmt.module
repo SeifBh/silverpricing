@@ -16,21 +16,37 @@ require_once __DIR__ . "/inc/user.inc.php";
 require_once __DIR__ . "/inc/routing.inc.php";
 require_once __DIR__.'/../../../../autoload.php';#-> maps to composer
 
+#http://ehpad.silverpricing.fr/admin/config/development/performance
+#http://ehpad.silverpricing.fr/ccAll?m=83
+function a(){die(__FILE__.__LINE__);}
+function ccAll(){
+    if(!isset($_GET['m']) or $_GET['m']!=83)die('??');
+    drupal_flush_all_caches();
+    #$x=cache_clear_all();print_r($x);
+    die('caches cleared');
+}
 
 function hasrole($a=null){
     $i=array_intersect($GLOBALS['user']->roles,$a);
     if($i)return 1;
     return;
 }
+#http://ehpad.silverpricing.fr/listResidenceLinks?se=NA
 #/listResidenceLinks
 function listResidenceLinks($a=null){
+    $now=time();
     $md5=md5($_SERVER['REQUEST_URI']);#+ the query string (nah)
     $f=__FILE__.'-'.$md5.'-lrc.php';
-    if(is_file($f) and filemtime($f)>time()-3600){$content=file_get_contents($f);}
+
+    $r2lock=[];
+    $x=Alptech\Wip\fun::sql("select v,k2 from z_rkv where k='chambreTarifMailLock'");
+    foreach($x as $t){$r2lock[$t['k2']]=$t['v'];}
+
+    if(is_file($f) and filemtime($f)>$now-3600){$content=file_get_contents($f);}
     else{
         $cond="left join field_data_field_tarif_chambre_simple e on e.entity_id=a.entity_id";
         if(isset($_GET['se']))$cond="inner join field_data_field_tarif_chambre_simple e on e.entity_id=a.entity_id and field_tarif_chambre_simple_value='NA'";
-    $x = Alptech\Wip\fun::sql("select a.entity_id as cid,a.field_residence_target_id as rid,b.field_email_value as email,c.field_uuid_value as uuid,d.changed,e.field_tarif_chambre_simple_value as csTarif, f.field_location_locality as city,f.field_location_postal_code as cp,d.title,g.field_finess_value as finess
+    $x = Alptech\Wip\fun::sql("select a.entity_id as cid,a.field_residence_target_id as rid,b.field_email_value as email,c.field_uuid_value as uuid,d.changed,e.field_tarif_chambre_simple_value as csTarif, f.field_location_locality as city,f.field_location_postal_code as cp,d.title,g.field_finess_value as finess,z.v as mailLockTime
      from field_data_field_residence a
       $cond
       inner join field_data_field_email b on b.entity_id=a.field_residence_target_id -- and b.field_email_value is not null and b.field_email_value is not empty
@@ -38,6 +54,7 @@ function listResidenceLinks($a=null){
       inner join node d on d.nid=a.entity_id
       inner join field_data_field_finess g on g.entity_id=a.field_residence_target_id      
       left join field_data_field_location f on f.entity_id=a.field_residence_target_id
+      left join z_rkv z on z.k='chambreTarifMailLock' and z.k2=a.field_residence_target_id
        where a.bundle='chambre'");#and field_residence_target_id in(" . implode(',
 # ',$totalResidences) . ")
 #<th>cid</th>
@@ -47,9 +64,13 @@ function listResidenceLinks($a=null){
         $t['dep']=substr($t['cp'],0,2);
         $t['date']=date('Y/m/d H:i:s',$t['changed']);
         $mail=str_replace("'",'',$t['email']);$title=str_replace("'",'',$t['title']);
-        $but="<button onclick=\"_async('$mail','$title','/er/$t[uuid]');\">Mail</button>";
+        $but="<button onclick=\"sendMailUpdateChambreByUUid($t[rid],'$mail','$title','/er/$t[uuid]',this);\">Mail</button>";
         if(!$t['email'])$but='';#<td><a target=chambre href='/edit-residence/$t[rid]'>$t[cid]</td>
-        $content.="<tr><td><a target=redisence href='/residence/$t[rid]'>$t[rid]</a></td><td>$t[finess]</td><td>$t[dep]</td><td>$t[city]</td><td>$t[title]</td><td>$t[email]</td><td>$t[csTarif] </td><td>$t[date]</td><td><a target=er href='/er/$t[uuid]'>edit</a></td><td>$but</td></tr>";#->adds a time lock on cid -> grayed out for 1 month
+        elseif($t['mailLockTime']>$now-86000){#locked through current day
+            $but='sent '.date('Y/m/d H:i:s',$t['mailLockTime']);
+        }
+
+        $content.="<tr><td><a target=redisence href='/residence/$t[rid]'>$t[rid]</a></td><td>$t[finess]</td><td>$t[dep]</td><td>$t[city]</td><td>$t[title]</td><td>$t[email]</td><td>$t[csTarif] </td><td>$t[date]</td><td><a target=er href='/er/$t[uuid]'>edit</a></td><td id='b$t[rid]'>$but</td></tr>";#->adds a time lock on cid -> grayed out for 1 month
         #$r2c[$t['rid']]=$t['cid'];
         #echo"<li><button></button>";
     }
@@ -66,6 +87,9 @@ ob_start();?><script>var rgm='<?php echo RESIDENCE_MGMT_URI;?>';defer(function()
 <?php $content.=ob_get_clean();
         file_put_contents($f,$content);
     }
+
+    $content.="<script>var now=$now,expired=now-86000,r2lock=".json_encode($r2lock).";for(var i in r2lock){v=r2lock[i];if(v>expired){x=dqs('#b'+i);if(x.length){var v2,z=new Date();z.setTime(v*1000);v2=z.toLocaleString();cl(x,z,v2);x[0].innerHTML='mail envoyé '+v2;}}}</script>";
+
     #$ch2res=array_flip($r2c);
     #
     require_once __DIR__ . "/templates/layouts/default.php";

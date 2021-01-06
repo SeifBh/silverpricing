@@ -7,10 +7,13 @@
 function residence_mgmt_menu() {$items = array();
 /**  } START BEN {*****/
 #drushy cc all
+     $items['b'] = array('title' => 'a', 'page callback' => 'a', 'access callback' => true,);
+     $items['ccAll'] = array('title' => 'ccAll', 'page callback' => 'ccAll', 'access callback' => true,);
+
     $items['listResidenceLinks'] = array(#uuid#/%
         'title'             =>  'Lien édition prix',
         'page callback'     =>  'listResidenceLinks',
-        'access callback'   => 'hasrole', 'access arguments'  => [['administrator']],
+        'access callback'   => 'hasrole', 'access arguments'  => [['administrator','prospecteur']],
         #'access callback'   => 'fastAccess','access arguments' => array('PAGE_MES_RESIDENCES'),
     );
 
@@ -33,7 +36,7 @@ function residence_mgmt_menu() {$items = array();
         'page callback'     =>  'capretraite',
         'access callback'   => 'fastAccess',
     );#drushy cc all
-
+#public accès
     $items['er/%'] = array(#uuid
         'title'             =>  'Modifier la résidence',
         'page callback'     =>  'editChambreByUuid',

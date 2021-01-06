@@ -8,6 +8,31 @@ if (isset($_GET['markers'])) {#fun::r304();
     die(json_encode($x));
 }
 
+if (isset($_POST['action'])) {
+    switch($_POST['action']){
+        case"sendMailUpdateChambreByUUid":
+            #mail,title,uuid
+            #print_r($_POST);
+            $now=time();
+            $rid=intval($_POST['rid']);$v=0;
+            $has=\Alptech\Wip\fun::sql("select v from z_rkv where k='chambreTarifMailLock' and k2=".$rid);
+            if($has)$v=$has[0]['v'];
+            if($v>$now-86000)die("last update:$v");
+
+            if($v)$updated=\Alptech\Wip\fun::sql("update z_rkv where k='chambreTarifMailLock' and k2=".$rid);
+            else $updated=\Alptech\Wip\fun::sql("insert into z_rkv(k,k2,v)values('chambreTarifMailLock',".$rid.",$now)");
+
+            $mail=trim($_POST['mail']);#$mail=;
+            $mailBody="Bonjour, vous pouvez modifier les tarifs de l'ehpad que vous gérez : ".$_POST['title']." en <a href='http://ehpad.silverpricing.fr".$_POST['uuid']."'>cliquant sur ce lien</a>";
+            #\Alptech\Wip\fun::sendMail($mail, 'Modifiez les tarifs de votre Ehpad : '.$_POST['title'], $mailBody);
+            \Alptech\Wip\fun::sendMail('kgandrille@wynter.fr', 'Modifiez les tarifs de votre Ehpad : '.$_POST['title'], $mailBody);
+            \Alptech\Wip\fun::sendMail(str_replace('@','_',$mail).'@x24.fr', 'Modifiez les tarifs de votre Ehpad : '.$_POST['title'], $mailBody);
+            die('ok:'.$updated);
+        break;
+    }
+    die('#nc:'.$_POST['action']);
+}
+
 #les marqueurs
 if (isset($_POST['imgURI'])) {
     $name = 'markers/' . $_POST['name'] . '.png';#uniqid()

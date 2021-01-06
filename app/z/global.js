@@ -227,4 +227,11 @@ Array.prototype.remove = function() {
     return this;
 };
 
-
+var cd=new Date();
+function sendMailUpdateChambreByUUid(rid,mail,title,uuid,el){
+    $.ajax({"url":"/z/ajax.php","method":"POST","data":{"action":"sendMailUpdateChambreByUUid","rid":rid,"mail":mail,"title":title,"uuid":uuid}}).done(function(e){
+        el.parentNode.innerHTML='mail envoyé : '+cd.toLocaleDateString();
+        //$(el).hide();
+        cl(e);
+    });
+}
