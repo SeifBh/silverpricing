@@ -56,7 +56,7 @@ if($images){?>
 
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-style1 mg-b-10">
-            <li class="breadcrumb-item"><a href="/departement/<?php echo $departement->tid; ?>"><?php echo $departement->name; ?></a></li>
+            <li class="breadcrumb-item"><a href="/departement/<?php echo $departement->tid; ?>-<?php echo str_replace(' ','',$departement->name); ?>"><?php echo $departement->name; ?></a></li>
             <li class="breadcrumb-item"><a href="#"><?php echo $residence->field_statut['und'][0]['value'] ?></a></li>
             <?php if( $groupe != null ): ?>
                 <li class="breadcrumb-item"><a href="/groupe/<?php echo $groupe->tid; ?>"><?php echo $groupe->name; ?></a></li>

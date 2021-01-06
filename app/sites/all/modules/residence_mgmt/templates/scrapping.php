@@ -287,7 +287,11 @@ if(isset($t['ehpadPrice'])){
     #$tarifs=['cs'=>[],'cst'=>[],'cd'=>[],'cdt'=>[],'gir12'=>[],'gir34'=>[],'gir56'=>[]];
 }
 // $residence->field_groupe[$residence->language][0]['value'] = "";
-$residence->field_location['und'][0]['locality'] = $t['coordinates']['city'];
+$arrondissement='';
+if(substr($t['coordinates']['postcode'],0,3)=='750'){
+    $arrondissement=' '.substr($t['coordinates']['postcode'],-2);
+}
+$residence->field_location['und'][0]['locality'] = $t['coordinates']['city'].$arrondissement;
 $residence->field_location['und'][0]['postal_code'] = $t['coordinates']['postcode'];
 if($t['coordinates']['latitude'] != $residence->field_latitude['und'][0]['value']){$geomodif++;$residence->field_latitude['und'][0]['value'] =  $t['coordinates']['latitude'];}
 if($t['coordinates']['longitude'] != $residence->field_longitude['und'][0]['value']){$geomodif++;$residence->field_longitude['und'][0]['value'] =  $t['coordinates']['longitude'];}

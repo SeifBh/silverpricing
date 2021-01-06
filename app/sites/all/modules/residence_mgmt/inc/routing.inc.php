@@ -1,3 +1,4 @@
+
 <?php
 
 /**
@@ -8,6 +9,7 @@ function residence_mgmt_menu() {$items = array();
 /**  } START BEN {*****/
 #drushy cc all
      $items['b'] = array('title' => 'a', 'page callback' => 'a', 'access callback' => true,);
+     $items['depStats'] = array('title' => 'depStats', 'page callback' => 'depStats', 'access callback'   => true/* 'hasrole'*/, 'access arguments'  => [['administrator']],);
      $items['ccAll'] = array('title' => 'ccAll', 'page callback' => 'ccAll', 'access callback' => true,);
 
     $items['listResidenceLinks'] = array(#uuid#/%

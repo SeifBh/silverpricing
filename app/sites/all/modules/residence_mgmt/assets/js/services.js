@@ -15,7 +15,7 @@
 var BASE_API_URL = "http://api.silverpricing.fr";
 
 function getDepartmentDetail( currentDepartment ) {
-
+    cl(currentDepartment);
     var urlRequest = "/ajax/departement-info/" + currentDepartment.tid;
 
     $.ajax(urlRequest,
@@ -30,7 +30,7 @@ function getDepartmentDetail( currentDepartment ) {
 
             departmentInfo.querySelector('.departement-name').innerHTML = departementLink;
             departmentInfo.querySelector('.department-link').innerHTML =  "<i class='fas fa-link'></i> " + currentDepartment.name;
-            departmentInfo.querySelector('.department-link').href= window.location.protocol + "//" + window.location.host + "/departement/" + currentDepartment.tid;
+            departmentInfo.querySelector('.department-link').href= window.location.protocol + "//" + window.location.host + "/departement/" + currentDepartment.tid+'-'+currentDepartment.name.replace(/ /gi,'');
             departmentInfo.querySelector('.dep-nbre-maisons').textContent = depInfo["Nbre de maisons"];
             departmentInfo.querySelector('.dep-tarif-min').textContent = depInfo["Tarif plus bas"] + " €";
             departmentInfo.querySelector('.dep-tarif-max').textContent = depInfo["Tarif plus haut"] + " €";

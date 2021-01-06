@@ -667,7 +667,7 @@ function findResidencesByUserAccess($groupes, $residenceIds, $departement = null
     // $query->addExpression('nombre_cs_entre_de_gamme.field_nombre_cs_entre_de_gamme_value + nombre_cs_standard.field_nombre_cs_standard_value + nombre_cs_superieur.field_nombre_cs_superieur_value + nombre_cs_luxe.field_nombre_cs_luxe_value + nombre_cs_alzheimer.field_nombre_cs_alzheimer_value + nombre_cs_aide_sociale.field_nombre_cs_aide_sociale_value + nombre_cd_standard.field_nombre_cd_standard_value * 2 + nombre_cd_aide_sociale.field_nombre_cd_aide_sociale_value * 2', 'nombre_lits');
 
     $query->where("n.nid IN (:residenceIds) or gr.field_groupe_tid IN (:groupes)", array( ':residenceIds' => $residenceIds, ':groupes' => $groupes ));
-
+    #$_ENV['stop']=__line__.__FILE__;
     $residences = fetchAll($query);
 
     return $residences;

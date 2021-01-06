@@ -126,7 +126,7 @@
                   <tbody>
                       <?php foreach( $departements as $departement ):?>
                           <tr>
-                              <td><a href="<?php echo "/departement/" . $departement->tid ?>"><?php echo $departement->name; ?></a></td>
+                              <td><a href="<?php echo "/departement/" . $departement->tid.'-'.str_replace(' ','',$departement->name); ?>"><?php echo $departement->name; ?></a></td>
                               <td><?php echo $departement->tarif_min; ?> €</td>
                               <td><?php echo $departement->tarif_max; ?> €</td>
                               <td><?php echo $departement->tarif_moyen; ?> €</td>

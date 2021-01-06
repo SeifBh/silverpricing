@@ -48,10 +48,26 @@ $f='z_old2new.json';if(0 and is_file($f)){
     $old2new=json_decode(file_get_contents($f),1);
     $a=1;
 }else{
+/*
+select field_location_postal_code,right(field_location_postal_code,5) from field_data_field_location where length(field_location_postal_code)>5
+select field_finess_value,right(field_location_postal_code,9) from field_data_field_finess where length(field_finess_value)>9
+ */
     $old2new=$finess2id=[];
     $x=Alptech\Wip\fun::sql("select entity_id as k,field_finess_value as v from field_data_field_finess",$h);
     foreach($x as $t){$finess2id[$t['v']]=$t['k'];}
-    foreach($x as $t){if(isset($finess2id['0'.$t['v']])){$old2new[$t['k']]=$finess2id['0'.$t['v']];}}
+    foreach($x as $t){
+        if(strlen($t['v'])>9){#rectifier l'ancienne et affecter valeurs nouvelle
+            $last9digits=substr($t['v'],-9);
+            $fin2new[$t['v']]=$last9digits;
+            if(isset($finess2id[$last9digits])){
+                $old2new[$t['k']]=$finess2id[$last9digits];
+                continue;
+            }
+        }
+        if(strlen($t['v'])<9 and isset($finess2id['0'.$t['v']])){
+            $old2new[$t['k']]=$finess2id['0'.$t['v']];
+        }
+    }
     file_put_contents($f,json_encode($old2new));#
 }
 

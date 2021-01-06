@@ -606,11 +606,12 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
 var popTot=<?=$totalPopulation?>,nbMaisonTot=<?=$statistique_globale['Nbre de maisons']?>,meslits=<?=$mesLits?>,nbLits=<?=$capaciteDepartement->nombre_lits?>,ratio=meslits/nbLits,mesRes=Math.round(ratio*100,2)<?php #echo round( 100 - (() * 100) , 2); ?>;
 nbMaisonSurPop=<?php echo round( (($statistique_globale['Nbre de maisons'] / $totalPopulation) * 100) , 2); ?>;//0.17
 pressionlits=<?php echo round( (( $capaciteDepartement->nombre_lits / $totalPopulation ) * 100) , 2 ); ?>;
-pressionlitsMin=3;//7.86 sur les bouches du Rhone
-pressionlitsMax=20;//Cantal
-if(pressionlits>pressionlitsMax)pressionlitsMax=pressionlits;
 
-prespopmin=0;prespopmax=1;if(nbMaisonSurPop>prespopmax)prespopmax=nbMaisonSurPop;
+pressionlitsMin=3;pressionlitsMax=17;//*100
+prespopmin=0.04;prespopmax=0.3;
+
+if(pressionlits>pressionlitsMax)pressionlitsMax=pressionlits;
+if(nbMaisonSurPop>prespopmax)prespopmax=nbMaisonSurPop;
 
 cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressionlits,pressionlitsMin,pressionlitsMax});
 
@@ -650,13 +651,9 @@ cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressio
         );
 
     <?php endforeach; ?>
-
     updateCenter(requestHereMap, requestMarkers[0]);
-
     addFullScreenUIControl(requestHereMap);
-
     addMarkersAndSetViewBounds(requestHereMap, requestMarkers);
-
     <?php endif ?>
 
     // GAUGE CHART
@@ -664,9 +661,9 @@ cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressio
 
     var pressionConcurrentielle = new JustGage({
     id: "pression_concurrentielle",
-    value: mesRes, min: 0, max: 100,
+    value: ratio*100, min: 0, max: 100,
     levelColors: ['#a7d500', '#e4cb00', '#f90d00'],
-    hideValue: false, hideMinMax: false, relativeGaugeSize: true
+    hideValue: false, hideMinMax: false, relativeGaugeSize: true,decimals : 2
         //,label: "%",labelFontSize: "16px"
         ,title:"%",titleMinFontSize: 20,titlePosition: "below"
     });
@@ -675,7 +672,7 @@ cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressio
     id: "pression_concurrentielle_2",
     value: nbMaisonSurPop, min: prespopmin, max: prespopmax,
     levelColors: ['#a7d500', '#e4cb00', '#f90d00'],
-    hideValue: false,hideMinMax: false, relativeGaugeSize: true
+    hideValue: false,hideMinMax: false, relativeGaugeSize: true,decimals : 2
         //,label: "%",labelFontSize: "16px"
         ,title:"%",titleMinFontSize: 20,titlePosition: "below"
     });
@@ -685,7 +682,7 @@ cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressio
     var pressionLits = new JustGage({
         id: "pression_lits", value: pressionlits, min: pressionlitsMin, max: pressionlitsMax,
         levelColors: ['#a7d500', '#e4cb00', '#f90d00'],
-        hideValue: false, hideMinMax: false, relativeGaugeSize: true
+        hideValue: false, hideMinMax: false, relativeGaugeSize: true,decimals : 2
         ,title:"%",titleMinFontSize: 20,titlePosition: "below"
         //, label: "%",labelFontSize: "16px"
     });

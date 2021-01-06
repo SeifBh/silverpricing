@@ -17,13 +17,34 @@ require_once __DIR__ . "/inc/routing.inc.php";
 require_once __DIR__.'/../../../../autoload.php';#-> maps to composer
 
 #http://ehpad.silverpricing.fr/admin/config/development/performance
-#http://ehpad.silverpricing.fr/ccAll?m=83
+#cuj http://ehpad.silverpricing.fr/ccAll?m=83
+#cuj https://ehpad.home/ccAll?m=83;cuj https://ehpad.home/depStats a {} 1;
 function a(){die(__FILE__.__LINE__);}
 function ccAll(){
     if(!isset($_GET['m']) or $_GET['m']!=83)die('??');
     drupal_flush_all_caches();
     #$x=cache_clear_all();print_r($x);
     die('caches cleared');
+}
+
+function depStats(){
+    if(!DEV)die;
+    $stats=[];$maxLitPop=$maxMsurPop=0;$minLitPop=$minMsurPop=99;
+    $x=Alptech\Wip\fun::sql("select distinct(field_departement_tid)as v from field_data_field_departement");
+    foreach($x as $t){
+        $y=residence_mgmt_residences($t['v'],1);
+        if($y['nbMaisonSurPop']>$maxMsurPop)$maxMsurPop=$y['nbMaisonSurPop'];
+        if($y['nbMaisonSurPop']<$minMsurPop)$minMsurPop=$y['nbMaisonSurPop'];
+
+        $litsParPop=$y['litsTotaux']*100/$y['totalPopulation'];
+        if($litsParPop>$maxLitPop)$maxLitPop=$litsParPop;
+        if($litsParPop<$minLitPop)$minLitPop=$litsParPop;
+
+        $stats[$t['v']]=$y;
+    }
+    file_put_contents(__FILE__.'-depstats.json',json_encode($stats));
+    echo'<pre>';print_r($stats);
+    $a=1;die;
 }
 
 function hasrole($a=null){
@@ -58,7 +79,7 @@ function listResidenceLinks($a=null){
        where a.bundle='chambre'");#and field_residence_target_id in(" . implode(',
 # ',$totalResidences) . ")
 #<th>cid</th>
-    $content="<a href='?se=NA'>Lister toutes les ehpads sans tarifs</a> - <a href='/listResidenceLinks'>Lister toutes les ehpads</a><span class=hidethen> - Veuillez patienter durant le chargement de toutes les données (".count($x)." résultats .. ) </span>
+    $content="<a href='?se=NA'>Lister tous les ehpads sans tarifs</a> - <a href='/listResidenceLinks'>Lister tous les ehpads</a><span class=hidethen> - Veuillez patienter durant le chargement de toutes les données (".count($x)." résultats .. ) </span>
     <table class='res2chlist tw100' border=1><thead><tr><th>rid</th><th>finess</th><th>cp</th><th>city</th><th>title</th><th>email</th><th>tarif cs</th><th>changed</th><th>link</th><th>action</th></tr></thead><tbody>";
     foreach($x as $t){
         $t['dep']=substr($t['cp'],0,2);
@@ -910,41 +931,43 @@ function residence_mgmt_departements() {
 
 }
 
-function residence_mgmt_residences($departementId = null) {
-
-    $currentMenu = "residences";
-
-    $departementChartData = loadDepartementChartData($departementId);
-    $dataMarkers = getLatLngResidencesByDepartment($departementId);
-
-    /* GLOBAL */
-    $departement = taxonomy_term_load($departementId);
+function residence_mgmt_residences($departementId = null,$ret=0) {
+    $departementId=explode('-',$departementId);
+    $departementId=reset($departementId);
     $statistique_globale = get_statistique_globale($departementId);
-
     $residences = findResidence($departementId, $_POST);
     $requete_statistique = get_requete_statistique($residences);
+
+    $currentMenu = "residences";
+    $departementChartData = loadDepartementChartData($departementId);
+    $dataMarkers = getLatLngResidencesByDepartment($departementId);
+/* GLOBAL */
+    $departement = taxonomy_term_load($departementId);
     $statistiques = get_data_bar_chart($departementId, $_POST);
 
-    /* NOMBRE DE LITS */
+/* NOMBRE DE LITS */
     $query = db_select('node', 'n');
     $query->condition('n.type', "residence", '=');
     $query->join('field_data_field_statut', 's', 's.entity_id = n.nid', array());
     $query->join('field_data_field_departement', 'd', 'd.entity_id = n.nid and d.field_departement_tid = :departementId', array( ':departementId' => $departementId ));
+#inner join field_data_field_groupe grp on grp.field_groupe_tid<>102 -- not default
+#$query->join('field_data_field_groupe', 'grp', 'grp.field_groupe_tid<>102', array());#problem --> gets to much
     $query->join('taxonomy_term_data', 't', 't.tid = d.field_departement_tid', array());
     $query->leftjoin('field_data_field_capacite', 'c', 'c.entity_id = n.nid', array());
     $query->groupBy('d.field_departement_tid');
     $query->addExpression('SUM(c.field_capacite_value)', 'nombre_lits');
-    $capaciteDepartement = $query->execute()->fetch();
+    $capaciteDepartement = $query->execute()->fetch();#groupe default
 
     $query = db_select('node', 'n');
     $query->condition('n.type', "residence", '=');
     $query->leftjoin('field_data_field_capacite', 'c', 'c.entity_id = n.nid', array());
     $query->addExpression('SUM(c.field_capacite_value)', 'nombre_lits');
-    $capaciteTotale = $query->execute()->fetch();
+    $capaciteTotale = $query->execute()->fetch();#France globale
+#$x = Alptech\Wip\fun::sql("select sum(field_capacite_value)as v from field_data_field_capacite");$sommeFrance=$x[0]['v'];
 
-    // CUSTOM STATISTICS
+// CUSTOM STATISTICS
 
-    // POPULATION
+// POPULATION
     $numDepartment = substr($departement->name, 0, stripos($departement->name, " - "));
     $population = json_decode(getRequest( BASE_API_URL . "/api/populations/" . $numDepartment . "/2020"));
     $ages = array("75 à 79 ans","80 à 84 ans","85 à 89 ans","90 à 94 ans","95 ans et plus");
@@ -962,6 +985,12 @@ function residence_mgmt_residences($departementId = null) {
       $mesLits += (int) $maResidence->field_capacite_value;
     }
 
+    if($ret){
+        $litsTotaux=$capaciteDepartement->nombre_lits;
+        $nbMaisonSurPop=round((($statistique_globale['Nbre de maisons'] / $totalPopulation) * 100) ,2);
+        return compact('nbMaisonSurPop','statistique_globale','totalPopulation','litsTotaux','mesLits');
+    }
+
     /* CUSTOM */
     if( !empty($_POST) && residence_mgmt_has_enough_user_balance('DEPARTMENT_REQUEST') ) {
         $response = array( 'residences' => $residences, 'statistique_globale' => $statistique_globale, 'requete_statistique' => $requete_statistique );
@@ -970,7 +999,7 @@ function residence_mgmt_residences($departementId = null) {
 
     ob_start();
 
-    include_once __DIR__ . "/templates/residences.php";
+    include_once __DIR__ . "/templates/residences.php";#aka departement
 
     $content = ob_get_clean();
 
@@ -2042,13 +2071,8 @@ function getMesResidencesByDepartement( $departmentId ) {
 
     global $user;
     $currentMenu = "mes-residences";
-
-    $residences = array();
-
+    $groupes = $residenceIds = $residences = array();
     $account = user_load($user->uid);
-
-    $groupes = array();
-    $residenceIds = array();
 
     foreach($account->field_acces_groupes['und'] as $groupe) {
       $groupes[] = $groupe['target_id'];
@@ -2363,26 +2387,26 @@ function residence_mgmt_nearby_residences_updated( $SchedulingType ) {
 
 #todo:replace all ->execute()->fetchAll
 function fetchAllAssoc($query,$assoc){
-    if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);$res=$query->execute()->fetchAllAssoc($assoc);$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;interceptQuery($query,$res);
+    if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);$res=$query->execute()->fetchAllAssoc($assoc);$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;interceptQuery($_sql,$res);
     return $res;
 }
 function fetchAll($query){
-    if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);$res=$query->execute()->fetchAll();$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;interceptQuery($query,$res);
+    if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);$res=$query->execute()->fetchAll();$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;interceptQuery($_sql,$res);
     return $res;
 }
 
 function fetchObject($query){
     if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);
-    $res=$query->execute()->fetchObject();$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;interceptQuery($query,$res);
+    $res=$query->execute()->fetchObject();$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;interceptQuery($_sql,$res);
     return $res;
 }
 function interceptQuery($query,$res){
-    if(isset($_COOKIE['sql']) and preg_match('~'.$_COOKIE['sql'].'~i',$query)){
+    if($_ENV['stop'] or (isset($_COOKIE['sql']) and preg_match('~'.$_COOKIE['sql'].'~i',$query))){
         $a=1;
     }
 }
 
-function  resmgmt_database_interpolateQuery($query, $params,$objcontext=null)
+function resmgmt_database_interpolateQuery($query, $params,$objcontext=null)
 {
     #$this->intercepted=0;#
     $keys = array();
