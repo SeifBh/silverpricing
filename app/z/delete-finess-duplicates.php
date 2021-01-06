@@ -71,6 +71,8 @@ select field_finess_value,right(field_location_postal_code,9) from field_data_fi
     file_put_contents($f,json_encode($old2new));#
 }
 
+die('me revenir');
+
 if(!$new2old)die('no duplicates');
 
 $new2old=array_flip($old2new);$old=array_values($new2old);$new=array_values($old2new);

@@ -56,7 +56,7 @@ function hasrole($a=null){
 #/listResidenceLinks
 function listResidenceLinks($a=null){
     $now=time();
-    $md5=md5($_SERVER['REQUEST_URI']);#+ the query string (nah)
+    $md5=md5('a'.$_SERVER['REQUEST_URI']);#+ the query string (nah)
     $f=__FILE__.'-'.$md5.'-lrc.php';
 
     $r2lock=[];
@@ -67,18 +67,35 @@ function listResidenceLinks($a=null){
     else{
         $cond="left join field_data_field_tarif_chambre_simple e on e.entity_id=a.entity_id";
         if(isset($_GET['se']))$cond="inner join field_data_field_tarif_chambre_simple e on e.entity_id=a.entity_id and field_tarif_chambre_simple_value='NA'";
-    $x = Alptech\Wip\fun::sql("select a.entity_id as cid,a.field_residence_target_id as rid,b.field_email_value as email,c.field_uuid_value as uuid,d.changed,e.field_tarif_chambre_simple_value as csTarif, f.field_location_locality as city,f.field_location_postal_code as cp,d.title,g.field_finess_value as finess,z.v as mailLockTime
+    $x = Alptech\Wip\fun::sql("select a.entity_id as cid,a.field_residence_target_id as rid,b.field_email_value as email,c.field_uuid_value as uuid,d.changed,e.field_tarif_chambre_simple_value as csTarif, f.field_location_locality as city,f.field_location_postal_code as cp,d.title,g.field_finess_value as finess,z.v as mailLockTime,h1.name as groupe ,i.field_logo_fid as fieldLogo,j.field_gestionnaire_value as gestionnaire,k.field_statut_value as statut,l.field_site_value as website  
      from field_data_field_residence a
       $cond
       inner join field_data_field_email b on b.entity_id=a.field_residence_target_id -- and b.field_email_value is not null and b.field_email_value is not empty
       inner join field_data_field_uuid c on c.entity_id=a.entity_id
       inner join node d on d.nid=a.entity_id
-      inner join field_data_field_finess g on g.entity_id=a.field_residence_target_id      
+      inner join field_data_field_finess g on g.entity_id=a.field_residence_target_id
+      
       left join field_data_field_location f on f.entity_id=a.field_residence_target_id
+                
+      left join field_data_field_groupe h on h.entity_id=a.field_residence_target_id 
+         left join taxonomy_term_data h1 on h1.tid=h.field_groupe_tid
+      left join field_data_field_logo i on i.entity_id=a.field_residence_target_id
+        -- left join taxonomy_term_data i1 on i1.tid=i.field_logo_fid 
+        
+        left join field_data_field_gestionnaire j on j.entity_id=a.field_residence_target_id
+        left join field_data_field_statut k on k.entity_id=a.field_residence_target_id
+        left join field_data_field_site l on l.entity_id=a.field_residence_target_id              
+     
       left join z_rkv z on z.k='chambreTarifMailLock' and z.k2=a.field_residence_target_id
        where a.bundle='chambre'");#and field_residence_target_id in(" . implode(',
 # ',$totalResidences) . ")
 #<th>cid</th>
+/*
+ if( isset($t['fieldLogo']) ) {
+    echo theme('image', array('path' => file_create_url(file_load($t['fieldLogo'])->uri),'width' => 32
+    ));
+}
+ */
     $content="<a href='?se=NA'>Lister tous les ehpads sans tarifs</a> - <a href='/listResidenceLinks'>Lister tous les ehpads</a><span class=hidethen> - Veuillez patienter durant le chargement de toutes les données (".count($x)." résultats .. ) </span>
     <table class='res2chlist tw100' border=1><thead><tr><th>rid</th><th>finess</th><th>cp</th><th>city</th><th>title</th><th>email</th><th>tarif cs</th><th>changed</th><th>link</th><th>action</th></tr></thead><tbody>";
     foreach($x as $t){
