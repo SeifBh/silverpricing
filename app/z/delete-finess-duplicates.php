@@ -1,5 +1,5 @@
-<?php
-/*
+<?php /*
+php72 ~/home/ehpad/app/z/delete-finess-duplicates.php
  * => Lancer => enregister anciennes références
 Rectifier les anciens numéro, supprimer les nouveaux
 & codes postaux
@@ -8,7 +8,7 @@ Rectifier les anciens numéro, supprimer les nouveaux
  * 31701 a status=public,
 https://ehpad.home/z/delete-finess-duplicates.php
 x1=`php -r 'echo md5(json_encode([47236,32855]));'`;echo $x;#Par liste de notifiées
-php72 ~/home/ehpad/app/z/delete-finess-duplicates.php
+
 obtenir les variations les plus récentes de prix
 */
 $date=date('YmdHis');
@@ -54,6 +54,8 @@ $f='z_old2new.json';if(0 and is_file($f)){
     foreach($x as $t){if(isset($finess2id['0'.$t['v']])){$old2new[$t['k']]=$finess2id['0'.$t['v']];}}
     file_put_contents($f,json_encode($old2new));#
 }
+
+if(!$new2old)die('no duplicates');
 
 $new2old=array_flip($old2new);$old=array_values($new2old);$new=array_values($old2new);
 

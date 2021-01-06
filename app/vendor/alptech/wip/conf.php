@@ -3,7 +3,8 @@ namespace Alptech\Wip;
 return [
     'defaultHost'=>$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/',
     'host'=>$_SERVER['HTTP_HOST'],
-    'logCollectorUrl' => $_SERVER['REQUEST_SCHEME'].'://1.x24.fr/a/logCollector.php',#exposed path loading alptech
+    #'logCollectorUrl' => $_SERVER['REQUEST_SCHEME'].'://1.x24.fr/a/logCollector.php',#exposed path loading alptech
+    'logCollectorUrl' => 'http://3.x24.fr/a/logCollector.php',#exposed path loading alptech
     'logCollectorSecret'=>'secretBenSeed',
     'defaultSenderMail'=>'Silverpricing <admin@silverpricing.fr>',
 

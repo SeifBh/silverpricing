@@ -16,6 +16,61 @@ require_once __DIR__ . "/inc/user.inc.php";
 require_once __DIR__ . "/inc/routing.inc.php";
 require_once __DIR__.'/../../../../autoload.php';#-> maps to composer
 
+
+function hasrole($a=null){
+    $i=array_intersect($GLOBALS['user']->roles,$a);
+    if($i)return 1;
+    return;
+}
+#/listResidenceLinks
+function listResidenceLinks($a=null){
+    $md5=md5($_SERVER['REQUEST_URI']);#+ the query string (nah)
+    $f=__FILE__.'-'.$md5.'-lrc.php';
+    if(is_file($f) and filemtime($f)>time()-3600){$content=file_get_contents($f);}
+    else{
+        $cond="left join field_data_field_tarif_chambre_simple e on e.entity_id=a.entity_id";
+        if(isset($_GET['se']))$cond="inner join field_data_field_tarif_chambre_simple e on e.entity_id=a.entity_id and field_tarif_chambre_simple_value='NA'";
+    $x = Alptech\Wip\fun::sql("select a.entity_id as cid,a.field_residence_target_id as rid,b.field_email_value as email,c.field_uuid_value as uuid,d.changed,e.field_tarif_chambre_simple_value as csTarif, f.field_location_locality as city,f.field_location_postal_code as cp,d.title,g.field_finess_value as finess
+     from field_data_field_residence a
+      $cond
+      inner join field_data_field_email b on b.entity_id=a.field_residence_target_id -- and b.field_email_value is not null and b.field_email_value is not empty
+      inner join field_data_field_uuid c on c.entity_id=a.entity_id
+      inner join node d on d.nid=a.entity_id
+      inner join field_data_field_finess g on g.entity_id=a.field_residence_target_id      
+      left join field_data_field_location f on f.entity_id=a.field_residence_target_id
+       where a.bundle='chambre'");#and field_residence_target_id in(" . implode(',
+# ',$totalResidences) . ")
+#<th>cid</th>
+    $content="<a href='?se=NA'>Lister toutes les ehpads sans tarifs</a> - <a href='/listResidenceLinks'>Lister toutes les ehpads</a><span class=hidethen> - Veuillez patienter durant le chargement de toutes les données (".count($x)." résultats .. ) </span>
+    <table class='res2chlist tw100' border=1><thead><tr><th>rid</th><th>finess</th><th>cp</th><th>city</th><th>title</th><th>email</th><th>tarif cs</th><th>changed</th><th>link</th><th>action</th></tr></thead><tbody>";
+    foreach($x as $t){
+        $t['dep']=substr($t['cp'],0,2);
+        $t['date']=date('Y/m/d H:i:s',$t['changed']);
+        $mail=str_replace("'",'',$t['email']);$title=str_replace("'",'',$t['title']);
+        $but="<button onclick=\"_async('$mail','$title','/er/$t[uuid]');\">Mail</button>";
+        if(!$t['email'])$but='';#<td><a target=chambre href='/edit-residence/$t[rid]'>$t[cid]</td>
+        $content.="<tr><td><a target=redisence href='/residence/$t[rid]'>$t[rid]</a></td><td>$t[finess]</td><td>$t[dep]</td><td>$t[city]</td><td>$t[title]</td><td>$t[email]</td><td>$t[csTarif] </td><td>$t[date]</td><td><a target=er href='/er/$t[uuid]'>edit</a></td><td>$but</td></tr>";#->adds a time lock on cid -> grayed out for 1 month
+        #$r2c[$t['rid']]=$t['cid'];
+        #echo"<li><button></button>";
+    }
+    $content.="</tbody></table>";
+#$content.=<<<TPG TPG;
+ob_start();?><script>var rgm='<?php echo RESIDENCE_MGMT_URI;?>';defer(function(){ jQuery('.res2chlist').DataTable( {
+    "language": {url: rgm+"/lib/datatables.net/i18n/French.json"},
+    "searching": true,"lengthChange": true,"paging": true,"info": false, "pageLength": 100,
+    "columnDefs": [{ "searchable": false, "targets": [0,7,8,9] }]//{ type: 'natural-nohtml', targets: [1,2,3] }
+});
+    $('.hidethen').hide();
+},function(){return(typeof window['jQuery']=='function' && typeof window['jQuery'].fn.DataTable=='function')});
+</script>
+<?php $content.=ob_get_clean();
+        file_put_contents($f,$content);
+    }
+    #$ch2res=array_flip($r2c);
+    #
+    require_once __DIR__ . "/templates/layouts/default.php";
+    #er/uuid
+}
 #/ra/?=m83/$md5/rids/$rids
 function fullAlert2(){
     ob_start();
@@ -190,6 +245,7 @@ function editChambreByUuid($uuid=null){
 }
 
 /*
+ * implementée as "poor man cron"
 45 * * * * curl -s http://example.com/cron.php
 cuj https://ehpad.home/cron.php?cron_key=T_PlBoy_kTfr4bc0qJ4Zd5h5Zt8iQDcrQd9soHeCly8 a '' 1
 php72 cron.php opc
@@ -197,6 +253,7 @@ drushy cc all;
 php72 ~/home/ehpad/app/z/alerts.php '{"210007159":{"prixHebPermCs":1}}' ;
  */
 function residence_mgmt_cron($a=null,$b=null){
+    return;#alerts.php
     if($a and $b){
         return updateAllResidencesFromPersonnesAgeesJson($a,$b);#
     }
