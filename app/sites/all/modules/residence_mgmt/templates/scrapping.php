@@ -388,7 +388,7 @@ $residenceData->tarif=[2=>['tarif-gir-1-2'=>0,'tarif-gir-3-4'=>0,'tarif-gir-5-6'
     $_mem[__line__]=memory_get_usage(1);
 
     if($tarifsModifies){
-        $sql="update z_rkv set v='".$btime."' where k='lastScrapping";$ok=Alptech\Wip\fun::sql($sql);#
+        $sql="update z_rkv set v='".$btime."' where k='lastScrapping'";$ok=Alptech\Wip\fun::sql($sql);#
 
         $_inserts=[];
         foreach($tarifsModifies as $type=>$t){

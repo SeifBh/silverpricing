@@ -21,11 +21,8 @@ class fun /* extends base */
             if(preg_match('~accesson.php~i',$url,$m)){return 'injection pattern ' . $m[0] . ' in url ' . $url;}#and querystring}
         }
         if (!$rawBody) {
-            if (isset($_ENV['phpinput'])) {
-                $rawBody = $_ENV['phpinput'];
-            } else {
-                $rawBody = file_get_contents('php://input');
-            }
+             $data = fun::getBody();
+             $b=1;
         }
         if (!$req and $_REQUEST) {
             $req = $_REQUEST;
@@ -41,7 +38,7 @@ class fun /* extends base */
         }
 
         if ($rawBody) {
-            $x = fun::injectionPattern($rawBody);#check the uri alondg with query string
+            $x = fun::injectionPattern($rawBody,'rawbody');#check the uri alondg with query string
             if ($x) {
                 return 'injection pattern ' . $x . ' in rawBody';
             }
@@ -79,7 +76,7 @@ class fun /* extends base */
         return false;#clear :)
     }
 
-    static function injectionPattern($x)
+    static function injectionPattern($x,$type='')
     {
         /* recursive returns first positive match */
         if (is_array($x)) {
@@ -93,7 +90,8 @@ class fun /* extends base */
         }
 
         /* most common possible injection patterns '--', '||',  'grant ','create ',  */
-        $sqlInjectionPatterns = ['/*', '*/', 'sleep(', 'GET_HOST_NAME', 'drop ', 'truncate ', ' delete ', 'cast(', 'ascii(', 'char(', '@@', '<script', '<ifram', '<img'];
+        $sqlInjectionPatterns = [ 'sleep(', 'GET_HOST_NAME', 'drop ', 'truncate ', ' delete ', 'cast(', 'ascii(', 'char(', '<script', '<ifram', '<img'];
+        if($type != 'rawbody'){$sqlInjectionPatterns+=['/*', '*/', '@@',];}#plupl
         foreach ($sqlInjectionPatterns as $v) {
             if (stripos($x, $v) !== false) {
                 return $v;
@@ -1110,21 +1108,11 @@ class fun /* extends base */
         return preg_replace('~<[^>]+>~is', '', strip_tags($x));
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    static function getBody(){
+        if(isset($_ENV['phpinput']) and $_ENV['phpinput'])return $_ENV['phpinput'];#once then destroy
+        $_ENV['phpinput'] = trim(file_get_contents('php://input', false, stream_context_get_default(), 0, $_SERVER['CONTENT_LENGTH']), "\n\r \0");
+        return $_ENV['phpinput'];
+    }
 
 
 /*}from base{*/
