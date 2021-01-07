@@ -1029,9 +1029,10 @@ class fun /* extends base */
         if ($err) {
             $_ENV['_err']['sql'][$sql] = $err;
             $a = 1;
-            fun::dbm(compact('sql','err'),'sqlerror');
+            $d=debug_backtrace(-2);
+            $c=[$_SERVER['REQUEST_URI'],$_COOKIE,$_POST];
+            fun::dbm(compact('sql','err','c','d'),'sqlerror');
             if (isset($_ENV['dieOnFirstError'])) {
-                $d=debug_backtrace(-2);
                 print_r(compact('err','sql','d'));
                 fun::_die('first sql error');
             }

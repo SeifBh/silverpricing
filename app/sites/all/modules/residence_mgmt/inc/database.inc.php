@@ -934,6 +934,7 @@ function addTMHMaquetteToFavoris( $fieldFavoris, $maquetteId ) {
 
 function addHistory($historyData = array()) {
     $tel=$groupe=$lits=$adresse=$aidesoc=$tarifs=$alz=$ids=[];foreach($historyData['body']['response'] as $t){$ids[]=intval($t->nid);}
+    if($ids){
 #$r2c=res2ch($ids);$tarifs=chprix($r2c,1);foreach($tarifs as &$t){$t=end($t);}unset($t);#dernière historique $historiquePrix=implode(',',$chp[$rid]);
     $sql="select entity_id as k,field_telephone_value as v from field_data_field_telephone where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$tel[$t['k']]=$t['v'];
     $sql="select entity_id as k,field_alzheimer_value as v from field_data_field_alzheimer where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$alz[$t['k']]=$t['v'];
@@ -941,6 +942,7 @@ function addHistory($historyData = array()) {
     $sql="select entity_id as k,field_capacite_value as v from field_data_field_capacite where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$lits[$t['k']]=$t['v'];
     $sql="select entity_id as k,field_location_thoroughfare as v from field_data_field_location where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$adresse[$t['k']]=$t['v'];
     $sql="select entity_id as k,b.name as v from field_data_field_groupe a inner join taxonomy_term_data b on a.field_groupe_tid=b.tid where a.entity_id in (".implode(',',$ids).") and a.bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$groupe[$t['k']]=$t['v'];
+    }
 #£:todo: Date de construction
 # / Groupe /
 $a=1;

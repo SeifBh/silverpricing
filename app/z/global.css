@@ -37,3 +37,5 @@ button,.pointer,.label,.zoom{cursor:pointer;}
 
 .tw100{width:100%;margin:auto;}
 .departement_ .tx-color-03{font-size:.8rem;text-transform:uppercase;font-weight:700;color:#001737;}
+.res2chlist thead,.res2chlist tfoot{background:#EEE}
+.res2chlist tr:nth-child(even){background:#EEE}

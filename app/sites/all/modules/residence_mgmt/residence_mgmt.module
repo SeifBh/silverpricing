@@ -56,8 +56,8 @@ function hasrole($a=null){
 #/listResidenceLinks
 function listResidenceLinks($a=null){
     $now=time();
-    $md5=md5('a'.$_SERVER['REQUEST_URI']);#+ the query string (nah)
-    $f=__FILE__.'-'.$md5.'-lrc.php';
+    $md5=md5(filemtime(__FILE__).$_SERVER['REQUEST_URI']);#+ the query string (nah)
+    $f=__FILE__.'-'.$md5.'.cache';
 
     $r2lock=[];
     $x=Alptech\Wip\fun::sql("select v,k2 from z_rkv where k='chambreTarifMailLock'");
@@ -67,7 +67,9 @@ function listResidenceLinks($a=null){
     else{
         $cond="left join field_data_field_tarif_chambre_simple e on e.entity_id=a.entity_id";
         if(isset($_GET['se']))$cond="inner join field_data_field_tarif_chambre_simple e on e.entity_id=a.entity_id and field_tarif_chambre_simple_value='NA'";
-    $x = Alptech\Wip\fun::sql("select a.entity_id as cid,a.field_residence_target_id as rid,b.field_email_value as email,c.field_uuid_value as uuid,d.changed,e.field_tarif_chambre_simple_value as csTarif, f.field_location_locality as city,f.field_location_postal_code as cp,d.title,g.field_finess_value as finess,z.v as mailLockTime,h1.name as groupe ,i.field_logo_fid as fieldLogo,j.field_gestionnaire_value as gestionnaire,k.field_statut_value as statut,l.field_site_value as website  
+    $x = Alptech\Wip\fun::sql("select a.entity_id as cid,a.field_residence_target_id as rid,b.field_email_value as email,c.field_uuid_value as uuid,d.changed,e.field_tarif_chambre_simple_value as csTarif, f.field_location_locality as city,f.field_location_postal_code as cp,d.title,g.field_finess_value as finess,z.v as mailLockTime
+    ,h.field_groupe_tid as groupeId
+    ,h1.name as groupe ,i.field_logo_fid as fieldLogo,j.field_gestionnaire_value as gestionnaire,k.field_statut_value as statut,l.field_site_value as website  
      from field_data_field_residence a
       $cond
       inner join field_data_field_email b on b.entity_id=a.field_residence_target_id -- and b.field_email_value is not null and b.field_email_value is not empty
@@ -79,7 +81,7 @@ function listResidenceLinks($a=null){
                 
       left join field_data_field_groupe h on h.entity_id=a.field_residence_target_id 
          left join taxonomy_term_data h1 on h1.tid=h.field_groupe_tid
-      left join field_data_field_logo i on i.entity_id=a.field_residence_target_id
+      left join field_data_field_logo i on i.entity_id=h.field_groupe_tid and i.bundle='groupe'
         -- left join taxonomy_term_data i1 on i1.tid=i.field_logo_fid 
         
         left join field_data_field_gestionnaire j on j.entity_id=a.field_residence_target_id
@@ -96,9 +98,24 @@ function listResidenceLinks($a=null){
     ));
 }
  */
-    $content="<a href='?se=NA'>Lister tous les ehpads sans tarifs</a> - <a href='/listResidenceLinks'>Lister tous les ehpads</a><span class=hidethen> - Veuillez patienter durant le chargement de toutes les données (".count($x)." résultats .. ) </span>
-    <table class='res2chlist tw100' border=1><thead><tr><th>rid</th><th>finess</th><th>cp</th><th>city</th><th>title</th><th>email</th><th>tarif cs</th><th>changed</th><th>link</th><th>action</th></tr></thead><tbody>";
+$but1='<a title="##TITLE##" target="##TARGET##" href="##LINK##" class="btn btn-primary btn-sm btn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon></svg></a>';
+
+$thead="<tr><th></th><th>edit res</th><th>rid</th><th>finess</th><th>cp</th><th>city</th><th>title</th><th>gest.</th><th>groupe.</th><th>statut.</th><th>email</th><th>web</th><th>tarif cs</th><th>changed</th><th>tarifs</th><th>action</th></tr>";
+    $content="<a href='?se=NA'>Lister tous les ehpads sans tarifs</a> - <a href='/listResidenceLinks'>Lister tous les ehpads</a><span class=hidethen> - Veuillez patienter durant le chargement de toutes les données (".count($x)." résultats .. ) </span>    
+    <table class='res2chlist tw100' border=1><thead>$thead</thead><tbody>";
     foreach($x as $t){
+        $web=$img='';
+        if($t['groupeId']){
+            $a=1;
+        }
+        if($t['fieldLogo']){
+            $img=theme('image', ['path' => file_create_url(file_load($t['fieldLogo'])->uri),'width' => 16,'alt'=>$t['groupe'],'title'=>$t['groupe']]);
+            $a=1;# ajouter : logo,groupe gestionaire, statut:public,privé,url résidence ( depuis json )
+        }
+        if($t['website']) {
+            $web="<a href='$t[website]' target='web'>web</a>";
+        }
+
         $t['dep']=substr($t['cp'],0,2);
         $t['date']=date('Y/m/d H:i:s',$t['changed']);
         $mail=str_replace("'",'',$t['email']);$title=str_replace("'",'',$t['title']);
@@ -108,25 +125,52 @@ function listResidenceLinks($a=null){
             $but='sent '.date('Y/m/d H:i:s',$t['mailLockTime']);
         }
 
-        $content.="<tr><td><a target=redisence href='/residence/$t[rid]'>$t[rid]</a></td><td>$t[finess]</td><td>$t[dep]</td><td>$t[city]</td><td>$t[title]</td><td>$t[email]</td><td>$t[csTarif] </td><td>$t[date]</td><td><a target=er href='/er/$t[uuid]'>edit</a></td><td id='b$t[rid]'>$but</td></tr>";#->adds a time lock on cid -> grayed out for 1 month
+        $content.="<tr><td>$img</td><td>".
+            str_replace(['##TARGET##','##TITLE##','##LINK##'],['nodeedit','edit residence','/node/'.$t['rid'].'/edit'],$but1)
+            ."</td><td><a target=residence href='/residence/$t[rid]'>$t[rid]</a></td><td>$t[finess]</td><td>$t[dep]</td><td>$t[city]</td><td>$t[title]</td><td>$t[gestionnaire]</td><td>$t[groupe]</td><td>$t[statut]</td><td>$t[email]</td><td>$web</td><td>$t[csTarif] </td><td>$t[date]</td><td>".
+            str_replace(['##TARGET##','##TITLE##','##LINK##'],['er','edit chambre','/er/'.$t['uuid']],$but1)
+        ."</td><td id='b$t[rid]'>$but</td></tr>";#->adds a time lock on cid -> grayed out for 1 month
         #$r2c[$t['rid']]=$t['cid'];
         #echo"<li><button></button>";
     }
-    $content.="</tbody></table>";
+    $content.="</tbody></table>";#<tfoot>$thead</tfoot>
 #$content.=<<<TPG TPG;
 ob_start();?><script>var rgm='<?php echo RESIDENCE_MGMT_URI;?>';defer(function(){ jQuery('.res2chlist').DataTable( {
-    "language": {url: rgm+"/lib/datatables.net/i18n/French.json"},
-    "searching": true,"lengthChange": true,"paging": true,"info": false, "pageLength": 100,
-    "columnDefs": [{ "searchable": false, "targets": [0,7,8,9] }]//{ type: 'natural-nohtml', targets: [1,2,3] }
+    "language": {url: rgm+"/lib/datatables.net/i18n/French.json"}
+    ,"searching": true,"lengthChange": true,"paging": true,"info": false, "pageLength": 100
+    ,"order":[[3,"asc"]]
+    ,"columnDefs": [
+         {"searchable": false, "targets": [0,1,2,11,12,13,14,15] }
+        ,{"orderable": false,   'targets': [0,1,2,11,12,13,14,15] }
+        //,{ "type": 'natural-nohtml', targets: [3,4,5,6,7,8,9,10] }
+        ]//
+    ,initComplete: function () {
+        this.api().columns([4,8,9]).every( function () {
+            var column = this;
+//$(column.footer()).empty();
+//cl('column initcomplete',this);
+var select = $('<select><option value="">Tous</option></select>');
+column.data().unique().sort().each(function(d,j){if(!d)return;/*var d2=d;if(!d)d='All';*/select.append( '<option value="'+d+'">'+d+'</option>' )} );
+            select
+                .appendTo($(column.header()))
+                //.appendTo($(column.footer()))//.empty()
+                .on( 'change', function () {
+                    var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                    column.search( val ? '^'+val+'$' : '', true, false ).draw();
+                } );
+        } );
+    }
 });
     $('.hidethen').hide();
 },function(){return(typeof window['jQuery']=='function' && typeof window['jQuery'].fn.DataTable=='function')});
 </script>
 <?php $content.=ob_get_clean();
-        file_put_contents($f,$content);
+        if(!isset($_SERVER['WINDIR'])){
+            file_put_contents($f,$content);
+        }
     }
 
-    $content.="<script>var now=$now,expired=now-86000,r2lock=".json_encode($r2lock).";for(var i in r2lock){v=r2lock[i];if(v>expired){x=dqs('#b'+i);if(x.length){var v2,z=new Date();z.setTime(v*1000);v2=z.toLocaleString();cl(x,z,v2);x[0].innerHTML='mail envoyé '+v2;}}}</script>";
+    $content.="<script>var now=$now,expired=now-86000,r2lock=".json_encode($r2lock).";for(var i in r2lock){v=r2lock[i];if(v>expired){x=dqs('#b'+i);if(x.length){var v2,z=new Date();z.setTime(v*1000);v2=z.toLocaleString();/*cl(x,z,v2);*/x[0].innerHTML='mail envoyé '+v2;}}}</script>";
 
     #$ch2res=array_flip($r2c);
     #

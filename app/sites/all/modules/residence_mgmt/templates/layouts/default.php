@@ -108,6 +108,6 @@
     </div>
 
     <?php require RESIDENCE_MGMT_PATH . "/templates/partial/footer.inc.php"; ?>
-
+<a id="end"></a>
   </body>
 </html>
