@@ -23,7 +23,7 @@ if('cli emulation'){
 }
 
 $h='mysql';
-#$h='mysqlProd';_confirm($h);
+$h='mysqlProd';_confirm($h);
 
 $f='backups/z_old2new.json';
 if(0){
@@ -68,6 +68,7 @@ select field_finess_value,right(field_location_postal_code,9) from field_data_fi
             }
         }
         if(strlen($t['v'])<9 and isset($finess2id['0'.$t['v']])){
+            $a=1;
             $old2new[$t['k']]=$finess2id['0'.$t['v']];
         }
     }
@@ -105,16 +106,24 @@ if('updatesData with old identifiers'){
         $s[]="update field_data_field_images set entity_id=$kold where entity_id=$knew";
         $x=Alptech\Wip\fun::sql(end($s),$h);
     }
-    $f='finess';
-    $s[]="update field_data_field_$f set field_".$f."_value=concat('0',field_".$f."_value) where entity_id in(".implode(',',$old).")";#run
-    $x=Alptech\Wip\fun::sql(end($s),$h);
-    $s[]="update field_revision_field_$f set field_".$f."_value=concat('0',field_".$f."_value) where entity_id in(".implode(',',$old).")";
-    $x=Alptech\Wip\fun::sql(end($s),$h);#run
 
-    $s[]="update field_data_field_location set field_location_postal_code=concat('0',field_location_postal_code)where entity_id in(".implode(',',$old).")";
-    $x=Alptech\Wip\fun::sql(end($s),$h);#run
-    $s[]="update field_revision_field_location set field_location_postal_code=concat('0',field_location_postal_code)where entity_id in(".implode(',',$old).")";
-    $x=Alptech\Wip\fun::sql(end($s),$h);#run
+    if(0){#rajoute un 0 à chaque fois ..
+        $f='finess';
+        $s[]="update field_data_field_$f set field_".$f."_value=concat('0',field_".$f."_value) where entity_id in(".implode(',',$old).")";#run
+        $x=Alptech\Wip\fun::sql(end($s),$h);
+        $s[]="update field_revision_field_$f set field_".$f."_value=concat('0',field_".$f."_value) where entity_id in(".implode(',',$old).")";
+        $x=Alptech\Wip\fun::sql(end($s),$h);#run
+        $s[]="update field_data_field_location set field_location_postal_code=concat('0',field_location_postal_code)where entity_id in(".implode(',',$old).")";
+        $x=Alptech\Wip\fun::sql(end($s),$h);#run
+        $s[]="update field_revision_field_location set field_location_postal_code=concat('0',field_location_postal_code)where entity_id in(".implode(',',$old).")";
+        $x=Alptech\Wip\fun::sql(end($s),$h);#run
+    }
+
+    if($more9digits){
+        $s[]="update field_data_field_finess set field_finess_value=right(field_finess_value,9) where entity_id in(".implode(',',$more9digits).")";
+        $x=Alptech\Wip\fun::sql(end($s),$h);#run
+        $a=1;
+    }
 
     $x=Alptech\Wip\fun::sql("select entity_id as k from field_data_field_residence where field_residence_target_id in(".implode(',',$new).")",$h);   foreach($x as $t){$chambres[]=$t['k'];}
     $keys=array_merge($new,$chambres);

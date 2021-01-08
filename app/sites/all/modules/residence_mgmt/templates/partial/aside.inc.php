@@ -38,33 +38,59 @@
     <li class="nav-item <?php echo ( $currentMenu == "dashboard" ) ? "active" : "" ?>"><a href="/dashboard" class="nav-link">
         <i data-feather="home"></i> <span>Tableau de bord</span></a>
     </li>
-    <?php endif; ?>
-    <?php if( residence_mgmt_user_plan_has_access('PAGE_DEPARTEMENTS') ): ?>
+    <?php endif; 
+    if( residence_mgmt_user_plan_has_access('PAGE_DEPARTEMENTS') ): ?>
     <li class="nav-item <?php echo ( $currentMenu == "departements" ) ? "active" : "" ?>"><a href="/departements" class="nav-link">
         <i data-feather="shopping-bag"></i> <span>Départements</span></a>
     </li>
-    <?php endif; ?>
-    <?php if( residence_mgmt_user_plan_has_access('PAGE_GROUPES') ): ?>
+    <?php endif; 
+    if( residence_mgmt_user_plan_has_access('PAGE_GROUPES') ): ?>
     <li class="nav-item <?php echo ( $currentMenu == "groupes" ) ? "active" : "" ?>"><a href="/groupes" class="nav-link">
-        <i data-feather="git-branch"></i> <span>Groupes</span></a>
+        <i data-feather="share-2"></i> <span>Groupes</span></a>
     </li>
-    <?php endif; ?>
-    <?php if( residence_mgmt_user_plan_has_access('PAGE_RESIDENCES') ): ?>
+    <?php endif; 
+    if( residence_mgmt_user_plan_has_access('PAGE_RESIDENCES') ): ?>
     <li class="nav-item <?php echo ( $currentMenu == "recherche-silverex" ) ? "active" : "" ?>"><a href="/recherche-silverex" class="nav-link">
-        <i data-feather="globe"></i> <span>Résidences</span></a>
+        <i data-feather="zoom-in"></i> <span>Résidences</span></a>
     </li>
-    <?php endif; ?>
-    <?php if( residence_mgmt_user_plan_has_access('PAGE_MES_RESIDENCES') ): ?>
+    <?php endif;
+if(0){
+    if( residence_mgmt_user_plan_has_access('PAGE_MES_RESIDENCES') ): ?>
     <li class="nav-item <?php echo ( $currentMenu == "mes-residences" ) ? "active" : "" ?>"><a href="/mes-residences" class="nav-link">
         <i data-feather="pie-chart"></i> <span>Mes Résidences</span></a>
     </li>
-    <?php endif; ?>
-    <?php if( residence_mgmt_user_plan_has_access('PAGE_MES_GROUPES') ): ?>
+    <?php endif; 
+    if( residence_mgmt_user_plan_has_access('PAGE_MES_GROUPES') ): ?>
     <li class="nav-item <?php echo ( $currentMenu == "mes-groupes" ) ? "active" : "" ?>"><a href="/mes-groupes" class="nav-link">
         <i data-feather="pie-chart"></i> <span>Mes Groupes</span></a>
     </li>
-    <?php endif; ?>
-    <?php if( residence_mgmt_user_plan_has_access('PAGE_DEVELOPPEMENT_TOOLS') ): ?>
+        <?php
+        endif;
+}
+?>
+<li class="nav-item <?php echo ( $currentMenu == "quick_win" ) ? "active" : "" ?>"><a href="/quick_win" class="nav-link">
+    <i data-feather="activity"></i> <span>Mes Quick Wins</span></a>
+</li>
+<li class="nav-item <?php echo ( $currentMenu == "mes_maquettes" ) ? "active" : "" ?>"><a href="/mes_maquettes" class="nav-link">
+  <i data-feather="map-pin"></i> <span>Mes Maquettes</span></a>
+</li>
+<li class="nav-item <?php echo ( $currentMenu == "histories" ) ? "active" : "" ?>"><a href="/histories" class="nav-link">
+      <i data-feather="calendar"></i> <span>Historique</span></a>
+</li>
+
+<li class="nav-item <?php echo ( $currentMenu == "mes-groupes" ) ? "active" : "" ?>"><a href="/mes-groupes" class="nav-link">
+      <i data-feather="settings"></i> <span>Mes catégories de chambres</span></a>
+</li>
+<li class="nav-item <?php echo ( $currentMenu == "mes-residences" ) ? "active" : "" ?>"><a href="/mes-residences" class="nav-link">
+      <i data-feather="settings"></i> <span>Mes résidences</span></a>
+</li>
+
+
+
+
+
+<?
+    if( residence_mgmt_user_plan_has_access('PAGE_DEVELOPPEMENT_TOOLS') ): ?>
     <li class="nav-item <?php echo ( $currentMenu == "development-tools" ) ? "active" : "" ?>"><a href="/development-tools" class="nav-link">
         <i data-feather="map"></i> <span>Développement Tools</span></a>
     </li>

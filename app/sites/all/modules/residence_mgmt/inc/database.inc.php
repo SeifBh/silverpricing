@@ -1315,7 +1315,7 @@ function getDistances($residenceNid)
 
 function getResidencesProchesByStatus( $residenceNid, $statuses = [], $limit = 10)
 {
-if(isset($_COOKIE['old']) and $_COOKIE['old']){#simple commutateur le piu simple ever !
+if(0 and isset($_COOKIE['old']) and $_COOKIE['old']){#simple commutateur le piu simple ever !
     if (empty($statuses))$statuses = array('Public', 'Associatif', 'Privé');
     $query = db_select('node', 'n');
     $query->condition('n.type', "residence", '=');
@@ -1364,7 +1364,9 @@ asort($r2dist);
 $dist=[];foreach($clo as $rid){$dist[$rid]=$r2dist[$rid];}
 #dans quel ordre sont-elles présentées ?
 
-$sql="SELECT n.nid AS nid, n.title AS title, $residenceNid AS primary_nid,  s.field_statut_value AS field_statut_value, l.field_location_locality AS field_location_locality, l.field_location_postal_code AS field_location_postal_code, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value, lat.field_latitude_value AS field_latitude_value, lng.field_longitude_value AS field_longitude_value
+#$residenceConcurrent->field_capacite['und'][0]['value'];
+
+$sql="SELECT n.nid AS nid, n.title AS title, $residenceNid AS primary_nid,  s.field_statut_value AS field_statut_value, l.field_location_locality AS field_location_locality, l.field_location_postal_code AS field_location_postal_code, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value, lat.field_latitude_value AS field_latitude_value, lng.field_longitude_value AS field_longitude_value,field_capacite_value as cap
 FROM node n
 -- INNER JOIN distance_indexation di ON di.secondary_nid = n.nid and di.primary_nid = $residenceNid
 INNER JOIN field_data_field_statut s ON s.entity_id = n.nid -- and s.field_statut_value IN ('')
@@ -1373,6 +1375,7 @@ INNER JOIN field_data_field_residence rc ON rc.field_residence_target_id = n.nid
 INNER JOIN field_data_field_tarif_chambre_simple cs ON cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> 'NA'
 INNER JOIN field_data_field_latitude lat ON lat.entity_id = n.nid
 INNER JOIN field_data_field_longitude lng ON lng.entity_id = n.nid
+INNER JOIN field_data_field_capacite cap ON cap.entity_id = n.nid
 WHERE n.type = 'residence' and n.nid in(".implode(',',$clo).") order by FIELD(n.nid,".implode(',',$clo).") limit $limit";
     $residences = Alptech\Wip\fun::sql($sql);
     foreach ($residences as &$t) {

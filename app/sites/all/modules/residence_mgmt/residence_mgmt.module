@@ -201,7 +201,7 @@ function residence_mgmt_node_presave( $n ) {
         $n->field_uuid['und'][0]['value']=uniqid();#mais les générer également pour chacune des entités
     }
 }
-
+#/edit-residence/31459
 function updateAllRoomsUuid(){
     #select n.nid,u.field_uuid_value as uuid from node n left join field_data_field_uuid u on n.nid=u.entity_id where type='chambre' and u.field_uuid_value is not null -- sauvegardées : 20
     $x = Alptech\Wip\fun::sql("select n.nid from node n left join field_data_field_uuid u on n.nid=u.entity_id where type='chambre' and u.field_uuid_value is null");
@@ -628,7 +628,7 @@ function residence_mgmt_dashboard() {
     //   $quickWins = json_decode($quickWins);
 
     // } else {
-
+if($residenceIds){
         $query = db_select('node', 'n');
         $query->condition('n.type', "residence", '=');
         $query->condition('n.nid', $residenceIds, "IN");
@@ -804,7 +804,7 @@ function residence_mgmt_dashboard() {
 
     // DATA MAPS
     $dataMarkers = $residences;
-
+}
     // varDebug(count($dataMarkers));
     // varDebug(count($residences));
     // exit();
@@ -1060,7 +1060,7 @@ function residence_mgmt_residences($departementId = null,$ret=0) {
 
     ob_start();
 
-    include_once __DIR__ . "/templates/residences.php";#aka departement
+    include_once __DIR__ . "/templates/departement.php";#aka departement
 
     $content = ob_get_clean();
 
@@ -1323,6 +1323,8 @@ function residence_mgmt_edit_groupe( $groupId = null ) {
 }
 
 function residence_mgmt_get_residence_details($residenceId = null) {
+    $residenceId=explode('-',$residenceId);
+    $residenceId=reset($residenceId);
 
     $currentMenu = "residence";
 
@@ -1948,6 +1950,8 @@ function residence_mgmt_get_my_residences() {
 
 function residence_mgmt_edit_residence($residenceId = null) {
 
+    $residenceId=explode('-',$residenceId);
+    $residenceId=intval(reset($residenceId));
     if($residenceId == null) {
         return ;
     }
@@ -2453,6 +2457,7 @@ function fetchAllAssoc($query,$assoc){
     if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);$res=$query->execute()->fetchAllAssoc($assoc);$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;interceptQuery($_sql,$res);
     return $res;
 }
+
 function fetchAll($query){
     if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);$res=$query->execute()->fetchAll();$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;interceptQuery($_sql,$res);
     return $res;

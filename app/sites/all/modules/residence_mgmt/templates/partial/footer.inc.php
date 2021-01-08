@@ -106,7 +106,7 @@
         $('#recherche-residence').on('change', function(e) {
             var residenceName  = $('#recherche-residence').val();
 
-            console.log(residenceName);
+            cl(residenceName);
         });
 
         // MAP
@@ -402,21 +402,34 @@
     document.querySelectorAll('.map-wrapper .legend .label').forEach( (e, i) => {
         e.querySelector('span').style.backgroundColor = colors[i];
     });
+<?php
+elseif( $currentMenu == "residences" /*departement detail*/ ):
+#https://ehpad.home/departement/75-74-HauteSavoie
+$mesPrixParVille=[];
+foreach( $mesResidences as $t ){$mesPrixParVille[strtolower($t->field_location_locality)][]=$t->field_tarif_chambre_simple_value;}
 
-    <?php elseif( $currentMenu == "residences" ): ?>
-
-    $(document).ready(function() {
-        $('#request-table').DataTable( {
-            "language": {
-                url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
-            },
-            "searching": false,
-            columnDefs: [
-                { type: 'natural-nohtml', targets: [4, 5, 6] }
-            ]
-        });
+foreach( $departementChartData as $data ){
+    $nres.=$data->count.',';
+    $tmoy.=round($data->totaltarif / $data->count, 2).',';
+    $tph.=$statistique_globale['Tarif plus haut'] . ",";#still
+    $tmoy2.=$statistique_globale['Tarif moyen'] . ",";
+    $tpb.=$statistique_globale['Tarif plus bas'] . ",";
+    $villes.='"'.$data->ville.'",';
+    $l=strtolower($data->ville);
+    if(isset($mesPrixParVille[$l]))$mesPrixParVille2.=(array_sum($mesPrixParVille[$l])/count($mesPrixParVille[$l]));
+    else $mesPrixParVille2.='0';
+    $mesPrixParVille2.=',';
+}
+?>
+$(document).ready(function() {
+    $('#request-table').DataTable( {
+        "language": {url: frenchDataTables },
+        "searching": false,
+        columnDefs: [{ type: 'natural-nohtml', targets: [4, 5, 6] }]
     });
+});
 
+var nres=[<?=$nres?>],tmoy=[<?=$tmoy?>],tph=[<?=$tph?>],tmoy2=[<?=$tmoy2?>],tpb=[<?=$tpb?>],villes=[<?=$villes?>],mesPrixParVille=[<?=$mesPrixParVille2?>];
 
     var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getContext('2d'), {
         type: 'bar',
@@ -426,11 +439,7 @@
                     yAxisID: 'nombre-residences',
                     label: 'Nombre de résidences',
                     backgroundColor: '#6dbaf5',
-                    data: [
-                        <?php foreach( $departementChartData as $data ): 
-                            echo $data->count; ?>,
-                        <?php endforeach;?>
-                    ],
+                    data: nres,
                 },
                 {
                     type: 'line',
@@ -439,11 +448,7 @@
                     backgroundColor: '#65e0e0',
                     borderColor: '#65e0e0',
                     fill: false,
-                    data: [
-                        <?php foreach( $departementChartData as $data ): 
-                            echo round($data->totaltarif / $data->count, 2); ?>,
-                        <?php endforeach;?>
-                    ]
+                    data: tmoy
                 },
                 {
                     type: "line",
@@ -455,11 +460,7 @@
                     borderDash: [10,5],
                     pointRadius: 0,
                     borderWidth: 1,
-                    data: [
-                        <?php foreach( $departementChartData as $departement ):
-                            echo $statistique_globale['Tarif plus haut'] . ","; 
-                        endforeach; ?>
-                    ],
+                    data: tph,
                 },
                 {
                     type: "line",
@@ -471,11 +472,7 @@
                     borderDash: [10,5],
                     pointRadius: 0,
                     borderWidth: 1,
-                    data: [
-                        <?php foreach( $departementChartData as $departement ):
-                            echo $statistique_globale['Tarif moyen'] . ","; 
-                        endforeach; ?>
-                    ],
+                    data: tmoy2,
                 },
                 {
                     type: "line",
@@ -487,18 +484,20 @@
                     borderDash: [10,5],
                     pointRadius: 0,
                     borderWidth: 1,
-                    data: [
-                        <?php foreach( $departementChartData as $departement ):
-                            echo $statistique_globale['Tarif plus bas'] . ","; 
-                        endforeach; ?>
-                    ],
+                    data:tpb,
+                },
+                {
+                    type: "line",
+                    yAxisID: 'departement-tarif',
+                    label: 'MON TARIF',
+                    backgroundColor: '#FFFF00',
+                    borderColor: '#FFFF00',
+                    fill: false,
+                    borderWidth: 1,
+                    data: mesPrixParVille,
                 },
             ],
-            labels: [
-                <?php foreach( $departementChartData as $data ): ?>
-                    "<?php echo $data->ville; ?>",
-                <?php endforeach;?>
-            ]
+            labels: villes
         },
         options: {
             maintainAspectRatio: false,
@@ -795,7 +794,7 @@ $a='https://ehpad.home/residence/45337';
     });
 
     //  INPUT RANGE
-
+<?#?>
     var SLIDER_VALUE = 0;
     var maquetteCourante = null;
     var maquetteModifiee = null;
@@ -901,6 +900,7 @@ $a='https://ehpad.home/residence/45337';
         return maquette;
 
     }
+var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
 
     function updateMaquetteDOM( maquette, $maquetteRoot ) {
 
@@ -909,8 +909,8 @@ $a='https://ehpad.home/residence/45337';
         maquetteOperation = "";
 
         if( $maquetteRoot.hasClass('maquette-modifiee') ) {
-            additionOperation = '<a href="#" class="d-block operation-maquette add-item-maquette pd-0 mg-0" style="height: 8px"><img src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/img/caret-arrow-up.svg" width="10" height="10"/></a>';
-            subtractOperation = '<a href="#" class="d-block operation-maquette subtract-item-maquette pd-0 mg-0" ><img src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/img/caret-arrow-down.svg" width="10" height="10"/></a>';
+            additionOperation = '<a href="#" class="d-block operation-maquette add-item-maquette pd-0 mg-0" style="height: 8px"><img src="'+rmi+'/assets/img/caret-arrow-up.svg" width="10" height="10"/></a>';
+            subtractOperation = '<a href="#" class="d-block operation-maquette subtract-item-maquette pd-0 mg-0" ><img src="'+rmi+'/assets/img/caret-arrow-down.svg" width="10" height="10"/></a>';
             maquetteOperation = "<div class=\"btn-group-vertical pd-l-4\">" + additionOperation + subtractOperation + "</div>";
         }
 
@@ -937,119 +937,122 @@ $a='https://ehpad.home/residence/45337';
             document.querySelectorAll('.operation-maquette').forEach(function(item, index) {
 
                 item.addEventListener('click', function(event) {
+                    cl3=item.parentElement.parentElement.parentElement.classList;
+                    cl2=item.parentElement.parentElement.classList;
+                    cl(cl3,cl2,event,this);
                     event.preventDefault();
                     if( item.classList.contains('add-item-maquette') ) {
-                        console.log("ADD OPERATION");
-                        if( item.parentElement.parentElement.parentElement.classList.contains('chambres-simples') ) {
-                            console.log("Chambres Simples");
-                            if( item.parentElement.parentElement.parentElement.classList.contains('chambres-entree-de-gamme') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
+                        //cl("ADD OPERATION");
+                        if( cl3.contains('chambres-simples') ) {
+                            cl("Chambres Simples");
+                            if( cl3.contains('chambres-entree-de-gamme') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
                                     maquette.chambresSimples.entreeDeGamme.nombreDeLits += 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresSimples.entreeDeGamme.tarif = parseFloat((maquette.chambresSimples.entreeDeGamme.tarif + 0.1).toFixed(2));
-                                    console.log(maquette.chambresSimples.entreeDeGamme.tarif);
+                                    cl(maquette.chambresSimples.entreeDeGamme.tarif);
                                 }
-                            } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-standard') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
+                            } else if( cl3.contains('chambres-standard') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
                                     maquette.chambresSimples.standard.nombreDeLits += 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresSimples.standard.tarif = parseFloat((maquette.chambresSimples.standard.tarif + 0.1).toFixed(2));
                                 }
-                            } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-superieur') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
+                            } else if( cl3.contains('chambres-superieur') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
                                     maquette.chambresSimples.superieur.nombreDeLits += 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresSimples.superieur.tarif = parseFloat((maquette.chambresSimples.superieur.tarif + 0.1).toFixed(2));
                                 }
-                            } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-luxe') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
+                            } else if( cl3.contains('chambres-luxe') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
                                     maquette.chambresSimples.luxe.nombreDeLits += 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresSimples.luxe.tarif = parseFloat((maquette.chambresSimples.luxe.tarif + 0.1).toFixed(2));
                                 }
-                            } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-alzheimer') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
+                            } else if( cl3.contains('chambres-alzheimer') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
                                     maquette.chambresSimples.alzheimer.nombreDeLits += 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresSimples.alzheimer.tarif = parseFloat((maquette.chambresSimples.alzheimer.tarif + 0.1).toFixed(2));
                                 }
-                            } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-aide-sociale') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
+                            } else if( cl3.contains('chambres-aide-sociale') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
                                     maquette.chambresSimples.aideSociale.nombreDeLits += 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresSimples.aideSociale.tarif = parseFloat((maquette.chambresSimples.aideSociale.tarif + 0.1).toFixed(2));
                                 }
                             }
-                        } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-doubles') ) {
-                            console.log("Chambres Doubles");
-                            if( item.parentElement.parentElement.parentElement.classList.contains('chambres-standard') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
+                        } else if( cl3.contains('chambres-doubles') ) {
+                            cl("Chambres Doubles");
+                            if( cl3.contains('chambres-standard') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
                                     maquette.chambresDoubles.standard.nombreDeLits += 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresDoubles.standard.tarif = parseFloat((maquette.chambresDoubles.standard.tarif + 0.1).toFixed(2));
                                 }
-                            } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-aide-sociale') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
+                            } else if( cl3.contains('chambres-aide-sociale') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
                                     maquette.chambresDoubles.aideSociale.nombreDeLits += 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresDoubles.aideSociale.tarif = parseFloat((maquette.chambresDoubles.aideSociale.tarif + 0.1).toFixed(2));
                                 }
                             }
                         }
 
                     } else if( item.classList.contains('subtract-item-maquette') ) {
-                        console.log("SUBTRACT OPERATION");
-                        if( item.parentElement.parentElement.parentElement.classList.contains('chambres-simples') ) {
-                            console.log("Chambres Simples");
-                            if( item.parentElement.parentElement.parentElement.classList.contains('chambres-entree-de-gamme') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
-                                    maquette.chambresSimples.entreeDeGamme.nombreDeLits -= 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                        cl("SUBTRACT OPERATION");
+                        if( cl3.contains('chambres-simples') ) {
+                            cl("Chambres Simples");
+                            if( cl3.contains('chambres-entree-de-gamme') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
+                                    if(maquette.chambresSimples.entreeDeGamme.nombreDeLits>0) maquette.chambresSimples.entreeDeGamme.nombreDeLits -= 1;
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresSimples.entreeDeGamme.tarif = parseFloat((maquette.chambresSimples.entreeDeGamme.tarif - 0.1).toFixed(2));
                                 }
-                            } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-standard') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
-                                    maquette.chambresSimples.standard.nombreDeLits -= 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                            } else if( cl3.contains('chambres-standard') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
+                                    if(maquette.chambresSimples.standard.nombreDeLits>0)maquette.chambresSimples.standard.nombreDeLits -= 1;
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresSimples.standard.tarif = parseFloat((maquette.chambresSimples.standard.tarif - 0.1).toFixed(2));
                                 }
-                            } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-superieur') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
-                                    maquette.chambresSimples.superieur.nombreDeLits -= 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                            } else if( cl3.contains('chambres-superieur') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
+                                    if(maquette.chambresSimples.superieur.nombreDeLits>0)maquette.chambresSimples.superieur.nombreDeLits -= 1;
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresSimples.superieur.tarif = parseFloat((maquette.chambresSimples.superieur.tarif - 0.1).toFixed(2));
                                 }
-                            } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-luxe') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
-                                    maquette.chambresSimples.luxe.nombreDeLits -= 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                            } else if( cl3.contains('chambres-luxe') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
+                                    if(maquette.chambresSimples.luxe.nombreDeLits>0)maquette.chambresSimples.luxe.nombreDeLits -= 1;
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresSimples.luxe.tarif = parseFloat((maquette.chambresSimples.luxe.tarif - 0.1).toFixed(2));
                                 }
-                            } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-alzheimer') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
-                                    maquette.chambresSimples.alzheimer.nombreDeLits -= 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                            } else if( cl3.contains('chambres-alzheimer') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
+                                    if(maquette.chambresSimples.alzheimer.nombreDeLits>0)maquette.chambresSimples.alzheimer.nombreDeLits -= 1;
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresSimples.alzheimer.tarif = parseFloat((maquette.chambresSimples.alzheimer.tarif - 0.1).toFixed(2));
                                 }
-                            } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-aide-sociale') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
-                                    maquette.chambresSimples.aideSociale.nombreDeLits -= 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                            } else if( cl3.contains('chambres-aide-sociale') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
+                                    if(maquette.chambresSimples.aideSociale.nombreDeLits>0)maquette.chambresSimples.aideSociale.nombreDeLits -= 1;
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresSimples.aideSociale.tarif = parseFloat((maquette.chambresSimples.aideSociale.tarif - 0.1).toFixed(2));
                                 }
                             }
-                        } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-doubles') ) {
-                            console.log("Chambres Doubles");
-                            if( item.parentElement.parentElement.parentElement.classList.contains('chambres-standard') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
-                                    maquette.chambresDoubles.standard.nombreDeLits -= 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                        } else if( cl3.contains('chambres-doubles') ) {
+                            cl("Chambres Doubles");
+                            if( cl3.contains('chambres-standard') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
+                                    if(maquette.chambresDoubles.standard.nombreDeLits>0)maquette.chambresDoubles.standard.nombreDeLits -= 1;
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresDoubles.standard.tarif = parseFloat((maquette.chambresDoubles.standard.tarif - 0.1).toFixed(2));
                                 }
-                            } else if( item.parentElement.parentElement.parentElement.classList.contains('chambres-aide-sociale') ) {
-                                if( item.parentElement.parentElement.classList.contains('nombre-de-lits') ) {
-                                    maquette.chambresDoubles.aideSociale.nombreDeLits -= 1;
-                                } else if( item.parentElement.parentElement.classList.contains('tarif-de-chambre') ) {
+                            } else if( cl3.contains('chambres-aide-sociale') ) {
+                                if( cl2.contains('nombre-de-lits') ) {
+                                    if(maquette.chambresDoubles.aideSociale.nombreDeLits>0)maquette.chambresDoubles.aideSociale.nombreDeLits -= 1;
+                                } else if( cl2.contains('tarif-de-chambre') ) {
                                     maquette.chambresDoubles.aideSociale.tarif = parseFloat((maquette.chambresDoubles.aideSociale.tarif - 0.1).toFixed(2));
                                 }
                             }
@@ -1072,18 +1075,14 @@ $a='https://ehpad.home/residence/45337';
         $maquetteRoot.removeClass('d-none');
     });
 
-    $('#modifier_maquette').on('click', function(event) {
+    $('#modifier_maquette').unbind().on('click', function(event) {
         var $maquetteRoot = $('.maquette-modifiee');
         maquetteModifiee = JSON.parse(JSON.stringify(maquetteCourante));;
         updateMaquetteDOM(maquetteModifiee, $maquetteRoot);
-
         $maquetteRoot.removeClass('d-none');
-
-        $maquetteRoot.find('.tmh-wrapper .tmh-circle .tmh-circle-footer .maquette_diff').text( maquetteCourante.tmh - maquetteModifiee.tmh );
-
     });
 
-    $('#calculer_maquette_modifiee').on("click", function(event) {
+    $('#calculer_maquette_modifiee').unbind().on("click", function(event) {
         var $maquetteRoot = $('.maquette-modifiee');
 
         var sommeTarifs = 0;
@@ -1112,6 +1111,10 @@ $a='https://ehpad.home/residence/45337';
         $maquetteRoot.find('.nombre-de-chambre span').text(nombreTotale - maquetteModifiee.chambresDoubles.standard.nombreDeLits - maquetteModifiee.chambresDoubles.aideSociale.nombreDeLits );
 
         updateMaquetteDOM(maquetteModifiee, $maquetteRoot);
+//±?Math.abs(/100)
+        var _diff=Math.round(   (   maquetteModifiee.tmh - maquetteCourante.tmh)  *100 )/100;
+        if(_diff>=0)_diff='+'+_diff;
+        $maquetteRoot.find('.tmh-wrapper .tmh-circle .tmh-circle-footer .maquette_diff').text( '('+_diff +'€)');
     });
 
     $('#enregistrer_maquette').on('click', function(event) {
@@ -1819,7 +1822,7 @@ return x;
 
             layer.on({
                 click: function(e) {
-                    console.log(layer.getPopup().getContent());
+                    cl(layer.getPopup().getContent());
 
                     map.fitBounds(layer.getBounds());
 

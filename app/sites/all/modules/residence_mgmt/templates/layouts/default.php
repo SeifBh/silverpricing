@@ -2,16 +2,16 @@
 #define("MODULE_PATH", "/sites/all/modules/residence_mgmt"); ?>
 <!DOCTYPE html>
 <html lang="fr" id="a"><head>
-    <script type="text/javascript"><?php
-        $json=[];
-        if(isset($GLOBALS['user']->uid)){$json=array_merge($json,['uid'=>$GLOBALS['user']->uid,'uname'=>$GLOBALS['user']->name]);}
-        if(isset($_POST)){$json=array_merge($json,['post'=>$_POST]);}
-        if(isset($_GET)){$json=array_merge($json,['get'=>$_GET]);}
-        if(isset($_SESSION['public'])){$json=array_merge($json,['session'=>$_SESSION['public']]);}
+<script type="text/javascript" id="dynjs"><?php
+    $json=[];
+    if(isset($GLOBALS['user']->uid)){$json=array_merge($json,['uid'=>$GLOBALS['user']->uid,'uname'=>$GLOBALS['user']->name]);}
+    if(isset($_POST)){$json=array_merge($json,['post'=>$_POST]);}
+    if(isset($_GET)){$json=array_merge($json,['get'=>$_GET]);}
+    if(isset($_SESSION['public'])){$json=array_merge($json,['session'=>$_SESSION['public']]);}
 
-        echo "var json=".json_encode($json).";for(var i in json){window[i]=json[i];}";
-        $a=$user->uid.'-'.$user->name;
-        ?>
+echo"var json=".json_encode($json).",   rmi='".RESIDENCE_MGMT_URI."',  frenchDataTables=rmi+'/lib/datatables.net/i18n/French.json';  for(var i in json){window[i]=json[i];}";
+$a=$user->uid.'-'.$user->name;
+?>
     </script>
     <link id="gcss" rel="stylesheet" href="/z/global.css?a=<?=filemtime($_SERVER['DOCUMENT_ROOT'].'z/global.css')?>" title="/z/global.css" />
     <script id="gjs" src="/z/global.js?a=<?=filemtime($_SERVER['DOCUMENT_ROOT'].'z/global.js')?>" title="/z/global.js" ></script>
@@ -65,15 +65,15 @@
                       <a href="/profile/<?php echo $user->uid; ?>" data-toggle="tooltip" title="Profile" class="dropdown-item"><i data-feather="user"></i> Mon compte</a>
 
                       <a href="/histories" data-toggle="tooltip" title="Historique" class="dropdown-item"><i data-feather="activity"></i> Historique</a>
+<?php if(1){
+    if( residence_mgmt_user_plan_has_access('PAGE_MES_GROUPES') ): ?>
+      <a href="/mes-groupes" data-toggle="tooltip" title="Mes groupes" class="dropdown-item"><i data-feather="settings"></i> Mes groupes</a>
+      <?php endif; ?>
 
-                      <?php if( residence_mgmt_user_plan_has_access('PAGE_MES_GROUPES') ): ?>
-                      <a href="/mes-groupes" data-toggle="tooltip" title="Mes groupes" class="dropdown-item"><i data-feather="settings"></i> Mes groupes</a>
-                      <?php endif; ?>
-
-                      <?php if( residence_mgmt_user_plan_has_access('PAGE_MES_RESIDENCES') ): ?>
-                      <a href="/mes-residences" data-toggle="tooltip" title="Mes résidences" class="dropdown-item"><i data-feather="settings"></i> Mes résidences</a>
-                      <?php endif; ?>
-
+      <?php if( residence_mgmt_user_plan_has_access('PAGE_MES_RESIDENCES') ): ?>
+      <a href="/mes-residences" data-toggle="tooltip" title="Mes résidences" class="dropdown-item"><i data-feather="settings"></i> Mes résidences</a>
+      <?php endif;
+}?>
                       <div class="dropdown-divider"></div>
                       <a href="/user/logout" data-toggle="tooltip" title="Déconnexion" class="dropdown-item" ><i data-feather="log-out"></i> Déconnexion</a>
 
