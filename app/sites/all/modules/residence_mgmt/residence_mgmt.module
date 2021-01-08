@@ -1379,7 +1379,7 @@ function residence_mgmt_get_residence_details($residenceId = null) {
         // exit();
     }
 
-    $residenceRanking = getRankingOfResidence( $residenceId, array("CONCURRENCE_DIRECTE", "DEPARTEMENT") );
+    $residenceRanking = getRankingOfResidence( $residenceId, ["CONCURRENCE_DIRECTE", "DEPARTEMENT"]);
 
     $residencesConcurrentes['direct'] = getResidencesProchesByStatus( $residenceId, [$residence->field_statut['und'][0]['value']], 10);
     $a=1;
@@ -1411,14 +1411,14 @@ function residence_mgmt_get_residence_details($residenceId = null) {
     sort($tarifResidencesConcurrentesSorted, SORT_NUMERIC);
     $tarifResidencesConcurrentesSorted = array_reverse($tarifResidencesConcurrentesSorted);
 
-    if( $residenceRanking["concurrence_direct"] == 1 ) {
+    if( $residenceRanking["concurrence_directe"] == 1 ) {
 
         $sommeTarifTroisResidence = $tarifResidencesConcurrentesSorted[0] + $tarifResidencesConcurrentesSorted[1] + $tarifResidencesConcurrentesSorted[2];
 
         $tmhOptimisation["tarif_min"] = round($sommeTarifTroisResidence / 3, 2);
         $tmhOptimisation["tarif_max"] = round($tarifChambreSimple + ( $tarifChambreSimple * 0.05 ), 2);
 
-    } else if( $residenceRanking["concurrence_direct"] <= 3 ) {
+    } else if( $residenceRanking["concurrence_directe"] <= 3 ) {
 
         $sommeTarifTroisResidence = $tarifResidencesConcurrentesSorted[0] + $tarifResidencesConcurrentesSorted[1] + $tarifResidencesConcurrentesSorted[2];
 
@@ -1426,23 +1426,25 @@ function residence_mgmt_get_residence_details($residenceId = null) {
         //$tmhOptimisation["tarif_max"] = round(( $sommeTarifTroisResidence + 2 * $tarifChambreSimple ) / 5, 2);
         $tmhOptimisation["tarif_max"] = round(( $statistiques['direct']["tarif_max"] + $tarifChambreSimple ) / 2, 2);
 
-    } else if( $residenceRanking["concurrence_direct"] <= 8 ) {
-
-        $tmhOptimisation["tarif_min"] = round(( $statistiques['direct']["tarif_moyen"] +  $statistiques['direct']["tarif_min"] + $tarifChambreSimple * 2 ) / 4, 2);
+    } else if( $residenceRanking["concurrence_directe"] <= 8 ) {#La 8ème la moins chère
+        $tmhOptimisation["tarif_min"] = round(  ( $statistiques['direct']["tarif_moyen"] +  $statistiques['direct']["tarif_min"] + $tarifChambreSimple * 2 ) / 4, 2);
         // $tmhOptimisation["tarif_max"] = round(( $statistiques['direct']["tarif_max"] + $statistiques['direct']["tarif_moyen"] +  $statistiques['direct']["tarif_min"] + $tarifChambreSimple * 2 ) / 5, 2);
-        $tmhOptimisation["tarif_max"] = round(( $statistiques['direct']["tarif_max"] + $statistiques['direct']["tarif_moyen"] + $tarifChambreSimple) / 3, 2);
-
-    } else if( $residenceRanking["concurrence_direct"] <= 10 ) {
+        $tmhOptimisation["tarif_max"] = round(  ( $statistiques['direct']["tarif_moyen"] + $statistiques['direct']["tarif_max"] +  $tarifChambreSimple) / 3, 2);
+        $a=1;
+    } else if( $residenceRanking["concurrence_directe"] <= 10 ) {
 
         $tmhOptimisation["tarif_min"] = round(( $statistiques['direct']["tarif_moyen"] +  $statistiques['direct']["tarif_min"] + $tarifChambreSimple * 2 ) / 4, 2);
         $tmhOptimisation["tarif_max"] = round(( $statistiques['direct']["tarif_max"] + $statistiques['direct']["tarif_moyen"] +  $statistiques['direct']["tarif_min"] + $tarifChambreSimple * 2 ) / 5, 2);
 
     } else {
-
         $tmhOptimisation["tarif_min"] = round(( $tarifChambreSimple * 0.95 ), 2);
         $tmhOptimisation["tarif_max"] =  round(( $statistiques['direct']["tarif_moyen"] + $tarifChambreSimple ) / 2, 2);
-
     }
+/*
+ * $tmhOptimisation["tarif_max"] * 0.9 , 0.95, 0.97
+ */
+    $tmin=$tmhOptimisation["tarif_max"]*0.8;
+    if ($tmhOptimisation["tarif_min"] >$tmin ) {$tmhOptimisation["tarif_min"] = $tmin;}
 
     $nbreMaquettes = countMaquettes( $residenceId );
 
