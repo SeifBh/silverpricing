@@ -1,5 +1,5 @@
 <?php /*
-php72 ~/home/ehpad/app/z/delete-finess-duplicates.php
+ export PHP_IDE_CONFIG=serverName=ehpad.home;php72 ~/home/ehpad/app/z/delete-finess-duplicates.php
  * => Lancer => enregister anciennes références
 Rectifier les anciens numéro, supprimer les nouveaux
 & codes postaux
@@ -21,7 +21,9 @@ if('cli emulation'){
         $_GET=Alptech\Wip\io::isJson($argv[1]);
     }
 }
-$h='mysqlProd';
+
+$h='mysql';
+#$h='mysqlProd';_confirm($h);
 
 $f='backups/z_old2new.json';
 if(0){
@@ -52,7 +54,7 @@ $f='z_old2new.json';if(0 and is_file($f)){
 select field_location_postal_code,right(field_location_postal_code,5) from field_data_field_location where length(field_location_postal_code)>5
 select field_finess_value,right(field_location_postal_code,9) from field_data_field_finess where length(field_finess_value)>9
  */
-    $old2new=$finess2id=[];
+    $old2new=$finess2id=$more9digits=[];
     $x=Alptech\Wip\fun::sql("select entity_id as k,field_finess_value as v from field_data_field_finess",$h);
     foreach($x as $t){$finess2id[$t['v']]=$t['k'];}
     foreach($x as $t){
@@ -60,6 +62,7 @@ select field_finess_value,right(field_location_postal_code,9) from field_data_fi
             $last9digits=substr($t['v'],-9);
             $fin2new[$t['v']]=$last9digits;
             if(isset($finess2id[$last9digits])){
+                $more9digits[]=$t['k'];
                 $old2new[$t['k']]=$finess2id[$last9digits];
                 continue;
             }
@@ -71,9 +74,7 @@ select field_finess_value,right(field_location_postal_code,9) from field_data_fi
     file_put_contents($f,json_encode($old2new));#
 }
 
-die('me revenir');
-
-if(!$new2old)die('no duplicates');
+if(!$old2new)die('no duplicates');
 
 $new2old=array_flip($old2new);$old=array_values($new2old);$new=array_values($old2new);
 
@@ -142,7 +143,20 @@ $s[]='delete from node_revision where nid in('.implode(',',$keys).')';
 
 file_put_contents('z_new.'.$s.'.json',implode(";\n",$s).';');#
 return;
-die;?>
+die;
+
+function _confirm($h)
+{
+    echo "Confirm action $h ? type 'y' then enter : ";
+    $handle = fopen("php://stdin", "r");
+    $line = fgets($handle);
+    if (trim($line) != 'y') {
+        die('action not confirmed');
+    }
+    fclose($handle);
+}
+
+?>
 
 
 $finess=[];

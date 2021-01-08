@@ -7,6 +7,20 @@
                 <div class="card-header d-sm-flex align-items-start justify-content-between">
                     <h4 class="lh-5 mg-b-0">Modifier la résidence: <?php echo $chambre->title; ?></h4>
                 </div>
+<?php
+if(isset($uuid) and $uuid){
+    $x=Alptech\Wip\fun::sql("select body_value from field_data_body where entity_id=15920");
+    echo $x[0]['body_value'];
+    #$x=node_load(15920);
+    $a=1;
+    #print drupal_render(node_view(node_load(15920)));
+/*
+ * $fullFiche = node_load($nid);
+ * 15920
+ */
+}
+?>
+
                 <div class="card-body pd-y-15 pd-x-10">
 
                     <form action="" method="POST">
