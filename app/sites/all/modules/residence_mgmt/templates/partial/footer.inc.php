@@ -406,9 +406,11 @@
 elseif( $currentMenu == "residences" /*departement detail*/ ):
 #https://ehpad.home/departement/75-74-HauteSavoie
 $mesPrixParVille=[];
-foreach( $mesResidences as $t ){$mesPrixParVille[strtolower($t->field_location_locality)][]=$t->field_tarif_chambre_simple_value;}
+foreach( $mesResidences as $t ){
+    $mesPrixParVille[strtolower($t->field_location_locality)][$t->title]=$t->field_tarif_chambre_simple_value;
+}
 
-foreach( $departementChartData as $data ){
+foreach ($departementChartData as $k => $data) {
     $nres.=$data->count.',';
     $tmoy.=round($data->totaltarif / $data->count, 2).',';
     $tph.=$statistique_globale['Tarif plus haut'] . ",";#still
@@ -416,9 +418,14 @@ foreach( $departementChartData as $data ){
     $tpb.=$statistique_globale['Tarif plus bas'] . ",";
     $villes.='"'.$data->ville.'",';
     $l=strtolower($data->ville);
-    if(isset($mesPrixParVille[$l]))$mesPrixParVille2.=(array_sum($mesPrixParVille[$l])/count($mesPrixParVille[$l]));
-    else $mesPrixParVille2.='0';
-    $mesPrixParVille2.=',';
+    #if(isset($mesPrixParVille[$l]))$mesPrixParVille2.=(array_sum($mesPrixParVille[$l])/count($mesPrixParVille[$l])); else $mesPrixParVille2.='0';
+    if(isset($mesPrixParVille[$l])){
+        foreach($mesPrixParVille[$l] as $t=>$v){
+            $mesPrixParVilleLabels.="\"".$t."\",";
+            $mesPrixParVille2.="{y:".$v.",x:\"".$data->ville."\"},";}
+        }
+        #$mesPrixParVille2.="{y:".(array_sum($mesPrixParVille[$l])/count($mesPrixParVille[$l])).",x:\"".$data->ville."\"},";}
+    #add scatterplots over regular bar graph
 }
 ?>
 $(document).ready(function() {
@@ -429,128 +436,131 @@ $(document).ready(function() {
     });
 });
 
-var nres=[<?=$nres?>],tmoy=[<?=$tmoy?>],tph=[<?=$tph?>],tmoy2=[<?=$tmoy2?>],tpb=[<?=$tpb?>],villes=[<?=$villes?>],mesPrixParVille=[<?=$mesPrixParVille2?>];
+var nres=[<?=$nres?>],tmoy=[<?=$tmoy?>],tph=[<?=$tph?>],tmoy2=[<?=$tmoy2?>],tpb=[<?=$tpb?>],villes=[<?=$villes?>],mesPrixParVille=[<?=$mesPrixParVille2?>],mesPrixParVilleLabels=[<?=$mesPrixParVilleLabels?>];
 
-    var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getContext('2d'), {
-        type: 'bar',
-        data: {
-            datasets: [
-                {
-                    yAxisID: 'nombre-residences',
-                    label: 'Nombre de résidences',
-                    backgroundColor: '#6dbaf5',
-                    data: nres,
-                },
-                {
-                    type: 'line',
-                    yAxisID: 'departement-tarif',
-                    label: 'Tarif Moyen',
-                    backgroundColor: '#65e0e0',
-                    borderColor: '#65e0e0',
-                    fill: false,
-                    data: tmoy
-                },
-                {
-                    type: "line",
-                    yAxisID: 'departement-tarif',
-                    label: 'TARIF PLUS HAUT',
-                    backgroundColor: '#008000',
-                    borderColor: '#008000',
-                    fill: false,
-                    borderDash: [10,5],
-                    pointRadius: 0,
-                    borderWidth: 1,
-                    data: tph,
-                },
-                {
-                    type: "line",
-                    yAxisID: 'departement-tarif',
-                    label: 'TARIF MOYEN',
-                    backgroundColor: '#808080',
-                    borderColor: '#808080',
-                    fill: false,
-                    borderDash: [10,5],
-                    pointRadius: 0,
-                    borderWidth: 1,
-                    data: tmoy2,
-                },
-                {
-                    type: "line",
-                    yAxisID: 'departement-tarif',
-                    label: 'TARIF PLUS BAS',
-                    backgroundColor: '#f60303',
-                    borderColor: '#f60303',
-                    fill: false,
-                    borderDash: [10,5],
-                    pointRadius: 0,
-                    borderWidth: 1,
-                    data:tpb,
-                },
-                {
-                    type: "line",
-                    yAxisID: 'departement-tarif',
-                    label: 'MON TARIF',
-                    backgroundColor: '#FFFF00',
-                    borderColor: '#FFFF00',
-                    fill: false,
-                    borderWidth: 1,
-                    data: mesPrixParVille,
-                },
-            ],
-            labels: villes
-        },
-        options: {
-            maintainAspectRatio: false,
-            responsive: true,
-            legend: {
-                display: true,
-                position: 'bottom',
-                align: 'center',
+var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getContext('2d'), {
+    type: 'bar',
+    data: {
+        datasets: [
+            {
+                yAxisID: 'nombre-residences',
+                label: 'Nombre de résidences',
+                backgroundColor: '#6dbaf5',
+                data: nres,
             },
-            scales: {
-                yAxes: [
-                    {
-                        id: 'nombre-residences',
-                        position: 'left',
-                        ticks: {
-                            beginAtZero:true,
-                            fontSize: 10,
-                            fontColor: '#182b49',
-                        },
-                        scaleLabel: {
-                            display: true,
-                            labelString: 'Nombre de résidences',
-                            fontSize: 10
-                        }
-                    },
-                    {
-                        id: 'departement-tarif',
-                        position: 'right',
-                        ticks: {
-                            beginAtZero:true,
-                            fontSize: 10,
-                            fontColor: '#182b49',
-                        },
-                        scaleLabel: {
-                            display: true,
-                            labelString: 'Tarif moyen',
-                            fontSize: 10
-                        }
-                    }
-                ],
-                xAxes: [{
-                    barPercentage: 0.6,
+            {
+                type: 'line',
+                yAxisID: 'departement-tarif',
+                label: 'Tarif Moyen',
+                backgroundColor: '#65e0e0',
+                borderColor: '#65e0e0',
+                fill: false,
+                data: tmoy
+            },
+            {
+                type: "line",
+                yAxisID: 'departement-tarif',
+                label: 'TARIF PLUS HAUT',
+                backgroundColor: '#008000',
+                borderColor: '#008000',
+                fill: false,
+                borderDash: [10,5],
+                pointRadius: 0,
+                borderWidth: 1,
+                data: tph,
+            },
+            {
+                type: "line",
+                yAxisID: 'departement-tarif',
+                label: 'TARIF MOYEN',
+                backgroundColor: '#808080',
+                borderColor: '#808080',
+                fill: false,
+                borderDash: [10,5],
+                pointRadius: 0,
+                borderWidth: 1,
+                data: tmoy2,
+            },
+            {
+                type: "line",
+                yAxisID: 'departement-tarif',
+                label: 'TARIF PLUS BAS',
+                backgroundColor: '#f60303',
+                borderColor: '#f60303',
+                fill: false,
+                borderDash: [10,5],
+                pointRadius: 0,
+                borderWidth: 1,
+                data:tpb,
+            },
+/*
+Répeter pour autant de valeurs par ville
+http://jsfiddle.net/onesev/bpcLs7uz/*/
+            {
+                type:"scatter",
+                yAxisID: 'departement-tarif',
+                label: 'MON TARIF', backgroundColor: 'rgba(0,0,0,0)', borderColor: '#000000',
+                fill: false,showLine:false,pointRadius:7,pontHoverRadius:10,
+                borderWidth: 1,
+                labels: mesPrixParVilleLabels,
+                data: mesPrixParVille,
+            },
+        ],
+//Add Dots
+        labels: villes
+    },
+    options: {
+        maintainAspectRatio: false,
+        responsive: true,
+        legend: {
+            display: true,
+            position: 'bottom',
+            align: 'center',
+        },
+        scales: {
+            yAxes: [
+                {
+                    id: 'nombre-residences',
+                    position: 'left',
                     ticks: {
                         beginAtZero:true,
                         fontSize: 10,
                         fontColor: '#182b49',
-                        maxRotation: 90,
-                        minRotation: 90
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Nombre de résidences',
+                        fontSize: 10
                     }
-                }]
-            }
+                },
+                {
+                    id: 'departement-tarif',
+                    position: 'right',
+                    ticks: {
+                        beginAtZero:true,
+                        fontSize: 10,
+                        fontColor: '#182b49',
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Tarif moyen',
+                        fontSize: 10
+                    }
+                }
+            ],
+            xAxes: [{
+                barPercentage: 0.6,
+                ticks: {
+                    beginAtZero:true,
+                    fontSize: 10,
+                    fontColor: '#182b49',
+                    maxRotation: 90,
+                    minRotation: 90
+                }
+            }]
         }
-    });
+    }
+});
 
 // MAP
 var markerObject,marker,markers = [],hereMap = initHereMap('XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8', document.getElementById('french-residences-map'));
