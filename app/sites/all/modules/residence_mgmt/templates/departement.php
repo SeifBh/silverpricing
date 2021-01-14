@@ -124,7 +124,7 @@
 
             <div class="card mg-t-10 mg-b-10">
                   <div class="card-header d-sm-flex align-items-start justify-content-between">
-                      <h5 class="tx-8rem tx-uppercase tx-bold lh-5 mg-b-0">Nombre de résidences et prix moyen par ville</h5>
+                      <h5 class="tx-8rem tx-uppercase tx-bold lh-5 mg-b-0">Nombre de résidences et prix moyens par ville</h5>
                   </div>
                   <div class="card-body pd-y-15 pd-x-10">
                       <canvas id="bar_chart_canvas" height="400"></canvas>
@@ -175,7 +175,7 @@
                                   <div class="input-group-prepend">
                                       <span class="input-group-text"><i class="fa fa-street-view"></i></span>
                                   </div>
-                                  <input type="text" class="form-control" id="code_postale" name="code_postale" placeholder="Code Postale"  value="<?php echo (!empty($_POST['code_postale'])) ? $_POST['code_postale'] : '' ?>"/>
+                                  <input type="text" class="form-control" id="code_postale" name="code_postale" placeholder="Code Postal"  value="<?php echo (!empty($_POST['code_postale'])) ? $_POST['code_postale'] : '' ?>"/>
                               </div>
                           </div>
 

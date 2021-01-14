@@ -208,9 +208,10 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
             continue;
         }
         #210007159,3979,33980
-        $rid=$cnid=$chambre=$residence=$modifRes=$modifCh=$data=0;$chambres=[];
+        $rid=$cnid=$chambre=$residence=$modifRes=$modifCh=$data=$priceLastMod=0;$chambres=[];
         $lastmod=strtotime($t["updatedAt"]);
-        if(isset($t["ehpadPrice"]["updatedAt"]))$lastmod=strtotime($t["ehpadPrice"]["updatedAt"]);
+        if(isset($t["ehpadPrice"]["updatedAt"]))$priceLastMod=$lastmod=strtotime($t["ehpadPrice"]["updatedAt"]);#upper Modif on prices
+
         #$finess=ltrim($t['noFinesset'],0);#<== Surtout pas
         $finess=$t['noFinesset'];
         #file_put_contents('current.log',$k.'/'.$finess);#todo apcu / memcached / redis ?

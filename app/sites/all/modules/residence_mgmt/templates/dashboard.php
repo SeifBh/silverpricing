@@ -14,7 +14,7 @@
                                 <td>Tarif</td>
                                 <td>Moyenne concurrence directe</td>
                                 <td>Différence</td>
-                                <td>Recommendation</td>
+                                <td>Ranking</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -23,7 +23,7 @@
                                     <td><a href="<?php echo '/residence/' . $residence->nid; ?>"><?php echo $residence->title ?></a></td>
                                     <td><?php echo $residence->field_tarif_chambre_simple_value; ?> €</td>
                                     <td><?php echo $residence->tarif_concurrence_direct; ?> €</td>
-                                    <td><?php echo number_format( $residence->difference, 2 ); ?> €</td>
+                                    <td><?php echo number_format($residence->difference, 2 ); ?> €</td>
                                     <td><?php echo $residence->ranking_direct; ?></td>
                                 </tr>
                             <?php endforeach; ?>
@@ -57,6 +57,7 @@
                                 <thead>
                                     <tr>
                                         <td>Favoris</td>
+                                        <td></td>
                                         <td>Résidence</td>
                                         <td>Département</td>
                                         <td>Tarif a partir de</td>
@@ -66,10 +67,11 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach( $maquettes as $maquette ): ?>
+                                    <?php foreach( $maquettes as $maquette ):# ?>
                                     <tr>
                                       <td><?php echo ( $maquette->field_favoris_value == 0 ) ? '<i class="far fa-star"></i>':'<i class="fas fa-star"></i>'; ?></td>
-                                      <td>
+                                      <td><a href="<?php echo '/maquette/' . $maquette->n_nid;?>" class="sb" title="Consulter maquette" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></a>
+                                      </td><td>
                                         <a href="<?php echo '/residence/' . $maquette->nid; ?>"><?php echo $maquette->title ?></a>
                                       </td>
                                       <td><?php echo $maquette->name; ?></td>
@@ -195,23 +197,31 @@
                             <table id="mes-residences-table" class="table table-sm table-hover">
                                 <thead>
                                     <tr>
-                                        <th scope="col">Résidence</th>
-                                        <th scope="col">Ville</th>
-                                        <th scope="col">Gestionnaire</th>
+                                        <th scope="col">Résidences</th>
+                                        <th scope="col">Départments</th>
+                                        <th scope="col">Villes</th>
+                                        <th scope="col">Gestionnaires</th>
                                         <th scope="col">Status</th>
-                                        <th scope="col">Tarif</th>
+                                        <th scope="col">Position départementale</th>
+                                        <th scope="col">Position concurrentielle</th>
+                                        <th scope="col">Tarifs</th>
                                         <th scope="col">Nbre de lits</th>
+                                        <th scope="col">Date maj</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach( $residences as $residence ): ?>
                                     <tr>
                                         <td><a href="<?php echo '/residence/' . $residence->nid; ?>"><?php echo $residence->title ?></a></td>
+                                        <td><?php echo substr($residence->field_location_postal_code,0,2); ?></td>
                                         <td><?php echo $residence->field_location_locality; ?></td>
                                         <td><?php echo $residence->field_gestionnaire_value; ?></td>
                                         <td><?php echo $residence->field_statut_value; ?></td>
                                         <td><?php echo $residence->field_tarif_chambre_simple_value; ?> €</td>
+                                        <td><?php echo $residence->ranking['departement']; ?></td>
+                                        <td><?php echo $residence->ranking['concurrence_directe']; ?></td>
                                         <td><?php echo $residence->field_capacite_value; ?></td>
+                                        <td><?php  ?></td>
                                     </tr>
                                     <?php endforeach; ?>
                                 </tbody>

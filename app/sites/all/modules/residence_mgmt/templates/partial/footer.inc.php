@@ -59,13 +59,9 @@
 
         // DATA TABLES
         $('#dashboard-quick-win-table').DataTable( {
-            "language": {
-                url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
-            },
-            "searching": false,
-            "lengthChange": false,
-            "paging": false,
-            "info": false,
+            "language": {url: frenchDataTables},
+            "searching": false, "lengthChange": false, "paging": false, "info": false,
+            "order": [[ 4, "desc" ]],
             "pageLength": 5,
             "columnDefs": [
                 { type: 'natural-nohtml', targets: [1,2,3] }
@@ -74,7 +70,7 @@
 
         $('#dashboard-mes-maquettes-table').DataTable( {
             "language": {
-                url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                url: frenchDataTables
             },
             "searching": false,
             "lengthChange": false,
@@ -88,7 +84,7 @@
 
         $('#mes-residences-table').DataTable( {
             "language": {
-                url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                url: frenchDataTables
             },
             "searching": false,
             "columnDefs": [
@@ -170,7 +166,7 @@
         // DATA TABLES
         $('#quick-win-table').DataTable( {
             "language": {
-                url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                url: frenchDataTables
             },
             "searching": true,
             "lengthChange": false,
@@ -185,7 +181,7 @@
         // DATA TABLES
         $('#profile-residences-table').DataTable( {
             "language": {
-                url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                url: frenchDataTables
             },
             "searching": true,
             "lengthChange": false,
@@ -200,7 +196,7 @@
         // DATA TABLES
         $('#mes-maquettes-table').DataTable( {
             "language": {
-                url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                url: frenchDataTables
             },
             "searching": true,
             "lengthChange": false,
@@ -301,7 +297,7 @@
     $(document).ready(function() {
     $('#department-table').DataTable( {
         "language": {
-            url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+            url: frenchDataTables
         },
         "searching": true,
         columnDefs: [
@@ -418,12 +414,13 @@ foreach ($departementChartData as $k => $data) {
         $moy=array_sum($mesPrixParVille[$l])/count($mesPrixParVille[$l]);
         $mesPrixParVille2.="{y:".$moy.",x:\"".$data->ville."\"},";
         $mesPrixParVilleLabels.="\"".implode(',',$mesPrixParVille[$l])."\",";
-
+        $detailParVilleA=[];
             foreach($mesPrixParVille[$l] as $t=>$v){
-                $detailParVille.="{y:".$v.",x:\"".$data->ville."\"},";
+                $detailParVilleA[]="{y:".$v.",x:\"".$data->ville."\"}";
                 continue;
                 $mesPrixParVille2.="{y:".$v.",x:\"".$data->ville."\"},";#label:\"".$t."\",#multiples scatter points mais index on hover pas bon
             }
+        $detailParVille.='['.implode(',',$detailParVilleA).'],';#
         if(0){
 
             $mesPrixParVille2.="{y:[".implode(',',$mesPrixParVille[$l])."],x:\"".$data->ville."\"},";
@@ -441,6 +438,7 @@ foreach ($departementChartData as $k => $data) {
     } else{
             $myres.=",";
             $mesPrixParVille2.='{},';
+            $detailParVille.="{},";
             $mesPrixParVilleLabels.='"",';
             #$mesPrixParVilleLabels.='{},';
 #        $mesPrixParVille2.="{y:".(array_sum($mesPrixParVille[$l])/count($mesPrixParVille[$l])).",x:\"".$data->ville."\"},";
@@ -471,13 +469,17 @@ var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getCo
     type: 'bar',
     data: {
         datasets: [
-            {yAxisID: 'nombre-residences', label: 'Nombre de résidences', backgroundColor: '#6dbaf5', data: nres,
-            }, {
-                yAxisID: 'nombre-residences',
-                label: 'Mes résidences',
-                backgroundColor: '#DD0000',
-                data: myres,
+            {
+                type:"scatter",
+                yAxisID: 'departement-tarif',
+                backgroundColor: 'rgba(0,0,0,0)', borderColor: '#000000',
+                fill: false,showLine:false,pointRadius:7,pointHoverRadius:10,
+                borderWidth: 1, label:"Mon tarif moyen",
+//https://jsfiddle.net/simonbrunel/sxzqwr80/
+//labels: mesPrixParVilleLabels,//Mon tarif:
+                data: mesPrixParVille,
             },
+//{type:"scatter", yAxisID: 'departement-tarif', backgroundColor: 'rgba(0,0,120,0)', borderColor: '#0000DD', fill: false,showLine:false,pointRadius:6,pointHoverRadius:9, borderWidth: 0, label:"Mon tarif", data: detailParVille},
             {
                 type: 'line',
                 yAxisID: 'departement-tarif',
@@ -529,17 +531,13 @@ chartjs add custom label to dataset points => aka custom tooltip
 
 http://www.chartjs.org/samples/latest/tooltips/custom-points.html
 */
-            {
-                type:"scatter",
-                yAxisID: 'departement-tarif',
-                backgroundColor: 'rgba(0,0,0,0)', borderColor: '#000000',
-                fill: false,showLine:false,pointRadius:7,pointHoverRadius:10,
-                borderWidth: 1, label:"Mon tarif moyen",
-//https://jsfiddle.net/simonbrunel/sxzqwr80/
-                labels: mesPrixParVilleLabels,//Mon tarif:
-                data: mesPrixParVille,
-            },
-            {type:"scatter", yAxisID: 'departement-tarif', backgroundColor: 'rgba(0,0,120,0)', borderColor: '#0000DD', fill: false,showLine:false,pointRadius:6,pointHoverRadius:9, borderWidth: 0, label:"Mon tarif", data: detailParVille,
+
+            {yAxisID: 'nombre-residences', label: 'Nombre de résidences', backgroundColor: '#6dbaf5', data: nres,
+            }, {
+                yAxisID: 'nombre-residences',
+                label: 'Mes résidences',
+                backgroundColor: '#DD0000',
+                data: myres,
             },
         ],
 //Add Dots
@@ -751,7 +749,7 @@ cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressio
 
         $('#table-residences-direct').DataTable( {
             "language": {
-                url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                url: frenchDataTables
             },
             "info": false,
             "searching": false,
@@ -764,7 +762,7 @@ cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressio
 
         $('#table-residences-indirect').DataTable( {
             "language": {
-                url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                url: frenchDataTables
             },
             "info": false,
             "searching": false,
@@ -1304,7 +1302,7 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
         $(document).ready(function() {
             $('#mes-groupes-table').DataTable( {
                 "language": {
-                    url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                    url: frenchDataTables
                 },
                 "info": false
             });
@@ -1316,7 +1314,7 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
         $(document).ready(function() {
             $('#groupes-table').DataTable( {
                 "language": {
-                    url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                    url: frenchDataTables
                 },
                 columnDefs: [
                     { type: 'natural-nohtml', targets: [4, 5, 6, 7] }
@@ -1428,7 +1426,7 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
         $(document).ready(function() {
             $('#request-table').DataTable( {
                 "language": {
-                    url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                    url: frenchDataTables
                 },
                 "searching": false,
                 "columnDefs": [
@@ -1554,7 +1552,7 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
     $(document).ready(function() {
         $('#residences-result-table').DataTable( {
             "language": {
-                url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                url: frenchDataTables
             },
             "searching": false,
             "order": [[ 5, "asc" ]],
@@ -1715,7 +1713,7 @@ w=32;h=32;toload=[];markers = [];needSvgToCanvas();ajax('/z/ajax.php?markers=1',
         $(document).ready(function() {
             $('#residences-result-table').DataTable( {
                 "language": {
-                    url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                    url: frenchDataTables
                 },
                 "searching": false,
                 "order": [[ 4, "asc" ]],
@@ -1809,7 +1807,7 @@ return x;
         $(document).ready(function() {
             $('#mes-residences-table').DataTable( {
                 "language": {
-                    url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                    url: frenchDataTables
                 },
                 "info": false,
                 "order": [[ 1, "asc" ]],
@@ -1824,7 +1822,7 @@ return x;
         // DATATABLES
         var yeelderToolsTable = $('#yeelder-tools-table').DataTable( {
             "language": {
-                url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                url: frenchDataTables
             },
             columns: [
                 { data: 'id_mutation' },
@@ -1963,7 +1961,7 @@ return x;
         $(document).ready(function() {
             $('#nearby-residences-updated-table').DataTable( {
                 "language": {
-                    url: "<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/i18n/French.json"
+                    url: frenchDataTables
                 },
                 "info": false,
                 "order": [[ 1, "asc" ]]

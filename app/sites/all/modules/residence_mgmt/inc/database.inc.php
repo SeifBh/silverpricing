@@ -1053,8 +1053,13 @@ function getHistories() {
 function getAllDepartments() {
     $vocabulary = taxonomy_vocabulary_machine_name_load('departement');
     $tree = taxonomy_get_tree($vocabulary->vid);
-
-    return $tree;
+    $departments=[];
+    foreach($tree as $term) {
+        #$numDepartment = substr($term->name, 0, stripos($term->name, " - "));$departments[$numDepartment] = $term;#
+        $departments[$term->tid] = $term;
+    }
+    asort($departments);
+    return $departments;#
 }
 
 function getAllDepartmentsByNumberAndName() {

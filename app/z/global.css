@@ -49,3 +49,4 @@ button,.pointer,.label,.zoom{cursor:pointer;}
 }
 
 #a .nav-aside .nav-link:hover,#a .nav-aside .nav-link:hover svg {color: #ff0000;}
+.sb{color: #fff;background-color: #0168fa;border-color: #0168fa;padding: 0.3rem;border-radius: 0.3rem;}
