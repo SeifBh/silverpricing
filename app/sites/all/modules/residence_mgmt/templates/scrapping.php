@@ -113,11 +113,15 @@ foreach( $tarifTable->find('tr') as $tarif ) {
 Drupal 7 new route to module action ..
 
 my -u a -pb silverpricing_db < ../db/silverpricing_db.sql;drushy cc all;
-a;cuj 'https://ehpad.home/updateAllResidencesByJson' a '' 1 'sql=(insert|update) ';b;say done;
+a;cuj 'https://ehpad.home/updateAllResidencesByJson' a '{"forceFiness":270013121}' 1 'sql=(insert|update) ';b;say done;
 on second update shall stop uneccessary updates
 */
-function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForces=null,$_c=null){
+function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForces=[],$_c=null){
 #todo:lock##ini_set('max_execution_time',9999999);
+    if(isset($_POST["forceFiness"]) and $_POST["forceFiness"]){
+        $forceFiness=$_POST["forceFiness"];
+        $a=1;
+    }
     ini_set('max_execution_time',-1);ini_set('memory_limit',-1);
     if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE){
         $lf=__file__.__function__.'.lock';if(is_file($lf) and filemtime($lf)>time()-70000)die("locked:$lf");touch($lf);
@@ -135,6 +139,7 @@ function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForc
         $f=$_SERVER['DOCUMENT_ROOT'].'z/curlcache/'.date('ymd').'-'.preg_replace('~[^a-z0-9\.\-_]+|\-+~i','-',$url).'json';
         if(is_file($f)){
             $_a=['contents'=>file_get_contents($f)];#cached
+            $a=2;
         }else{
             $_a=Alptech\Wip\fun::cup(['url'=>$url,'timeout'=>1600]);
             if(!$_a['contents'] or $_a['info']['http_code']!=200 or $_a['error']){
@@ -142,8 +147,8 @@ function updateAllResidencesFromPersonnesAgeesJson($forceFiness=null,$tarifsForc
                 return null;
             }
             $_written=file_put_contents($f,$_a['contents']);#
-            $_c=json_decode($_a['contents'],1);
         }
+        $_c=json_decode($_a['contents'],1);
     }
     unset($_a);
     $_mem[__line__]=memory_get_usage(1);
@@ -196,7 +201,7 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
             if($t['noFinesset']!=$forceFiness){
                 continue;
             }
-            $t['ehpadPrice']=array_merge($t['ehpadPrice'],$tarifsForces);#sinon magie !!2
+            $t['ehpadPrice']=array_merge($t['ehpadPrice'],$tarifsForces);#sinon magie !!2,
             $a=1;
         }
         if(!isset($t['ehpadPrice']) and !$t['IsEHPAD']){#Marpa & Autres ...
@@ -205,6 +210,7 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
         #210007159,3979,33980
         $rid=$cnid=$chambre=$residence=$modifRes=$modifCh=$data=0;$chambres=[];
         $lastmod=strtotime($t["updatedAt"]);
+        if(isset($t["ehpadPrice"]["updatedAt"]))$lastmod=strtotime($t["ehpadPrice"]["updatedAt"]);
         #$finess=ltrim($t['noFinesset'],0);#<== Surtout pas
         $finess=$t['noFinesset'];
         #file_put_contents('current.log',$k.'/'.$finess);#todo apcu / memcached / redis ?
@@ -227,8 +233,10 @@ $x=Alptech\Wip\fun::sql("SELECT t.entity_id as a,field_residence_target_id as b,
                         $cnid = reset($chambres);
                         if($ch2date[$cnid]){#compare $lastmod avec
                             $modifCh=$ch2date[$cnid];
-                            if($forceFiness and $finess==$forceFiness and 'dérogation'){
-                                $t['ehpadPrice'];
+                            $_lastmod=$lastmod;$_modifRes=intval($modifRes);$_modifCh=intval($modifCh);
+                            $a=1;
+                            if($forceFiness and $finess==$forceFiness and 'dérogationPourForcerUpdatePrixDuneChambre'){
+                                #$t['ehpadPrice'];
                                 $modifCh=0;
                             } elseif($lastmod<=$modifRes and $lastmod<=$modifCh){#ne nécessite pas de modification :: si deux runs successifs ...
                                 #not modified,
