@@ -1,6 +1,6 @@
 <?php
 $hist=[];
-$a='recher-silverex';
+$a='recher-silverex';#as résidences
 if($GLOBALS['user']->uid){
     $uid=intval($GLOBALS["user"]->uid);
     $x=Alptech\Wip\fun::sql("select nid,b.body_value from node n inner join field_data_body b on n.nid=b.entity_id where type='history' and uid=".$uid." order by nid desc");

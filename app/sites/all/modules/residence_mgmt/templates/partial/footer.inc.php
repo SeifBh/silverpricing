@@ -64,9 +64,10 @@ $('#dashboard-quick-win-table').DataTable(p);
 p={"language": {url: frenchDataTables}, "searching": false, "lengthChange": false, "paging": true, "info": false, "pageLength": 5, "columnDefs": [{ type: 'natural-nohtml', targets: [3, 4, 5] }]};
 $('#dashboard-mes-maquettes-table').DataTable(p);
 
+
 p= {
-    "language": {url: frenchDataTables}, "searching": true, "lengthChange": false, "paging": true, "info": false, "pageLength": 50, "order": [[4, "desc"]]
-    , "columnDefs": [{"searchable": false, "targets": [1, 4, 6, 7, 8]}]
+    "language": {url: frenchDataTables}, "searching": true, "lengthChange": false, "paging": true, "info": false, "pageLength": 10, "order": [[4, "desc"]]
+    , "columnDefs": [{"searchable": false, "targets": [1, 5, 6, 7, 8,9]}]
     , initComplete: function () {
         this.api().columns([1]).every(function () {
             var column = this, select = $('<select><option value="">Tous</option></select>');
@@ -429,13 +430,28 @@ foreach ($departementChartData as $k => $data) {
     #add scatterplots over regular bar graphd
 }
 ?>
-$(document).ready(function() {
-    $('#request-table').DataTable( {
-        "language": {url: frenchDataTables },
-        "searching": false,
-        columnDefs: [{ type: 'natural-nohtml', targets: [4, 5, 6] }]
-    });
-});
+p= {"language": {url: frenchDataTables}, "searching": true, "lengthChange": false, "paging": true, "info": false, "pageLength":10
+    //, "order": [[4, "desc"]]
+    , "columnDefs": [{"searchable": false, "targets": [0,4,6,7,8]}]
+    , initComplete: function () {
+        this.api().columns([2]).every(function () {
+            var column = this, select = $('<select><option value="">Tous</option></select>');
+            column.data().unique().sort().each(function (d, j) {
+                if (!d) return;
+                select.append('<option value="' + d + '">' + d + '</option>')
+            });
+            select
+                .appendTo($(column.header()))
+                //.appendTo($(column.footer()))//.empty()
+                .on('change', function () {
+                    var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                    column.search(val ? '^' + val + '$' : '', true, false).draw();
+                });
+        });
+    }
+};
+
+$('#request-table').DataTable(p);
 
 var detailParVille=[<?=$detailParVille?>]
     ,myres=[<?=$myres?>]
@@ -1673,7 +1689,11 @@ defer(
             echo "Statut : " . $healthOrganization->lib_statut . "<br /> ";
             echo "Tarif : " . $healthOrganization->lib_tarif . "<br /> ";
         ?>");
-    <?php }#endForeach WTO ?>
+    <?php }#endForeach WTO
+/*
+
+*/
+?>
     defer(
         function(){cl('ready?');addMarkersAndSetViewBounds(hereMap, markers);}.bind(this,hereMap,markers),
         function(){return (toload.length==0);}

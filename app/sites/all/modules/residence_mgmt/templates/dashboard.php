@@ -172,7 +172,7 @@
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text"><i class="fa fa-search"></i></span>
                                             </div>
-                                            <input type="text" class="form-control" id="manager" name="manager" placeholder="Manager"  value="<?php echo (!empty($_POST['manager'])) ? $_POST['manager'] : '' ?>"/>
+                                            <input type="text" class="form-control" id="gestionnaire" name="gestionnaire" placeholder="Gestionnaire"  value="<?php echo (!empty($_POST['gestionnaire'])) ? $_POST['gestionnaire'] : '' ?>"/>
                                         </div>
                                     </div>
 
@@ -201,6 +201,7 @@
                                         <th scope="col">Départments</th>
                                         <th scope="col">Villes</th>
                                         <th scope="col">Gestionnaires</th>
+                                        <th scope="col">Manager</th>
                                         <th scope="col">Position départementale</th>
                                         <th scope="col">Position concurrentielle</th>
                                         <th scope="col">Tarifs</th>
@@ -220,6 +221,7 @@ foreach( $residences as $residence ){ ?>
 <td><?php echo substr($residence->field_location_postal_code,0,2); ?></td>
 <td><?php echo $residence->field_location_locality; ?></td>
 <td><?php echo $residence->field_gestionnaire_value; ?></td>
+<td><?php echo $residence->field_manager_value; ?></td>
 <td><?php echo $residence->ranking['departement']; ?></td>
 <td><?php echo $residence->ranking['concurrence_directe']; ?></td>
 <td><?php echo $residence->field_tarif_chambre_simple_value; ?> €</td>

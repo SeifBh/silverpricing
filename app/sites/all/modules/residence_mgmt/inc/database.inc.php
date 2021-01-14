@@ -708,9 +708,11 @@ function findResidence($departementId = null, $dataForm = array()) {
   $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
   $query->innerjoin('node', 'c', 'rc.entity_id = c.nid', array());
   $query->join('field_data_field_tarif_chambre_simple', 't', 't.entity_id = c.nid and t.field_tarif_chambre_simple_value != :tarif', array( ':tarif' => 'NA' ));
+    $query->join('field_data_field_capacite', 'capacite', 'capacite.entity_id =  n.nid', array());
+
   $query->fields('n', array('nid', 'title'));
   $query->fields('ff', array('field_finess_value'));
-  $query->fields('l', array('field_location_locality'));
+    $query->fields('l', array('field_location_locality', 'field_location_postal_code'));
   $query->fields('lng', array('field_longitude_value'));
   $query->fields('lat', array('field_latitude_value'));
   $query->fields('s', array('field_statut_value'));
@@ -718,9 +720,9 @@ function findResidence($departementId = null, $dataForm = array()) {
   $query->fields('logo', array('field_logo_fid'));
   $query->fields('c', array('title'));
   $query->fields('t', array('field_tarif_chambre_simple_value'));
-
+    $query->fields('capacite', array('field_capacite_value'));
   if( isset($dataForm['residence']) && !empty($dataForm['residence']) ) {
-      $query->condition('n.title', '%' . $dataForm['residence'] . '%', 'LIKE');
+      $query->condition('n.title', '%' . $dataForm['residence'] . '%', 'LIKE');#
   }
 
   if(  isset($dataForm['code_postale']) && !empty($dataForm['code_postale']) ) {
@@ -742,11 +744,8 @@ function findResidence($departementId = null, $dataForm = array()) {
   if(  $dataForm['tarif_max'] && !empty($dataForm['tarif_max']) ) {
       $query->condition('t.field_tarif_chambre_simple_value', $dataForm['tarif_max'], "<=");
   }
-
   $residences = fetchAll($query);
-
   return $residences;
-
 }
 
 function getMonthlyEvolutionDataChart($residenceId = null) {

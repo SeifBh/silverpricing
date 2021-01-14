@@ -724,6 +724,7 @@ if($residenceIds){
         $query->condition('n.type', "residence", '=');
         $query->condition('n.nid', $residenceIds, 'IN');
         $query->join('field_data_field_departement', 'd', 'd.entity_id = n.nid', array());
+        $query->join('field_data_field_manager', 'mgr', 'd.entity_id = n.nid', array());
         $query->fields('n', array('nid', 'title'));
 
         if( isset($_POST['residence']) && !empty($_POST['residence']) ) {
@@ -732,6 +733,10 @@ if($residenceIds){
 
         if( isset($_POST['departements']) && !empty($_POST['departements']) ) {
             $query->condition('d.field_departement_tid', $_POST['departements'], 'IN');
+        }
+
+        if( isset($_POST['gestionnaire']) && !empty($_POST['gestionnaire']) ) {
+            $query->condition('mgr.field_manager_value', '%' . $_POST['gestionnaire'] . '%', 'LIKE');
         }
         
         $residenceIds = $query->execute()->fetchCol('n.nid');
@@ -799,6 +804,10 @@ if(0 and 'why') {
     $query->fields('g', array('field_gestionnaire_value'));
     $query->fields('c', array('field_capacite_value'));
     $query->fields('logo', array('field_logo_fid'));
+
+    #$query->join('field_data_field_capacite', 'c', 'c.entity_id = n.nid', array());
+    $query->leftjoin('field_data_field_manager', 'mgr', 'mgr.entity_id = n.nid',[]);
+    $query->fields('mgr',['field_manager_value']);
 
     $residences = fetchAll($query);
     foreach($residences as &$t){#
@@ -999,14 +1008,13 @@ function residence_mgmt_departements() {
     include_once __DIR__ . "/templates/layouts/default.php";
 
 }
-
 function residence_mgmt_residences($departementId = null,$ret=0) {
     $departementId=explode('-',$departementId);
     $departementId=reset($departementId);
     $statistique_globale = get_statistique_globale($departementId);
     $residences = findResidence($departementId, $_POST);
     $requete_statistique = get_requete_statistique($residences);
-
+#Par département
     $currentMenu = "residences";
     $departementChartData = loadDepartementChartData($departementId);
     $dataMarkers = getLatLngResidencesByDepartment($departementId);
@@ -1067,13 +1075,9 @@ function residence_mgmt_residences($departementId = null,$ret=0) {
     }
 
     ob_start();
-
     include_once __DIR__ . "/templates/departement.php";#aka departement
-
     $content = ob_get_clean();
-
     include_once __DIR__ . "/templates/layouts/default.php";
-
 }
 
 function residence_mgmt_get_groupes() {
@@ -1831,10 +1835,10 @@ function residence_mgmt_recherche_silverex() {
     $residences = $healthOrganizations = array();
     $requete_statistiques = null;
 #Si F5
-    if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE and  isset($_SESSION['hid']) and isset($_POST['latitude']) and isset($_POST['longitude']) and isset($_POST['perimetre']) and $_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.$_POST['categories']==$_SESSION['lastSearch']) {
+    if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE and  isset($_SESSION['hid']) and isset($_POST['latitude']) and isset($_POST['longitude']) and isset($_POST['perimetre']) and
+        $_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.implode(',',$_POST['categories'])==$_SESSION['lastSearch']) {
         $a='https://ehpad.home/history/48179';#rediriger sur dernière historique
-        Alptech\Wip\fun::r302('/history/'.$_SESSION['hid'].'#f5?');
-
+        #Alptech\Wip\fun::r302('/history/'.$_SESSION['hid'].'#f5?');
         #"$_SESSION['lastSearch'];;
     }
 
@@ -1843,30 +1847,21 @@ function residence_mgmt_recherche_silverex() {
         if( isset($_POST['latitude']) && isset($_POST['longitude']) && isset($_POST['perimetre'])) {
             $adr=$_POST['adresse'];
             if(!$adr)$adr=$_POST['latitude'].'-'.$_POST['longitude'];
-
             $selectedStatut = ($_POST['statut'] != "aucun") ? $_POST['statut'] : null;#
             $residences = getResidencesConcurrentesOnAddress($_POST['latitude'], $_POST['longitude'], $_POST['perimetre'], $selectedStatut);
-
             $name = trim($selectedStatut.' '.$_POST['categories'].' '.$_POST['perimetre'] . 'km autour de ' . $adr);
-
             if( !empty($_POST['categories']) ){
-                $healthOrganizations = json_decode(postRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], array( 'categories' => $_POST['categories'] ) ));
+                $healthOrganizations = json_decode(postRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], [ 'categories' => $_POST['categories'] ] ));
             }
-
-            $_SESSION['lastSearch']=$_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.$_POST['categories'];
+            $_SESSION['lastSearch']=$_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.implode(','$_POST['categories']);
         }
-
         $requete_statistiques = get_requete_statistique($residences,$name);
-
         residence_mgmt_update_user_balance("RESIDENCES_REQUEST", array("perimetre" => $_POST['perimetre']), $_POST, $residences, $name);
     }
 
     ob_start();
-
     include_once __DIR__ . "/templates/search.php";
-
     $content = ob_get_clean();
-
     include_once __DIR__ . "/templates/layouts/default.php";
 }
 

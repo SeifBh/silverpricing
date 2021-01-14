@@ -243,36 +243,28 @@
 
                         <table id="request-table" class="table table-hover table-sm no-footer">
                         <thead>
-                            <tr>
-                            <th scope="col">Résidence</th>
-                            <th scope="col">Ville</th>
-                            <th scope="col">Groupe</th>
+                            <tr><th scope="col">Groupe</th>
+                            <th scope="col">Résidences</th>
+                            <th scope="col">Code Postal</th>
+                            <th scope="col">Villes</th>
+                            <th scope="col">Nombre de lits</th>
                             <th scope="col">Status</th>
-                            <th scope="col">Tarif</th>
+                            <th scope="col">Tarifs</th>
                             <th scope="col">Dif tarifs moy dep</th>
                             <th scope="col">Dif tarifs moy requête</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php $rows = 0; ?>
-                            <?php foreach( $residences as $residence ): ?>
-                            <?php
+                            <?php $rows = 0; foreach( $residences as $residence ):
                                 $difTarifsMoyDep = round($residence->field_tarif_chambre_simple_value - $statistique_globale["Tarif moyen"], 2);
                                 $difTarifsMoyRequete = round($residence->field_tarif_chambre_simple_value - $requete_statistique["Tarif moyen"], 2);
                             ?>
                             <tr>
+                                <td><?php if( isset($residence->field_logo_fid) ) {echo theme('image', array('path' => file_create_url(file_load($residence->field_logo_fid)->uri), 'width' => 32));} ?></td>
                                 <td><a href="<?php echo '/residence/' . $residence->nid; ?>"><?php echo $residence->title ?></a></td>
+                                <td><?php echo $residence->field_location_postal_code;# ?></td>
                                 <td><?php echo $residence->field_location_locality; ?></td>
-                                <td>
-                                  <?php
-                                      if( isset($residence->field_logo_fid) ) {
-                                          echo theme('image', array(
-                                            'path' => file_create_url(file_load($residence->field_logo_fid)->uri),
-                                            'width' => 32
-                                          ));
-                                      }
-                                  ?>
-                                </td>
+                                <td><?php echo $residence->field_capacite_value; ?></td>
                                 <td><?php echo $residence->field_statut_value; ?></td>
                                 <td><?php echo $residence->field_tarif_chambre_simple_value; ?>€</td>
                                 <td class="<?php echo ($difTarifsMoyDep > 0) ? "tx-success":" tx-danger"; ?>">
