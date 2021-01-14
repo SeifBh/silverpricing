@@ -9,7 +9,7 @@
     if(isset($_GET)){$json=array_merge($json,['get'=>$_GET]);}
     if(isset($_SESSION['public'])){$json=array_merge($json,['session'=>$_SESSION['public']]);}
 
-echo"var json=".json_encode($json).",   rmi='".RESIDENCE_MGMT_URI."',  frenchDataTables=rmi+'/lib/datatables.net/i18n/French.json';  for(var i in json){window[i]=json[i];}";
+echo"var json=".json_encode($json).",rgm,rmi='".RESIDENCE_MGMT_URI."',  frenchDataTables=rmi+'/lib/datatables.net/i18n/French.json';  for(var i in json){window[i]=json[i];}    rgm=rmi;";
 $a=$user->uid.'-'.$user->name;
 ?>
     </script>

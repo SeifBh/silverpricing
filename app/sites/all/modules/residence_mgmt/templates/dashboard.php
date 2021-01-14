@@ -201,7 +201,6 @@
                                         <th scope="col">Départments</th>
                                         <th scope="col">Villes</th>
                                         <th scope="col">Gestionnaires</th>
-                                        <th scope="col">Status</th>
                                         <th scope="col">Position départementale</th>
                                         <th scope="col">Position concurrentielle</th>
                                         <th scope="col">Tarifs</th>
@@ -210,20 +209,24 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach( $residences as $residence ): ?>
-                                    <tr>
-                                        <td><a href="<?php echo '/residence/' . $residence->nid; ?>"><?php echo $residence->title ?></a></td>
-                                        <td><?php echo substr($residence->field_location_postal_code,0,2); ?></td>
-                                        <td><?php echo $residence->field_location_locality; ?></td>
-                                        <td><?php echo $residence->field_gestionnaire_value; ?></td>
-                                        <td><?php echo $residence->field_statut_value; ?></td>
-                                        <td><?php echo $residence->field_tarif_chambre_simple_value; ?> €</td>
-                                        <td><?php echo $residence->ranking['departement']; ?></td>
-                                        <td><?php echo $residence->ranking['concurrence_directe']; ?></td>
-                                        <td><?php echo $residence->field_capacite_value; ?></td>
-                                        <td><?php  ?></td>
-                                    </tr>
-                                    <?php endforeach; ?>
+                                    <?php
+/*
+<th scope="col">Status</th>
+<td><?php /*echo $residence->field_statut_value;?></td>
+*/
+foreach( $residences as $residence ){ ?>
+<tr>
+<td><a href="<?php echo '/residence/' . $residence->nid; ?>"><?php echo $residence->title ?></a></td>
+<td><?php echo substr($residence->field_location_postal_code,0,2); ?></td>
+<td><?php echo $residence->field_location_locality; ?></td>
+<td><?php echo $residence->field_gestionnaire_value; ?></td>
+<td><?php echo $residence->ranking['departement']; ?></td>
+<td><?php echo $residence->ranking['concurrence_directe']; ?></td>
+<td><?php echo $residence->field_tarif_chambre_simple_value; ?> €</td>
+<td><?php echo $residence->field_capacite_value; ?></td>
+<td><?php echo date('Y/m/d H:i:s',$residence->changed); #?></td>
+</tr>
+<?php } ?>
                                 </tbody>
                             </table>
                         </div>

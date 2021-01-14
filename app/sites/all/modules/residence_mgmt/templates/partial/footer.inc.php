@@ -56,58 +56,41 @@
     };
 
     <?php if( $currentMenu == "dashboard" ): ?>
+$('#departements-field').select2({placeholder: 'Choisissez-en un'});
+// DATA TABLES
+p= {"language": {url: frenchDataTables}, "searching": false, "lengthChange": false, "paging": true, "info": false, "order": [[ 4, "desc" ]], "pageLength": 5, "columnDefs": [{ type: 'natural-nohtml', targets: [1,2,3] }]};
+$('#dashboard-quick-win-table').DataTable(p);
 
-        // DATA TABLES
-        $('#dashboard-quick-win-table').DataTable( {
-            "language": {url: frenchDataTables},
-            "searching": false, "lengthChange": false, "paging": false, "info": false,
-            "order": [[ 4, "desc" ]],
-            "pageLength": 5,
-            "columnDefs": [
-                { type: 'natural-nohtml', targets: [1,2,3] }
-            ]
+p={"language": {url: frenchDataTables}, "searching": false, "lengthChange": false, "paging": true, "info": false, "pageLength": 5, "columnDefs": [{ type: 'natural-nohtml', targets: [3, 4, 5] }]};
+$('#dashboard-mes-maquettes-table').DataTable(p);
+
+p= {
+    "language": {url: frenchDataTables}, "searching": true, "lengthChange": false, "paging": true, "info": false, "pageLength": 50, "order": [[4, "desc"]]
+    , "columnDefs": [{"searchable": false, "targets": [1, 4, 6, 7, 8]}]
+    , initComplete: function () {
+        this.api().columns([1]).every(function () {
+            var column = this, select = $('<select><option value="">Tous</option></select>');
+            column.data().unique().sort().each(function (d, j) {
+                if (!d) return;
+                select.append('<option value="' + d + '">' + d + '</option>')
+            });
+            select
+                .appendTo($(column.header()))
+                //.appendTo($(column.footer()))//.empty()
+                .on('change', function () {
+                    var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                    column.search(val ? '^' + val + '$' : '', true, false).draw();
+                });
         });
-
-        $('#dashboard-mes-maquettes-table').DataTable( {
-            "language": {
-                url: frenchDataTables
-            },
-            "searching": false,
-            "lengthChange": false,
-            "paging": false,
-            "info": false,
-            "pageLength": 5,
-            "columnDefs": [
-                { type: 'natural-nohtml', targets: [3, 4, 5] }
-            ]
-        });
-
-        $('#mes-residences-table').DataTable( {
-            "language": {
-                url: frenchDataTables
-            },
-            "searching": false,
-            "columnDefs": [
-                { type: 'natural-nohtml', targets: [4,5] }
-            ]
-        });
-
-        // REQUEST FORM
-        $('#departements-field').select2({
-            placeholder: 'Choisissez-en un',
-        });
-
-        $('#recherche-residence').on('change', function(e) {
-            var residenceName  = $('#recherche-residence').val();
-
-            cl(residenceName);
-        });
+    }
+};
+$('#mes-residences-table').DataTable(p);
+// REQUEST FORM
+$('#recherche-residence').on('change', function(e) {var residenceName  = $('#recherche-residence').val();cl(residenceName);});
 
         // MAP
 
-        var markers = [];
-
-        var hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('dashboard-map-result'));
+var markers = [],hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('dashboard-map-result'));
 
         // Create a marker using the previously instantiated icon and add marker to the map:
 

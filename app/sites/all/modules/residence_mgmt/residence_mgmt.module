@@ -135,8 +135,8 @@ $thead="<tr><th></th><th>edit res</th><th>rid</th><th>finess</th><th>cp</th><th>
     }
     $content.="</tbody></table>";#<tfoot>$thead</tfoot>
 #$content.=<<<TPG TPG;
-ob_start();?><script>var rgm='<?php echo RESIDENCE_MGMT_URI;?>';defer(function(){ jQuery('.res2chlist').DataTable( {
-    "language": {url: rgm+"/lib/datatables.net/i18n/French.json"}
+ob_start();?><script>defer(function(){ jQuery('.res2chlist').DataTable( {
+    "language": {url:frenchDataTables}
     ,"searching": true,"lengthChange": true,"paging": true,"info": false, "pageLength": 100
     ,"order":[[3,"asc"]]
     ,"columnDefs": [
@@ -669,7 +669,7 @@ if($residenceIds){
     // }
 
     usort($quickWins, function($first, $second) {   return $second->ranking_direct-$first->ranking_direct;    return $second->difference - $first->difference;    });
-     $quickWins = array_slice($quickWins, 0, 5, true);
+     #$quickWins = array_slice($quickWins, 0, 5, true);
     $a=1;
     // varDebug($quickWins);
     // exit();
@@ -707,7 +707,7 @@ if($residenceIds){
         $query->fields('f', array('field_favoris_value'));
         $query->fields('n', array('created', 'nid'));
         $query->orderby('n.created', 'DESC');
-        $query->range(0, 5);
+        $query->range(0, 50);
         $maquettes = fetchAll($query);
 
         // file_put_contents( DRUPAL_RESIDENCE_CACHE . "/$user->uid/dashboard/" . $cache_file, json_encode($maquettes));
@@ -781,12 +781,15 @@ if(0 and 'why') {
     $query->join('field_data_field_gestionnaire', 'g', 'g.entity_id = n.nid', array());
     $query->join('field_data_field_capacite', 'c', 'c.entity_id = n.nid', array());
     $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
+    $query->join('node', 'nc', 'nc.nid=rc.entity_id', []);
     $query->join('field_data_field_tarif_chambre_simple', 'cs', 'cs.entity_id = rc.entity_id', array());
     $query->join('field_data_field_groupe', 'gr', 'gr.entity_id = n.nid', array());
+
     $query->leftjoin('taxonomy_term_data', 'grp', 'gr.field_groupe_tid = grp.tid', array());
     $query->leftjoin('field_data_field_logo', 'logo', 'logo.entity_id = grp.tid', array());
 
     $query->fields('n', array('nid', 'title'));
+    $query->fields('nc', ['changed']);#
     $query->fields('ff', array('field_finess_value'));
     $query->fields('s', array('field_statut_value'));
     $query->fields('l', ['field_location_locality', 'field_location_postal_code']);

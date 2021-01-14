@@ -2,7 +2,7 @@
 const ret1=await defer
 */
 //Todo:global png image onload observer for map loading ..
-var pngMarkers,
+var p,pngMarkers,
     nb,nav,classname,ua,x,k,color,svg,v,v1,v2,v3,
     pngFileName,k,bgColor,txtColor,border,w,h,zoom,
     svg,canvasOriginal,ctxOriginal,canvasComputed,ctxConverted,emptySvgDeclarationComputed,allElements,i,image,len,image_data,
