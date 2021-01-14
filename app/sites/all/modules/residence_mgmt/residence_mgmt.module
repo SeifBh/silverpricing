@@ -1853,7 +1853,7 @@ function residence_mgmt_recherche_silverex() {
             if( !empty($_POST['categories']) ){
                 $healthOrganizations = json_decode(postRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], [ 'categories' => $_POST['categories'] ] ));
             }
-            $_SESSION['lastSearch']=$_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.implode(','$_POST['categories']);
+            $_SESSION['lastSearch']=$_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.implode(',',$_POST['categories']);#
         }
         $requete_statistiques = get_requete_statistique($residences,$name);
         residence_mgmt_update_user_balance("RESIDENCES_REQUEST", array("perimetre" => $_POST['perimetre']), $_POST, $residences, $name);

@@ -77,7 +77,10 @@ function historyCheck(el){
 
                         <div class="form-group col-md-12">
                             <select id="categories" name="categories[]" multiple class="form-control form-control-sm">
-                                <?php foreach($categories as $category): ?>
+                                <?php foreach($categories as $category):
+#établissement prescripteur => display as maisonnettes
+#puis afficher les prescripteurs attachés à un établissement
+                                    ?>
                                     <option value="<?php echo $category->code_categorie; ?>" <?php echo ( in_array($category->code_categorie, $_POST['categories']) ) ? "selected":""; ?>><?php echo $category->lib_categorie; ?></option>
                                 <?php endforeach; ?>
                             <select>
