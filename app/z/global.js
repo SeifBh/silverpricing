@@ -50,7 +50,7 @@ function setCookie(name,value,expires,path,domain,secure){
 //defer(,function(){return window[hereMap] && window[jQuery];});
 //captureMap(0,cl); works !
 async function defer(method, which, timeout) {
-    var timeout = timeout || 200,which=which || function(){return typeof (window['jQuery']=='function');};
+    var timeout = timeout || 200,which=which || function(){return typeof window['jQuery']=='function';};
     if (which()) {
         return method();
         //args

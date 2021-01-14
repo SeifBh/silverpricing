@@ -536,7 +536,7 @@ class fun /* extends base */
         header('Content-type: image/png');
         header('HTTP/1.0 404 Not Found', 1, 404);
         readfile(fun::getConf('defaultImage'));
-        fun::die();
+        fun::_die();
         #fun::die("/*$x*/");
     }
 

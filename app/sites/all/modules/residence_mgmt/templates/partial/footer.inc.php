@@ -15,10 +15,8 @@
 
 <script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/dashforge.js"></script>
 <script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/dashforge.aside.js"></script>
-
-<!-- SilverPricing JS SCRIPTS -->
-<!-- CHART JS -->
 <script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/chart.js/Chart.bundle.min.js"></script>
+<?#<script src="/js/chartjs-plugin-datalabels.js"></script>?>
 <!-- HERE MAP DEPENDENCIES -->
 <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js" type="text/javascript" charset="utf-8"></script>
 <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js" type="text/javascript" charset="utf-8"></script>
@@ -245,11 +243,7 @@
                     ]
                 },
             ],
-            labels: [
-                <?php foreach( $departements as $departement ):
-                    echo "\"$departement->name\","; 
-                endforeach; ?>
-            ]
+            labels: [<?php foreach( $departements as $departement ):echo "\"$departement->name\",";endforeach; ?>]
         },
         options: {
             maintainAspectRatio: false,
@@ -405,7 +399,7 @@
 <?php
 elseif( $currentMenu == "residences" /*departement detail*/ ):
 #https://ehpad.home/departement/75-74-HauteSavoie
-$mesPrixParVille=[];
+$mesPrixParVille=[];$detailParVille='';
 foreach( $mesResidences as $t ){
     $mesPrixParVille[strtolower($t->field_location_locality)][$t->title]=$t->field_tarif_chambre_simple_value;
 }
@@ -420,12 +414,38 @@ foreach ($departementChartData as $k => $data) {
     $l=strtolower($data->ville);
     #if(isset($mesPrixParVille[$l]))$mesPrixParVille2.=(array_sum($mesPrixParVille[$l])/count($mesPrixParVille[$l])); else $mesPrixParVille2.='0';
     if(isset($mesPrixParVille[$l])){
-        foreach($mesPrixParVille[$l] as $t=>$v){
-            $mesPrixParVilleLabels.="\"".$t."\",";
-            $mesPrixParVille2.="{y:".$v.",x:\"".$data->ville."\"},";}
+        $myres.=count($mesPrixParVille[$l]).',';
+        $moy=array_sum($mesPrixParVille[$l])/count($mesPrixParVille[$l]);
+        $mesPrixParVille2.="{y:".$moy.",x:\"".$data->ville."\"},";
+        $mesPrixParVilleLabels.="\"".implode(',',$mesPrixParVille[$l])."\",";
+
+            foreach($mesPrixParVille[$l] as $t=>$v){
+                $detailParVille.="{y:".$v.",x:\"".$data->ville."\"},";
+                continue;
+                $mesPrixParVille2.="{y:".$v.",x:\"".$data->ville."\"},";#label:\"".$t."\",#multiples scatter points mais index on hover pas bon
+            }
+        if(0){
+
+            $mesPrixParVille2.="{y:[".implode(',',$mesPrixParVille[$l])."],x:\"".$data->ville."\"},";
+            #$mesPrixParVille2.="{label:\"".implode(',',$mesPrixParVille[$l])."\",y:".$moy.",x:\"".$data->ville."\"},";
+            #$mesPrixParVilleLabels.="{y:\"".implode(',',$mesPrixParVille[$l])."\",x:\"".$data->ville."\"},";
+
         }
-        #$mesPrixParVille2.="{y:".(array_sum($mesPrixParVille[$l])/count($mesPrixParVille[$l])).",x:\"".$data->ville."\"},";}
-    #add scatterplots over regular bar graph
+/*
+        foreach($mesPrixParVille[$l] as $t=>$v){continue;
+            $mesPrixParVilleLabels.="\"".$t." : $v\",";
+            #$mesPrixParVilleLabels.="{y:\"".$t." : $v\",x:\"".$data->ville."\"},";
+            $mesPrixParVille2.="{y:".$v.",x:\"".$data->ville."\"},";
+        }
+*/
+    } else{
+            $myres.=",";
+            $mesPrixParVille2.='{},';
+            $mesPrixParVilleLabels.='"",';
+            #$mesPrixParVilleLabels.='{},';
+#        $mesPrixParVille2.="{y:".(array_sum($mesPrixParVille[$l])/count($mesPrixParVille[$l])).",x:\"".$data->ville."\"},";
+        }
+    #add scatterplots over regular bar graphd
 }
 ?>
 $(document).ready(function() {
@@ -436,17 +456,27 @@ $(document).ready(function() {
     });
 });
 
-var nres=[<?=$nres?>],tmoy=[<?=$tmoy?>],tph=[<?=$tph?>],tmoy2=[<?=$tmoy2?>],tpb=[<?=$tpb?>],villes=[<?=$villes?>],mesPrixParVille=[<?=$mesPrixParVille2?>],mesPrixParVilleLabels=[<?=$mesPrixParVilleLabels?>];
+var detailParVille=[<?=$detailParVille?>]
+    ,myres=[<?=$myres?>]
+    ,nres=[<?=$nres?>]
+    ,tmoy=[<?=$tmoy?>]
+    ,tph=[<?=$tph?>]
+    ,tmoy2=[<?=$tmoy2?>]
+    ,tpb=[<?=$tpb?>]
+    ,villes=[<?=$villes?>]
+    ,mesPrixParVille=[<?=$mesPrixParVille2?>]
+    ,mesPrixParVilleLabels=[<?=$mesPrixParVilleLabels?>];
 
 var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getContext('2d'), {
     type: 'bar',
     data: {
         datasets: [
-            {
+            {yAxisID: 'nombre-residences', label: 'Nombre de résidences', backgroundColor: '#6dbaf5', data: nres,
+            }, {
                 yAxisID: 'nombre-residences',
-                label: 'Nombre de résidences',
-                backgroundColor: '#6dbaf5',
-                data: nres,
+                label: 'Mes résidences',
+                backgroundColor: '#DD0000',
+                data: myres,
             },
             {
                 type: 'line',
@@ -492,31 +522,43 @@ var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getCo
                 pointRadius: 0,
                 borderWidth: 1,
                 data:tpb,
-            },
-/*
+            }, /*
 Répeter pour autant de valeurs par ville
-http://jsfiddle.net/onesev/bpcLs7uz/*/
+http://jsfiddle.net/onesev/bpcLs7uz/
+chartjs add custom label to dataset points => aka custom tooltip
+
+http://www.chartjs.org/samples/latest/tooltips/custom-points.html
+*/
             {
                 type:"scatter",
                 yAxisID: 'departement-tarif',
-                label: 'MON TARIF', backgroundColor: 'rgba(0,0,0,0)', borderColor: '#000000',
-                fill: false,showLine:false,pointRadius:7,pontHoverRadius:10,
-                borderWidth: 1,
-                labels: mesPrixParVilleLabels,
+                backgroundColor: 'rgba(0,0,0,0)', borderColor: '#000000',
+                fill: false,showLine:false,pointRadius:7,pointHoverRadius:10,
+                borderWidth: 1, label:"Mon tarif moyen",
+//https://jsfiddle.net/simonbrunel/sxzqwr80/
+                labels: mesPrixParVilleLabels,//Mon tarif:
                 data: mesPrixParVille,
+            },
+            {type:"scatter", yAxisID: 'departement-tarif', backgroundColor: 'rgba(0,0,120,0)', borderColor: '#0000DD', fill: false,showLine:false,pointRadius:6,pointHoverRadius:9, borderWidth: 0, label:"Mon tarif", data: detailParVille,
             },
         ],
 //Add Dots
         labels: villes
     },
     options: {
+/*
+        plugins: {
+            datalabels: {
+                align: 'end', anchor: 'end', color: "#cc55aa",
+                formatter: function(value, context) {
+                    return context.chart.data.labels[context.dataIndex];
+                }
+            }
+        },
+*/
         maintainAspectRatio: false,
         responsive: true,
-        legend: {
-            display: true,
-            position: 'bottom',
-            align: 'center',
-        },
+        legend: {display: true, position: 'bottom', align: 'center',},
         scales: {
             yAxes: [
                 {
