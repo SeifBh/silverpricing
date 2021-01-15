@@ -2258,7 +2258,10 @@ function fetchAllAssoc($query,$assoc){
 }
 
 function fetchAll($query){
-    if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);$res=$query->execute()->fetchAll();$_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;interceptQuery($_sql,$res);
+    if(!$_ENV['zzz_sqlinc'])$_ENV['zzz_sqlinc']=0;$_ENV['zzz_sqlinc']++;$_sql= $query->__toString() ;$args = $query->getArguments();$_sql=resmgmt_database_interpolateQuery($_sql,$args);
+    $res=$query->execute()->fetchAll();
+    $_ENV['_sql'][$_ENV['zzz_sqlinc'].' '.$_sql]=$res;
+    interceptQuery($_sql,$res);
     return $res;
 }
 
