@@ -1645,27 +1645,33 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null
     $chartData['xAxe'] = array_reverse($chartData['xAxe']);
 
 // RESIDENCE -- matche les prix avec la résidence
-    $query = db_select('field_revision_field_date_de_modification', 'dm');
-    $query->leftJoin('field_revision_field_tarif_chambre_simple', 'cs', 'cs.revision_id = dm.revision_id', array());
-    $query->condition('dm.entity_id', $chambreCourant->entity_id, '=');
+/*
+$query = db_select('field_revision_field_date_de_modification', 'dm');
+$query->leftJoin('field_revision_field_tarif_chambre_simple', 'cs', 'cs.revision_id = dm.revision_id', array());
+$query->condition('dm.entity_id', $chambreCourant->entity_id, '=');
+*/
+    $query = db_select('field_revision_field_tarif_chambre_simple', 'cs');
+    $query->condition('cs.entity_id', $chambreCourant->entity_id, '=');
+    $query->join('node_revision', 'nr', 'cs.revision_id = nr.vid', []);
     //$query->addExpression("COUNT(dm.entity_id)", 'nombre_revision');
     //$query->addExpression("SUM(CAST(cs.field_tarif_chambre_simple_value AS DECIMAL(8,2)))", 'tarif_chambre');
-    $query->fields('cs', array('entity_id', 'field_tarif_chambre_simple_value'));
-    $query->addExpression("DATE_FORMAT(dm.field_date_de_modification_value, '%Y-%m')", 'date_modification');
+    $query->fields('cs', ['entity_id', 'field_tarif_chambre_simple_value']);
+    $query->addExpression("DATE_FORMAT(FROM_UNIXTIME(nr.timestamp), '%Y-%m')", 'date_modification');
     $query->groupBy('date_modification');#si-si !!
     $query->orderBy('date_modification', 'desc');#last one from it
     $chambres = fetchAll($query);
+
     $tarif=[];
     foreach($chambres as $chambre) {$dm=$chambre->date_modification;$tarif[$dm]=$chambre->field_tarif_chambre_simple_value;}
     $end=reset($tarif);$last=$first=end($tarif);
-#cuj http://ehpad.silverpricing.fr/ajax/get-evolution-menusuelle-des-tarifs/33007 a {} 1;#red-bonobo
+#cuj "https://ehpad.home/ajax/get-evolution-menusuelle-des-tarifs/33007" a '' 1;#red-bonobo
     $resultList = [];
     foreach( $chartData['xAxe'] as $xAxe ) {
         if(isset($tarif[$xAxe])){
             $resultList[$xAxe]['nombre_revision']= 1;
             $resultList[$xAxe]['tarif_chambre_simple'][]=$last=$tarif[$xAxe];
             $a=1;
-        }elseif(1){
+        }elseif('étaler la confiture en absence de variations'){
             $resultList[$xAxe]['nombre_revision']= 1;
             $resultList[$xAxe]['tarif_chambre_simple'][]=$last;#dernier update
             $a=1;
