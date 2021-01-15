@@ -1316,7 +1316,7 @@ function getDistances($residenceNid)
     $x=Alptech\Wip\fun::sql("select closest from z_geo where rid=".$residenceNid);#
     return json_decode($x[0]['closest'],1);
 }
-
+#getResidencesProchesByStatus(compact('residenceNid','clo','limit'));
 function getResidencesProchesByStatus( $residenceNid, $statuses = [], $limit = 10,$returnClo=0,$excludeNa=1,$clo=[])
 {
     if(0 and isset($_COOKIE['old']) and $_COOKIE['old']){#simple commutateur le piu simple ever !

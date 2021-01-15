@@ -1335,33 +1335,18 @@ function residence_mgmt_edit_groupe( $groupId = null ) {
 
 }
 
-function residence_mgmt_get_residence_details($residenceId = null) {
+function residence_mgmt_get_residence_details($residenceId = null,$limit=10) {
     $residenceId=explode('-',$residenceId);
     $residenceId=reset($residenceId);
-
     $currentMenu = "residence";
+    if( empty($residenceId) ) {echo "NOT FOUND !";return;}
+    $tmhOptimisation = ["tarif_min" => 0, "tarif_max" => 0];
 
-    if( empty($residenceId) ) {
-        echo "NOT FOUND !";
-        return;
-    }
-
-    $tmhOptimisation = [
-        "tarif_min" => 0,
-        "tarif_max" => 0
-    ];
-
-    $residencesConcurrentesTarif = [
-        'direct' => [],
-        'indirect' => [],
-    ];
+    $residencesConcurrentesTarif = ['direct' => [], 'indirect' => [],];
 
     $statistiques = ['direct' => ['tarif_min' => 0, 'tarif_moyen' => 0, 'tarif_max' => 0,], 'indirect' => ['tarif_min' => 0, 'tarif_moyen' => 0, 'tarif_max' => 0,]];
-
     $residenceRanking = [ 'departement' => 'NA', 'concurrence_direct' => 'NA' ];
-    $departement = null;
-    $groupe = null;
-    $typesDeChambres = null;
+    $departement = $groupe = $typesDeChambres = null;
     $residencesConcurrentes = [ 'direct' => [], 'indirect' => [] ];
     $residence = entity_load('node', array($residenceId), array( 'type' => 'residence' ));
 
@@ -1383,32 +1368,38 @@ function residence_mgmt_get_residence_details($residenceId = null) {
         // exit();
     }
 
-    $residenceRanking = getRankingOfResidence( $residenceId, ["CONCURRENCE_DIRECTE", "DEPARTEMENT"]);
+$residenceRanking = getRankingOfResidence( $residenceId, ["CONCURRENCE_DIRECTE", "DEPARTEMENT"]);
+$sameStatut=$residence->field_statut['und'][0]['value'];
 
-    $residencesConcurrentes['direct'] = getResidencesProchesByStatus( $residenceId, [$residence->field_statut['und'][0]['value']], 10);
-    $residencesConcurrentes['indirect'] = getResidencesProchesByStatus( $residenceId, [], 10);
+$clo=getResidencesProchesByStatus( $residenceId, [$sameStatut], $limit,1);
+$clo2=getResidencesProchesByStatus( $residenceId, [], $limit,1);
 
-    foreach( $residencesConcurrentes as $concurrence => $residences ) {
-        foreach( $residences  as $r ) {
-            $residencesConcurrentesTarif[$concurrence][] = $r->field_tarif_chambre_simple_value;
-        }
-    }
+$residencesConcurrentes['direct'] = getResidencesProchesByStatus( $residenceId,[$sameStatut],$limit,0,$clo);
+$residencesConcurrentes['indirect'] = getResidencesProchesByStatus( $residenceId, [], $limit,0,$clo2);
+foreach( $residencesConcurrentes as $concurrence => $residences ) {foreach( $residences  as $r ) {$residencesConcurrentesTarif[$concurrence][] = $r->field_tarif_chambre_simple_value;}}
 
+$x=$residencesConcurrentesTarif['direct'];
+$y=array_sum($x) / count($x);
+
+$tmoy_i= round(moyen($residencesConcurrentesTarif['indirect']), 2);
+$tmoy_d= round(moyen($residencesConcurrentesTarif['direct']), 2);
+$a=1;
+#$clo=$_closestResidences = getResidencesProchesByStatus($residenceNid, [$sameStatut], $limit,1);#nb:by status !!!#red-bonobo
     $statistiques = [
         'direct' => [
             'tarif_min' => round(min($residencesConcurrentesTarif['direct']), 2),
-            'tarif_moyen' => round(moyen($residencesConcurrentesTarif['direct']), 2),
+            'tarif_moyen' => $tmoy_d,
             'tarif_max' => round(max($residencesConcurrentesTarif['direct']), 2),
         ],
         'indirect' => [
             'tarif_min' => round(min($residencesConcurrentesTarif['indirect']), 2),
-            'tarif_moyen' => round(moyen($residencesConcurrentesTarif['indirect']), 2),
+            'tarif_moyen' =>$tmoy_i,
             'tarif_max' => round(max($residencesConcurrentesTarif['indirect']), 2),
         ]
     ];
 
     if(1){
-        $a='https://ehpad.home/residence/33089';#red-bonobo
+        $a='https://ehpad.home/residence/33089';
         #$statistiques['direct']['tarif_moyen']
         #$statistiques['indirect']['tarif_moyen']
     }
