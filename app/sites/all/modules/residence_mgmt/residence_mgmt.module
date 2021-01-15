@@ -1374,16 +1374,19 @@ $sameStatut=$residence->field_statut['und'][0]['value'];
 $clo=getResidencesProchesByStatus( $residenceId, [$sameStatut], $limit,1);
 $clo2=getResidencesProchesByStatus( $residenceId, [], $limit,1);
 
-$residencesConcurrentes['direct'] = getResidencesProchesByStatus( $residenceId,[$sameStatut],$limit,0,$clo);
-$residencesConcurrentes['indirect'] = getResidencesProchesByStatus( $residenceId, [], $limit,0,$clo2);
-foreach( $residencesConcurrentes as $concurrence => $residences ) {foreach( $residences  as $r ) {$residencesConcurrentesTarif[$concurrence][] = $r->field_tarif_chambre_simple_value;}}
+$residencesConcurrentes['direct'] = getResidencesProchesByStatus( $residenceId,[$sameStatut],$limit,0,1,$clo);
+#indirect : liste bcp plus longue ici
+$residencesConcurrentes['indirect'] = getResidencesProchesByStatus( $residenceId, [], $limit,0,1,$clo2,'indirect-nostatus');
+foreach( $residencesConcurrentes as $concurrence => $residences ) {foreach( $residences  as $r ) {$residencesConcurrentesTarif[$concurrence][$r->nid] = $r->field_tarif_chambre_simple_value;}}
 
 $x=$residencesConcurrentesTarif['direct'];
 $y=array_sum($x) / count($x);
 
-$tmoy_i= round(moyen($residencesConcurrentesTarif['indirect']), 2);
-$tmoy_d= round(moyen($residencesConcurrentesTarif['direct']), 2);
+$tmoy_i= round(moyen($residencesConcurrentesTarif['indirect']), 2);#77.9 => ok
+$tmoy_d= round(moyen($residencesConcurrentesTarif['direct']), 2);#83.09 ??? WTF is different from
+$tmoy2=array_sum($residencesConcurrentesTarif['direct'])/count($residencesConcurrentesTarif['direct']);
 $a=1;
+#????? $tmoy_i = 83.09 au lieu de 82.8 ( direct )
 #$clo=$_closestResidences = getResidencesProchesByStatus($residenceNid, [$sameStatut], $limit,1);#nb:by status !!!#red-bonobo
     $statistiques = [
         'direct' => [

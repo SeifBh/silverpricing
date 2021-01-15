@@ -1036,6 +1036,9 @@ class fun /* extends base */
             }
             return [];
         }
+        if(isset($_ENV['stop']) and $_ENV['stop']){$_ENV['stop']=0;
+            $a=1;
+        }
         if (Preg_match("~(create|update|alter|delete|replace) ~i", $sql)) {
             $_ENV['sqlm'][] = $sql;
             $nb = Mysqli_affected_rows($_ENV[$k]);
@@ -1061,6 +1064,10 @@ class fun /* extends base */
             while ($x = @mysqli_fetch_assoc($x2)) {
                 $res[] = $x;
             }
+        }
+        if(isset($_ENV['stop']) and $_ENV['stop']){$_ENV['stop']=0;
+            $reproductible=json_encode([$res,$sql]);
+            $a=1;
         }
         return $res;
     }

@@ -7,7 +7,7 @@ php72 ~/home/ehpad/app/z/resFullAlert2.php '{"rids":"31889,32855","m83":"'$x1'"}
 obtenir les variations les plus récentes de prix
 */
 
-$month=1;$standAlone=$displayNull=$details=$range=0;#?details=1,2,3
+$lastVariationWithinInterval=$month=1;$standAlone=$displayNull=$details=$range=0;#?details=1,2,3
 if(strpos($_SERVER['REQUEST_URI'],'resFullAlert2.php'))$standAlone=1;
 
 /*
@@ -30,9 +30,10 @@ if('verifs'){
     if(!isset($_GET['rids']))die('#'.__line__);if(!isset($_GET['m83']))Alptech\Wip\fun::r404('nothing here#'.__line__);
     $rids=explode(',',$_GET['rids']);if(!$rids)die('?rids=');$_ENV['dieOnFirstError']=1;
     foreach($rids as &$rid){$rid=intval($rid);}unset($rid);$j=json_encode($rids);$md5=md5($j);
-    if($_GET['m83'] != $md5)die('#'.__line__);#die('#'.implode(',',$rids).'<>'.$j.'<>'.$_GET['m83'].'<>'.$md5.'#'.__line__);
+    if(isset($_SERVER['WINDIR'])); elseif($_GET['m83'] != $md5)die('#'.__line__);#die('#'.implode(',',$rids).'<>'.$j.'<>'.$_GET['m83'].'<>'.$md5.'#'.__line__);
 }
 
+if(isset($_GET['lastVariationWithinInterval'])){$lastVariationWithinInterval=$_GET['lastVariationWithinInterval'];}
 if(isset($_GET['nbMonth'])){$month=$_GET['nbMonth'];}
 if(isset($_GET['range'])){$range=intval($_GET['range']);}
 if(isset($_GET['displayNull'])){$displayNull=intval($_GET['displayNull']);}
@@ -80,10 +81,10 @@ if('2:choper tous tarifs then and now, nb: certaines peuvent ne jamais avoir var
 #sur la dernière MAJ ( order by date )
 #/* les 10 les plus proches :: field(rid,4,3,2,1) */
 #$ttLimit,$x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1,date from z_variations where rid in(".implode(',',$tutti).") and btime>".$dateLimite."  and cs_1 is not null and cs_0 is not null order by field(rid,".implode(',',$tutti)."),date desc");if(!$x)die('#nv:'.__line__);$found=[];
-    $x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1,date from z_variations where rid in(".implode(',',$tutti).") and btime>".$dateLimite."  and cs_1 is not null and cs_0 is not null order by field(rid,".implode(',',$tutti)."),date desc");if(!$x)die('#nv:'.__line__);
+    $variationsPrixDansIntervalle=Alptech\Wip\fun::sql("select rid,cs_0,cs_1,date from z_variations where rid in(".implode(',',$tutti).") and btime>".$dateLimite."  and cs_1 is not null and cs_0 is not null order by field(rid,".implode(',',$tutti)."),date desc");if(!$variationsPrixDansIntervalle)die('#nv:'.__line__);
     #$x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1 from z_variations where rid in(".implode(',',$tutti).") and btime>".$dateLimite."  and cs_1 is not null and cs_0 is not null order by date desc");if(!$x)die('#nv:'.__line__);$found=[];
 #order by date desc(),field(rid,4,3,2,1),field
-    foreach($x as $t){
+    foreach($variationsPrixDansIntervalle as $t){
         if(in_array($t['rid'],$found)/* or count($found)>$range*/){
             continue;#never loops twice the same residence ( maximal date update only )
         }
@@ -92,22 +93,35 @@ if('2:choper tous tarifs then and now, nb: certaines peuvent ne jamais avoir var
         $ph[$t['rid']][0]=$cs1[$t['rid']]=$t['cs_1'];
         $a=1;#splice by range and that's alll
     }
-$pf=[];#de toutes façons
+
+if('residence2chambre'){
+    $x = Alptech\Wip\fun::sql("select entity_id,field_residence_target_id from field_data_field_residence where bundle='chambre' and field_residence_target_id in(" . implode(',',$tutti) . ") order by field(field_residence_target_id,".implode(',',$tutti).")");
+    $residence2chambre=$chambres=$_missingChambre=[];foreach($x as $t){$residence2chambre[$t['field_residence_target_id']]=$t['entity_id'];}
+    $chambre2residence=array_flip($residence2chambre);
+}
+
+$sql=0;$pf=[];#de toutes façons
 $nf=count($found)-$range;
 $notFound=array_diff($tutti,$found);
-    if(1 and "5: ,ne pas récupérer tous les prix n'ayant subi aucune violence, ni variation, this is global scope"){
-        $x = Alptech\Wip\fun::sql("select entity_id,field_residence_target_id from field_data_field_residence where bundle='chambre' and field_residence_target_id in(" . implode(',',$tutti) . ") order by field(field_residence_target_id,".implode(',',$tutti).")");
-        $residence2chambre=$chambres=$_missingChambre=[];foreach($x as $t){$residence2chambre[$t['field_residence_target_id']]=$t['entity_id'];}
-        $chambre2residence=array_flip($residence2chambre);
+$triggersSansPrix=array_diff($residencesTriggers,$found);
+    $chambresSansPrix=[];
 
-        if(1){#if(count($found)<$range) {
-            #substring_index(,',',3)
-            $sql = "select group_concat(nr.timestamp)as tt,group_concat(field_tarif_chambre_simple_value order by revision_id desc) as v,group_concat(revision_id order by revision_id desc) as revid,entity_id as cid from field_revision_field_tarif_chambre_simple cs inner join node_revision nr on nr.nid=cs.entity_id where cs.entity_id in(" . implode(',', $residence2chambre) . ") and cs.field_tarif_chambre_simple_value<>'NA' group by cs.entity_id order by field(cs.entity_id,".implode(',',$residence2chambre).")";#,timestamp asc
-            $x = Alptech\Wip\fun::sql($sql);
-$_nbPrixRemontes=count($x);
-$a=1;$expiredPrices=[];
+    if(1 and "5: ,ne pas récupérer tous les prix n'ayant subi aucune violence, ni variation, this is global scope"){
+        if(!$lastVariationWithinInterval and "on regarde les variations de prix au dela de l'intervalle"){#if(count($found)<$range) {
+            $chambresSansPrix=$residence2chambre;
+        }elseif($triggersSansPrix){
+            foreach($triggersSansPrix as $rid){
+                $chambresSansPrix[]=$residence2chambre[$rid];
+            }
+            $a=1;
+        }if($chambresSansPrix){#donc
+            $sql = "select group_concat(nr.timestamp)as tt,group_concat(field_tarif_chambre_simple_value order by revision_id desc) as v,group_concat(revision_id order by revision_id desc) as revid,entity_id as cid from field_revision_field_tarif_chambre_simple cs inner join node_revision nr on nr.nid=cs.entity_id where cs.entity_id in(" . implode(',', $chambresSansPrix) . ") and cs.field_tarif_chambre_simple_value<>'NA' group by cs.entity_id order by field(cs.entity_id,".implode(',',$chambresSansPrix).")";#,timestamp asc
+
+            $chambresPrix = Alptech\Wip\fun::sql($sql);
+            $_nbPrixRemontes=count($x);
+            $a=1;$expiredPrices=[];
 /*prix from 33007*/
-            foreach ($x as $t) {
+            foreach ($chambresPrix as $t) {
                 $tt=explode(',', $t['tt']);
                 $last=max($tt);
                 $rid = $chambre2residence[$t['cid']];
@@ -159,7 +173,7 @@ if('10 >> pour chacune des notifiees'){
             if($_rid==$rid or !isset($ph[$_rid])){
                 $skipped[]=$_rid;
                 continue;
-            }#selfs
+            }#selfs#
             $inc++;
             if(isset($_SERVER['WINDIR'])){
                 $prix=[];

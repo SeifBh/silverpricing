@@ -10,13 +10,14 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs($residenceId = null,
     $k0=array_slice($_closestResidences,0,10);
 #array_slice(,0,10)
 
-$as=$_t3=[];$tarifss_1=0;
+$as=$_t3=[];$tarifss_1=0;$__sup='direct-withStatus';
+$prochesByStatus = getResidencesProchesByStatus(compact('residenceNid','clo','limit','__sup'));
+foreach($prochesByStatus as $t){$_t3[$t->nid]=$t->field_tarif_chambre_simple_value;}ksort($_t3);
+    $as[3]=array_sum($_t3);
+
 if(isset($_SERVER['WINDIR'])){#
     $tarifsA=[33089=>'{"33171":"98.5","33121":"82.3","33133":"81.72","33169":"98.2","33135":"82.1","33087":"55.57","33147":"84.28","33151":"87.5","33119":"79.83", "33127":"80.86"}'];#
     if(isset($tarifsA[$residenceId])) {
-        $prochesByStatus = getResidencesProchesByStatus(compact('residenceNid','clo','limit'));
-        foreach($prochesByStatus as $t){$_t3[$t->nid]=$t->field_tarif_chambre_simple_value;}ksort($_t3);
-        $as[3]=array_sum($_t3);
         $_tarifss_1 = json_decode($tarifsA[$residenceId], 1);$as[1]=array_sum($_tarifss_1);#
     }
 }
@@ -224,14 +225,20 @@ if($_tarifss_1){
     //$query->addExpression("COUNT(dm.entity_id)", 'nombre_revision');
     //$query->addExpression("SUM(CAST(cs.field_tarif_chambre_simple_value AS DECIMAL(8,2)))", 'tarif_chambre');
     $query->fields('cs', array('entity_id', 'field_tarif_chambre_simple_value'));
+    $query->fields('nr', ['timestamp']);
     $query->addExpression("DATE_FORMAT(FROM_UNIXTIME(nr.timestamp), '%Y-%m')", 'date_modification');
     //$query->groupBy('date_modification');
-    $query->orderBy('date_modification', 'asc');
+    $query->orderBy('nr.timestamp', 'assc');
     $residencesConcurrentesChambres = fetchAll($query);#221
 
     $chTarifsPerDate=[];
     foreach($residencesConcurrentesChambres as $t){
-        $chTarifsPerDate[$t->date_modification][$ch2res[$t->entity_id]]=$t->field_tarif_chambre_simple_value;
+        $new=$t->field_tarif_chambre_simple_value;
+        if(isset($chTarifsPerDate[$t->date_modification][$ch2res[$t->entity_id]]) and $chTarifsPerDate[$t->date_modification][$ch2res[$t->entity_id]]!=$new){
+            $previous=$chTarifsPerDate[$t->date_modification][$ch2res[$t->entity_id]];
+            $a='overiden';
+        }
+        $chTarifsPerDate[$t->date_modification][$ch2res[$t->entity_id]]=$new;
     }
 
 if($_tarifss_1){
@@ -285,6 +292,10 @@ foreach ($resultList as $data) {
 // RESULT
     $endC=$chartData['dataResidence'];
     $endCi=$chartData['dataResidencesConcurrents'];
+    $tmoyConcurrence=array_sum($_t3)/count($_t3);
+    $lastAxis=end(array_keys($chartData['xAxe']));
+     $chartData['dataResidencesConcurrents'][$lastAxis]=round($tmoyConcurrence,2);
+    #=$_t3;
     echo json_encode($chartData);#dataResidence
     die;//#red-bonobo
 }

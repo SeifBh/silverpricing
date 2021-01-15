@@ -1317,7 +1317,7 @@ function getDistances($residenceNid)
     return json_decode($x[0]['closest'],1);
 }
 #getResidencesProchesByStatus(compact('residenceNid','clo','limit'));
-function getResidencesProchesByStatus( $residenceNid, $statuses = [], $limit = 10,$returnClo=0,$excludeNa=1,$clo=[])
+function getResidencesProchesByStatus( $residenceNid, $statuses = [], $limit = 10,$returnClo=0,$excludeNa=1,$clo=[],$__sup=null)
 {
     if(0 and isset($_COOKIE['old']) and $_COOKIE['old']){#simple commutateur le piu simple ever !
         if (empty($statuses))$statuses = array('Public', 'Associatif', 'Privé');#$query->join('field_data_field_statut', 's', 's.entity_id = n.nid and s.field_statut_value IN (:statuses)', array(':statuses' => $statuses));
@@ -1417,6 +1417,7 @@ INNER JOIN field_data_field_latitude lat ON lat.entity_id = n.nid
 INNER JOIN field_data_field_longitude lng ON lng.entity_id = n.nid
 left JOIN field_data_field_capacite cap ON cap.entity_id = n.nid
 WHERE n.type = 'residence' and n.nid<>$residenceNid and n.nid in(".implode(',',$clo).") order by FIELD(n.nid,".implode(',',$clo).") limit $limit";
+$_ENV['stop']=__line__.__file__;
     $residences = Alptech\Wip\fun::sql($sql);
     $id2tarif=[];/*#red-bonobo :: compare with
 getResidencesProchesByStatus :: {"33171":"98.5","33121":"82.3","33133":"81.72","33169":"98.2","33135":"82.1","33087":"55.57","33147":"84.28","33151":"87.5","33119":"79.83","33127":"80.86"}
