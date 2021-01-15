@@ -1382,13 +1382,17 @@ INNER JOIN field_data_field_longitude lng ON lng.entity_id = n.nid
 INNER JOIN field_data_field_capacite cap ON cap.entity_id = n.nid
 WHERE n.type = 'residence' and n.nid in(".implode(',',$clo).") order by FIELD(n.nid,".implode(',',$clo).") limit $limit";
     $residences = Alptech\Wip\fun::sql($sql);
+    $id2tarif=[];/*#red-bonobo :: compare with
+getResidencesProchesByStatus :: {"33171":"98.5","33121":"82.3","33133":"81.72","33169":"98.2","33135":"82.1","33087":"55.57","33147":"84.28","33151":"87.5","33119":"79.83","33127":"80.86"}
+*/
     foreach ($residences as &$t) {
         $a=1;#$r2dist
         if(isset($r2dist[$t['nid']]))$t['distance']=$r2dist[$t['nid']];
+        $id2tarif[$t['nid']]=$t['field_tarif_chambre_simple_value'];
         $t=(object)$t;
     }unset($t);
   return $residences;
-}
+}#end getResidencesProchesByStatus
 
 function distance($lat1,$lat2,$lng1,$lng2)
 {

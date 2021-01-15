@@ -1,4 +1,5 @@
 <?php /*
+
  https://ehpad.home/residence/40233
  js img modal popup
 
@@ -240,7 +241,7 @@ if($images){?>
                 </div>
                 <div class="mg-t-10 mg-b-10" style="height:350px">
                     <h6 class="tx-8rem tx-uppercase tx-bold lh-5 mg-b-10 pd-b-5 bd-b">Evolution mensuelle des tarifs</h6>
-                    <canvas id="evolution-line-chart" height="300"></canvas><?#bonobo-rouge?>
+                    <canvas id="evolution-line-chart" height="300"></canvas><?#red-bonobo?>
                 </div>
             </div>
         </div>
@@ -788,8 +789,8 @@ if( residence_mgmt_user_plan_has_access('OPTIMISATION_RESIDENCE_TMH') ):
   </div>
 </div>
 <!-- /MAQUETTE DE MODIFICATION -->
-<?php endif; ?>
-<?php endif; ?>
+<?php endif;
+endif; ?>
 
 <div class="row">
   <div class="col-md-6">

@@ -1,4 +1,5 @@
 <?php #
+require_once __DIR__ . "/ajax.php";
 require_once __DIR__ . "/ben.php";
 require_once __DIR__ . "/vendor/autoload.php";
 require_once __DIR__ . "/inc/config.inc.php";
@@ -1385,8 +1386,7 @@ function residence_mgmt_get_residence_details($residenceId = null) {
     $residenceRanking = getRankingOfResidence( $residenceId, ["CONCURRENCE_DIRECTE", "DEPARTEMENT"]);
 
     $residencesConcurrentes['direct'] = getResidencesProchesByStatus( $residenceId, [$residence->field_statut['und'][0]['value']], 10);
-    $a=1;
-    $residencesConcurrentes['indirect'] = getResidencesProchesByStatus( $residenceId, [],10);
+    $residencesConcurrentes['indirect'] = getResidencesProchesByStatus( $residenceId, [], 10);
 
     foreach( $residencesConcurrentes as $concurrence => $residences ) {
         foreach( $residences  as $r ) {
@@ -1406,6 +1406,12 @@ function residence_mgmt_get_residence_details($residenceId = null) {
             'tarif_max' => round(max($residencesConcurrentesTarif['indirect']), 2),
         ]
     ];
+
+    if(1){
+        $a='https://ehpad.home/residence/33089';#red-bonobo
+        #$statistiques['direct']['tarif_moyen']
+        #$statistiques['indirect']['tarif_moyen']
+    }
 
     // TMH OPTIMISATION
     $tarifChambreSimple = floatval($chambre->field_tarif_chambre_simple['und'][0]['value']);
@@ -1452,32 +1458,23 @@ function residence_mgmt_get_residence_details($residenceId = null) {
     $nbreMaquettes = countMaquettes( $residenceId );
 
     if (user_is_logged_in()) {
-
         global $user;
-
         $account = user_load($user->uid);
-
         $user_access = array('roles' => $user->roles, 'field_acces_groupes' => array(), 'field_acces_residences' => array());
         $user_access_fields = array("field_acces_groupes", "field_acces_residences");
-
         foreach($user_access_fields as $field) {
             foreach($account->$field['und'] as $fieldValue) {
               $user_access[$field][] = $fieldValue['target_id'];
             }
         }
-
     }
 
     $dataMonthlyEvolution = getMonthlyEvolutionDataChart($residenceId);
 
     ob_start();
-
     include_once __DIR__ . "/templates/residence.php";
-
     $content = ob_get_clean();
-
     include_once __DIR__ . "/templates/layouts/default.php";
-
 }
 
 function residence_mgmt_get_dvf_of_commune( $codeCommune = null ) {
@@ -1537,11 +1534,7 @@ function residence_mgmt_get_geojson_of_cities_by_department() {
 
   $departmentId = findDepartmentByNumber($postData["department"]);
   $residences = findResidence($departmentId);
-  $statistiques = [
-    "resultatDepartement" => count($residences), "resultatPrive" => 0,
-    "resultatAssociatif" => 0, "resultatPublic" => 0,
-  ];
-
+  $statistiques = ["resultatDepartement" => count($residences), "resultatPrive" => 0, "resultatAssociatif" => 0, "resultatPublic" => 0,];
   $cities = [];
 
   if( !empty($postData['cities']) ) {
@@ -1624,204 +1617,6 @@ function residence_mgmt_development_tools() {
     $content = ob_get_clean();
 
     include_once __DIR__ . "/templates/layouts/default.php";
-}
-
-#https://ehpad.home/ajax/get-evolution-menusuelle-des-tarifs/40233
-#cuj http://ehpad.silverpricing.fr/ajax/get-evolution-menusuelle-des-tarifs/33007 a {} 1
-function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null ) {
-    if( $residenceId == null ) {
-        return;
-    }
-    $chartData = ['xAxe' => [], 'dataResidence' => [], 'dataDepartement' => [], 'dataResidencesConcurrents' => [],];
-
-    $residence = entity_load('node', array($residenceId), array( 'type' => 'residence' ));
-
-    $query = db_select('field_data_field_residence', 'rc');
-    $query->condition('rc.field_residence_target_id', $residenceId, '=');
-    $query->fields('rc', array('entity_id'));
-    $chambreCourant = fetchObject($query);
-
-    for( $i = 0 ; $i < 24 ; $i++ ) { $chartData['xAxe'][] = date('Y-m', strtotime(date('Y-m-d') . "- $i month")); }#les 24 derniers mois
-    $chartData['xAxe'] = array_reverse($chartData['xAxe']);
-
-// RESIDENCE -- matche les prix avec la résidence
-/*
-$query = db_select('field_revision_field_date_de_modification', 'dm');
-$query->leftJoin('field_revision_field_tarif_chambre_simple', 'cs', 'cs.revision_id = dm.revision_id', array());
-$query->condition('dm.entity_id', $chambreCourant->entity_id, '=');
-*/
-    $query = db_select('field_revision_field_tarif_chambre_simple', 'cs');
-    $query->condition('cs.entity_id', $chambreCourant->entity_id, '=');
-    $query->join('node_revision', 'nr', 'cs.revision_id = nr.vid', []);
-    //$query->addExpression("COUNT(dm.entity_id)", 'nombre_revision');
-    //$query->addExpression("SUM(CAST(cs.field_tarif_chambre_simple_value AS DECIMAL(8,2)))", 'tarif_chambre');
-    $query->fields('cs', ['entity_id', 'field_tarif_chambre_simple_value']);
-    $query->addExpression("DATE_FORMAT(FROM_UNIXTIME(nr.timestamp), '%Y-%m')", 'date_modification');
-    $query->groupBy('date_modification');#si-si !!
-    $query->orderBy('date_modification', 'desc');#last one from it
-    $chambres = fetchAll($query);
-
-    $tarif=[];
-    foreach($chambres as $chambre) {$dm=$chambre->date_modification;$tarif[$dm]=$chambre->field_tarif_chambre_simple_value;}
-    $end=reset($tarif);$last=$first=end($tarif);
-#cuj "https://ehpad.home/ajax/get-evolution-menusuelle-des-tarifs/33007" a '' 1;#red-bonobo
-    $resultList = [];
-    foreach( $chartData['xAxe'] as $xAxe ) {
-        if(isset($tarif[$xAxe])){
-            $resultList[$xAxe]['nombre_revision']= 1;
-            $resultList[$xAxe]['tarif_chambre_simple'][]=$last=$tarif[$xAxe];
-            $a=1;
-        }elseif('étaler la confiture en absence de variations'){
-            $resultList[$xAxe]['nombre_revision']= 1;
-            $resultList[$xAxe]['tarif_chambre_simple'][]=$last;#dernier update
-            $a=1;
-        }else{
-            $resultList[$xAxe]['nombre_revision'] = 0;
-            $resultList[$xAxe]['tarif_chambre_simple'] = [];
-        }
-    }
-    $a=1;
-/*
-    foreach( $chambres as $chambre ) {
-        if( !in_array( $chambre->date_modification, $chartData['xAxe']) ) {
-            $resultList[$chartData['xAxe'][0]]['nombre_revision'] += 1;
-            $resultList[$chartData['xAxe'][0]]['tarif_chambre_simple'][] = $chambre->field_tarif_chambre_simple_value;
-        } else {
-            $resultList[$chambre->date_modification]['nombre_revision'] += 1;
-            $resultList[$chambre->date_modification]['tarif_chambre_simple'][] = $chambre->field_tarif_chambre_simple_value;
-        }
-    }
-*/
-    $dernierRevisionTarif = null;
-    foreach( $resultList as $key => $result ) {
-        if( $result['nombre_revision'] == 1 ) {
-            $dernierRevisionTarif = $result['tarif_chambre_simple'][0];
-            $resultList[$key]['tarif_chambre_simple'] = $resultList[$key]['tarif_chambre_simple'][0];
-        } else if( $result['nombre_revision'] > 1 ) {
-            $dernierRevisionTarif = $result['tarif_chambre_simple'][count($result['tarif_chambre_simple']) - 1];
-            $resultList[$key]['tarif_chambre_simple'] = array_sum($resultList[$key]['tarif_chambre_simple']);
-        }
-
-        if( $result['nombre_revision'] == 0 && $dernierRevisionTarif != null ) {
-            $resultList[$key]['nombre_revision'] = 1;
-            $resultList[$key]['tarif_chambre_simple'] = $dernierRevisionTarif;
-        }
-    }
-
-
-    $dernierMoyenTarif = null;
-    foreach( $resultList as $data ) {
-        if( $data['nombre_revision'] != 0 ) {
-            $dernierMoyenTarif = round($data['tarif_chambre_simple'] / $data['nombre_revision'], 2);
-            $chartData['dataResidence'][] = $dernierMoyenTarif;
-        } else {
-            $chartData['dataResidence'][] = $dernierMoyenTarif;
-        }
-    }
-
-    // DEPARTEMENTS
-    $query = db_select('node', 'n');
-    $query->condition('n.type', "residence", '=');
-    $query->innerjoin('field_data_field_departement', 'd', 'd.entity_id = n.nid and d.field_departement_tid = :departmentId', array( ':departmentId' => $residence[$residenceId]->field_departement['und'][0]['tid'] ));
-    $query->leftjoin('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
-    $query->leftjoin('node', 'c', 'rc.entity_id = c.nid', array());
-    $query->fields('n', array('nid', 'title'));
-    $query->fields('c', array('nid', 'title'));
-    $residences = fetchAll($query);
-
-    $chambresNids = [];
-    foreach( $residences as $r ) {
-        $chambresNids[] = $r->c_nid;
-    }
-
-    $query = db_select('field_revision_field_date_de_modification', 'dm');
-    $query->leftJoin('field_revision_field_tarif_chambre_simple', 'cs', 'cs.revision_id = dm.revision_id', array());
-    $query->condition('cs.field_tarif_chambre_simple_value', 'NA', '<>');
-    $query->condition('dm.entity_id', $chambresNids, 'IN');
-    //$query->addExpression("COUNT(dm.entity_id)", 'nombre_revision');
-    //$query->addExpression("SUM(CAST(cs.field_tarif_chambre_simple_value AS DECIMAL(8,2)))", 'tarif_chambre');
-    $query->fields('cs', array('entity_id', 'field_tarif_chambre_simple_value'));
-    $query->addExpression("DATE_FORMAT(dm.field_date_de_modification_value, '%Y-%m')", 'date_modification');
-    //$query->groupBy('date_modification');
-    $query->orderBy('date_modification', 'asc');
-    $departementChambres = fetchAll($query);
-
-    $resultList = [];
-    foreach( $chartData['xAxe'] as $key => $xAxe ) {
-        $resultList[$xAxe]['nombre_revision'] = 0;
-        $resultList[$xAxe]['tarif_chambre_simple'] = 0;
-        foreach( $departementChambres as $departementChambre ) {
-            if(  $departementChambre->date_modification <= $xAxe ) {
-                $resultList[$xAxe]['nombre_revision'] += 1;
-                $resultList[$xAxe]['tarif_chambre_simple'] += $departementChambre->field_tarif_chambre_simple_value;
-            }
-        }
-    }
-
-    foreach( $resultList as $data ) {
-        if( $data['nombre_revision'] != 0 ) {
-            $chartData['dataDepartement'][] = round($data['tarif_chambre_simple'] / $data['nombre_revision'], 2);
-        }
-    }
-
-    // RESIDENCE CONCURRENTS DIRECT
-
-    $query = db_select('node', 'n');
-    $query->condition('n.type', "residence", '=');
-    $query->condition('n.nid', $residenceId, '<>');
-    $query->join('field_data_field_statut', 's', 's.entity_id = n.nid and s.field_statut_value = :statut', array(':statut'=> $residence[$residenceId]->field_statut['und'][0]['value']));
-    $query->join('field_data_field_location', 'l', 'l.entity_id = n.nid', array());
-    $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
-    $query->join('field_data_field_tarif_chambre_simple', 'cs', 'cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> :tarif', array(':tarif' => 'NA'));
-    $query->join('field_data_field_latitude', 'lat', 'lat.entity_id = n.nid', array());
-    $query->join('field_data_field_longitude', 'lng', 'lng.entity_id = n.nid', array());
-    $query->fields('n', array('nid'));
-    $query->fields('rc', array('entity_id'));
-    $query->addExpression('(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude))))', 'distance', array( ':latitude' => $residence[$residenceId]->field_latitude['und'][0]['value'], ':longitude' => $residence[$residenceId]->field_longitude['und'][0]['value'] ));
-    $query->orderBy('distance', 'ASC');
-    $query->range(0, 10);
-    $residencesConcurrentes = fetchAll($query);
-
-    $chambresRCNids = [];
-    foreach( $residencesConcurrentes as $r ) {
-        $chambresRCNids[] = $r->entity_id;
-    }
-
-    $query = db_select('field_revision_field_date_de_modification', 'dm');
-    $query->leftJoin('field_revision_field_tarif_chambre_simple', 'cs', 'cs.revision_id = dm.revision_id', array());
-    $query->condition('dm.entity_id', $chambresRCNids, 'IN');
-    //$query->addExpression("COUNT(dm.entity_id)", 'nombre_revision');
-    //$query->addExpression("SUM(CAST(cs.field_tarif_chambre_simple_value AS DECIMAL(8,2)))", 'tarif_chambre');
-    $query->fields('cs', array('entity_id', 'field_tarif_chambre_simple_value'));
-    $query->addExpression("DATE_FORMAT(dm.field_date_de_modification_value, '%Y-%m')", 'date_modification');
-    //$query->groupBy('date_modification');
-    $query->orderBy('date_modification', 'asc');
-    $residencesConcurrentesChambres = fetchAll($query);
-
-    $resultList = [];
-    foreach( $chartData['xAxe'] as $key => $xAxe ) {
-        $resultList[$xAxe]['nombre_revision'] = 0;
-        $resultList[$xAxe]['tarif_chambre_simple'] = 0;
-        foreach( $residencesConcurrentesChambres as $residenceConcurrenteChambre ) {
-            if(  $residenceConcurrenteChambre->date_modification <= $xAxe ) {
-                $resultList[$xAxe]['nombre_revision'] += 1;
-                $resultList[$xAxe]['tarif_chambre_simple'] += $residenceConcurrenteChambre->field_tarif_chambre_simple_value;
-            }
-        }
-
-    }
-
-    foreach( $resultList as $data ) {
-        if($data['nombre_revision'] != 0 ) {
-            $chartData['dataResidencesConcurrents'][] = round($data['tarif_chambre_simple'] / $data['nombre_revision'], 2);
-        } else {
-            $chartData['dataResidencesConcurrents'][] = $chartData['dataResidencesConcurrents'][count($chartData['dataResidencesConcurrents']) - 1];
-        }
-    }
-
-    // RESULT
-    echo json_encode($chartData);#dataResidence
-    die;//#bonobo-rouge
 }
 
 function residence_mgmt_departement_info($departementId) {

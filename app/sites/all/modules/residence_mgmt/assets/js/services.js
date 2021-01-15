@@ -455,7 +455,7 @@ function getEvolutionMenusuelleDesTarifs( residenceNid ) {
         dataType: 'json', // type of response data
         success: function (response,status,xhr) {   // success callback function
             var data = response;
-            cl('getEvolutionMenusuelleDesTarifs',data);//#bonobo-rouge
+            cl('#red-bonobo -- getEvolutionMenusuelleDesTarifs',data);
             $('#situation-concurrentielle .sc-residence').text(data.dataResidence[data.dataResidence.length - 1] + "€");
             $('#situation-concurrentielle .sc-departement').text(data.dataDepartement[data.dataDepartement.length - 1] + "€");
             $('#situation-concurrentielle .sc-concurrence-direct').text(data.dataResidencesConcurrents[data.dataResidencesConcurrents.length - 1] + "€");
