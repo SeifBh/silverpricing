@@ -1627,7 +1627,7 @@ function residence_mgmt_development_tools() {
 }
 
 #https://ehpad.home/ajax/get-evolution-menusuelle-des-tarifs/40233
-#http://ehpad.silverpricing.fr/ajax/get-evolution-menusuelle-des-tarifs/33007
+#cuj http://ehpad.silverpricing.fr/ajax/get-evolution-menusuelle-des-tarifs/33007 a {} 1
 function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null ) {
     if( $residenceId == null ) {
         return;
@@ -1652,16 +1652,30 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null
     //$query->addExpression("SUM(CAST(cs.field_tarif_chambre_simple_value AS DECIMAL(8,2)))", 'tarif_chambre');
     $query->fields('cs', array('entity_id', 'field_tarif_chambre_simple_value'));
     $query->addExpression("DATE_FORMAT(dm.field_date_de_modification_value, '%Y-%m')", 'date_modification');
-    //$query->groupBy('date_modification');
-    $query->orderBy('date_modification', 'asc');
+    $query->groupBy('date_modification');#si-si !!
+    $query->orderBy('date_modification', 'desc');#last one from it
     $chambres = fetchAll($query);
-
+    $tarif=[];
+    foreach($chambres as $chambre) {$dm=$chambre->date_modification;$tarif[$dm]=$chambre->field_tarif_chambre_simple_value;}
+    $end=reset($tarif);$last=$first=end($tarif);
+#cuj http://ehpad.silverpricing.fr/ajax/get-evolution-menusuelle-des-tarifs/33007 a {} 1;#red-bonobo
     $resultList = [];
     foreach( $chartData['xAxe'] as $xAxe ) {
-        $resultList[$xAxe]['nombre_revision'] = 0;
-        $resultList[$xAxe]['tarif_chambre_simple'] = [];
+        if(isset($tarif[$xAxe])){
+            $resultList[$xAxe]['nombre_revision']= 1;
+            $resultList[$xAxe]['tarif_chambre_simple'][]=$last=$tarif[$xAxe];
+            $a=1;
+        }elseif(1){
+            $resultList[$xAxe]['nombre_revision']= 1;
+            $resultList[$xAxe]['tarif_chambre_simple'][]=$last;#dernier update
+            $a=1;
+        }else{
+            $resultList[$xAxe]['nombre_revision'] = 0;
+            $resultList[$xAxe]['tarif_chambre_simple'] = [];
+        }
     }
-
+    $a=1;
+/*
     foreach( $chambres as $chambre ) {
         if( !in_array( $chambre->date_modification, $chartData['xAxe']) ) {
             $resultList[$chartData['xAxe'][0]]['nombre_revision'] += 1;
@@ -1670,9 +1684,8 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null
             $resultList[$chambre->date_modification]['nombre_revision'] += 1;
             $resultList[$chambre->date_modification]['tarif_chambre_simple'][] = $chambre->field_tarif_chambre_simple_value;
         }
-
     }
-
+*/
     $dernierRevisionTarif = null;
     foreach( $resultList as $key => $result ) {
         if( $result['nombre_revision'] == 1 ) {

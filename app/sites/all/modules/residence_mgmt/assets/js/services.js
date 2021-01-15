@@ -507,8 +507,8 @@ function getEvolutionMenusuelleDesTarifs( residenceNid ) {
                             }
                         }],
                         xAxes: [{
-                            barPercentage: 1,
-                            ticks: {autoSkip:true, beginAtZero:true, fontSize: 12, maxRotation: 90, minRotation: 90,fontColor: '#182b49',}
+                            barPercentage: 1,//autoSkip:true, beginAtZero:true,
+                            ticks: {fontSize: 12, maxRotation: 90, minRotation: 90,fontColor: '#182b49',}
                         }]
                     }
                 }
