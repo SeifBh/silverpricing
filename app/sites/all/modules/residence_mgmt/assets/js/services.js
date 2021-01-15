@@ -449,15 +449,13 @@ function reloadHistoriquesMaquettes( residenceId ) {
 
 
 function getEvolutionMenusuelleDesTarifs( residenceNid ) {
-
     var urlRequest = "/ajax/get-evolution-menusuelle-des-tarifs/" + residenceNid;
-
     $.ajax(urlRequest,
     {
         dataType: 'json', // type of response data
         success: function (response,status,xhr) {   // success callback function
             var data = response;
-
+            cl('getEvolutionMenusuelleDesTarifs',data);//#bonobo-rouge
             $('#situation-concurrentielle .sc-residence').text(data.dataResidence[data.dataResidence.length - 1] + "€");
             $('#situation-concurrentielle .sc-departement').text(data.dataDepartement[data.dataDepartement.length - 1] + "€");
             $('#situation-concurrentielle .sc-concurrence-direct').text(data.dataResidencesConcurrents[data.dataResidencesConcurrents.length - 1] + "€");
@@ -510,20 +508,14 @@ function getEvolutionMenusuelleDesTarifs( residenceNid ) {
                         }],
                         xAxes: [{
                             barPercentage: 1,
-                            ticks: {
-                                beginAtZero:true,
-                                fontSize: 12,
-                                fontColor: '#182b49',
-                                maxRotation: 90,
-                                minRotation: 90
-                            }
+                            ticks: {autoSkip:true, beginAtZero:true, fontSize: 12, maxRotation: 90, minRotation: 90,fontColor: '#182b49',}
                         }]
                     }
                 }
             });
         },
         error: function (jqXhr, textStatus, errorMessage) { // error callback
-            console.log('Error: ' + errorMessage);
+            cl('Error: ' + errorMessage);
         }
     });
 

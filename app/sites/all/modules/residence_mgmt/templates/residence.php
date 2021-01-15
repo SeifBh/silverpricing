@@ -240,14 +240,14 @@ if($images){?>
                 </div>
                 <div class="mg-t-10 mg-b-10" style="height:350px">
                     <h6 class="tx-8rem tx-uppercase tx-bold lh-5 mg-b-10 pd-b-5 bd-b">Evolution mensuelle des tarifs</h6>
-                    <canvas id="evolution-line-chart" height="300"></canvas>
+                    <canvas id="evolution-line-chart" height="300"></canvas><?#bonobo-rouge?>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<?php if(false): ?>
+<?php if(0){ ?>
 <div class="row pt-3">
   <div class="col-md-6">
     <div class="card mg-t-10 mg-b-10">
@@ -328,10 +328,10 @@ if($images){?>
   </div>
 
 </div>
-<?php endif; ?>
+<?php }
 
-<?php if( residence_mgmt_user_plan_has_access('OPTIMISATION_RESIDENCE_TMH') ): ?>
-<?php if( in_array($residence->nid, $user_access['field_acces_residences']) || in_array($groupe->tid, $user_access['field_acces_groupes']) ): ?>
+if( residence_mgmt_user_plan_has_access('OPTIMISATION_RESIDENCE_TMH') ):
+    if( in_array($residence->nid, $user_access['field_acces_residences']) || in_array($groupe->tid, $user_access['field_acces_groupes']) ): ?>
 <div class="statistics_wrapper mt-5 mb-5">
 
   <div class="row">

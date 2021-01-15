@@ -1355,18 +1355,7 @@ function residence_mgmt_get_residence_details($residenceId = null) {
         'indirect' => [],
     ];
 
-    $statistiques = [
-        'direct' => [
-            'tarif_min' => 0,
-            'tarif_moyen' => 0,
-            'tarif_max' => 0,
-        ],
-        'indirect' => [
-            'tarif_min' => 0,
-            'tarif_moyen' => 0,
-            'tarif_max' => 0,
-        ]
-    ];
+    $statistiques = ['direct' => ['tarif_min' => 0, 'tarif_moyen' => 0, 'tarif_max' => 0,], 'indirect' => ['tarif_min' => 0, 'tarif_moyen' => 0, 'tarif_max' => 0,]];
 
     $residenceRanking = [ 'departement' => 'NA', 'concurrence_direct' => 'NA' ];
     $departement = null;
@@ -1638,19 +1627,12 @@ function residence_mgmt_development_tools() {
 }
 
 #https://ehpad.home/ajax/get-evolution-menusuelle-des-tarifs/40233
+#http://ehpad.silverpricing.fr/ajax/get-evolution-menusuelle-des-tarifs/33007
 function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null ) {
     if( $residenceId == null ) {
         return;
     }
-
-    // INIT
-
-    $chartData = [
-        'xAxe' => [],
-        'dataResidence' => [],
-        'dataDepartement' => [],
-        'dataResidencesConcurrents' => [],
-    ];
+    $chartData = ['xAxe' => [], 'dataResidence' => [], 'dataDepartement' => [], 'dataResidencesConcurrents' => [],];
 
     $residence = entity_load('node', array($residenceId), array( 'type' => 'residence' ));
 
@@ -1659,10 +1641,10 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null
     $query->fields('rc', array('entity_id'));
     $chambreCourant = fetchObject($query);
 
-    for( $i = 0 ; $i < 24 ; $i++ ) { $chartData['xAxe'][] = date('Y-m', strtotime(date('Y-m-d') . "- $i month")); }
+    for( $i = 0 ; $i < 24 ; $i++ ) { $chartData['xAxe'][] = date('Y-m', strtotime(date('Y-m-d') . "- $i month")); }#les 24 derniers mois
     $chartData['xAxe'] = array_reverse($chartData['xAxe']);
 
-    // RESIDENCE
+// RESIDENCE -- matche les prix avec la résidence
     $query = db_select('field_revision_field_date_de_modification', 'dm');
     $query->leftJoin('field_revision_field_tarif_chambre_simple', 'cs', 'cs.revision_id = dm.revision_id', array());
     $query->condition('dm.entity_id', $chambreCourant->entity_id, '=');
@@ -1819,8 +1801,8 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs( $residenceId = null
     }
 
     // RESULT
-    echo json_encode($chartData);
-    exit();
+    echo json_encode($chartData);#dataResidence
+    die;//#bonobo-rouge
 }
 
 function residence_mgmt_departement_info($departementId) {

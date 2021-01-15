@@ -1,13 +1,19 @@
 <?php
 /*
+ * ?nbMonth=
 https://ehpad.home/z/resFullAlert2.php?m83=00a3f83475e28a9d536d17dc00f93ff6&rids=31889,32855
 x1=`php -r 'echo md5(json_encode([31889,32855]));'`;echo $x1;#Par liste de notifiées
 php72 ~/home/ehpad/app/z/resFullAlert2.php '{"rids":"31889,32855","m83":"'$x1'"}'
 obtenir les variations les plus récentes de prix
 */
+$dateLimite=strtotime('1 month ago');
 $standAlone=$displayNull=$details=$range=0;#?details=1,2,3
 if(strpos($_SERVER['REQUEST_URI'],'resFullAlert2.php'))$standAlone=1;
-$dateLimite=strtotime('1 month ago');
+
+/*
+=> implémenter un filtre de date limite
+=> implémenter au niveau des alertes pour que l'on a le même status peut importe les date de modification des prix
+ */
 
 require_once __DIR__."/../vendor/autoload.php";#chdir(__DIR__);#alptech
 
@@ -27,13 +33,19 @@ if('verifs'){
     if($_GET['m83'] != $md5)die('#'.__line__);#die('#'.implode(',',$rids).'<>'.$j.'<>'.$_GET['m83'].'<>'.$md5.'#'.__line__);
 }
 
+if(isset($_GET['nbMonth'])){$dateLimite=strtotime(intval($_GET['nbMonth']).' month ago');}
 if(isset($_GET['range'])){$range=intval($_GET['range']);}
 if(isset($_GET['displayNull'])){$displayNull=intval($_GET['displayNull']);}
 
 if('1:lister les variations pour chacune des 10 résidences les plus proches au cours de 30 derniers jours'){
     $residencesTriggers=$rids;
     $neighbours=$p102Neighbours=[];
-    $c='clo10'; if($range==20)$c='clo20'; elseif($range==30)$c='list';
+
+    $c='clo10';
+    if($range==20)$c='clo20';
+    elseif($range==30)$c='list';
+
+    $c='list';#anyways then splice
 
     $sql="select rid,$c from z_geo where rid in(".implode(',',$residencesTriggers).")";#dont need more values, being Obviously Within in that list
     $dansLeVoisinage=Alptech\Wip\fun::sql($sql);#il nous faut tout
@@ -49,12 +61,22 @@ $tutti=array_filter(array_unique(array_merge($residencesTriggers,$neighbours)));
 
 if('2:choper tous tarifs then and now, nb: certaines peuvent ne jamais avoir varié, done non présents ici'){
     $tarifs=$cs0=$cs1=[];
-    $x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1 from z_variations where rid in(".implode(',',$tutti).") and btime>".$dateLimite."  and cs_1 is not null and cs_0 is not null order by date desc");if(!$x)die('#'.__line__);$found=[];
+#sur la dernière MAJ ( order by date )
+#/* les 10 les plus proches :: field(rid,4,3,2,1) */
+    $x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1,date from z_variations where rid in(".implode(',',$tutti).") and btime>".$dateLimite."  and cs_1 is not null and cs_0 is not null order by field(rid,".implode(',',$tutti)."),date desc");if(!$x)die('#nv:'.__line__);$found=[];
+    #$x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1 from z_variations where rid in(".implode(',',$tutti).") and btime>".$dateLimite."  and cs_1 is not null and cs_0 is not null order by date desc");if(!$x)die('#nv:'.__line__);$found=[];
+#order by date desc(),field(rid,4,3,2,1),field
     foreach($x as $t){
+        if(in_array($t['rid'],$found)){
+            continue;#never loops twice the same residence ( maximal date update only )
+        }
         if(!in_array($t['rid'],$found))$found[]=$t['rid'];
         $cs0[$t['rid']]=$t['cs_0'];
         $cs1[$t['rid']]=$t['cs_1'];
+        $a=1;#splice by range and that's alll
     }
+
+
     $notFound=array_diff($tutti,$found);
     if(1 and "5: ,ne pas récupérer tous les prix n'ayant subi aucune violence, ni variation"){
         $x = Alptech\Wip\fun::sql("select entity_id,field_residence_target_id from field_data_field_residence where bundle='chambre' and field_residence_target_id in(" . implode(',',$tutti) . ")");
