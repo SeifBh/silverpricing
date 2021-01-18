@@ -72,15 +72,101 @@ $neighbours=array_unique($neighbours);
 
 $tutti=array_filter(array_unique(array_merge($residencesTriggers,$neighbours)));#on veut également savoir pour la résidence notifiée également
 
+if('1:residence2chambre'){
+    $x = Alptech\Wip\fun::sql("select entity_id,field_residence_target_id from field_data_field_residence where bundle='chambre' and field_residence_target_id in(" . implode(',',$tutti) . ") order by field(field_residence_target_id,".implode(',',$tutti).")");
+    $residence2chambre=$chambres=$_missingChambre=[];foreach($x as $t){$residence2chambre[$t['field_residence_target_id']]=$t['entity_id'];}
+    $chambre2residence=array_flip($residence2chambre);
+    $chambresSansPrix=$residence2chambre;
+    $mainChambres=[];
+    foreach($residencesTriggers as $rid){
+        $mainChambres[]=$residence2chambre[$rid];
+    }
+}
+
+$sql=0;$pf=$tarifs=$cs0=$cs1=$ph=$found=$_expiredPrices=[];
+
+if("2:tous les prix sans distinctions pour l'instant"){
+    $sql = "select group_concat(nr.timestamp)as tt,group_concat(field_tarif_chambre_simple_value order by revision_id desc) as v,group_concat(revision_id order by revision_id desc) as revid,entity_id as cid from field_revision_field_tarif_chambre_simple cs inner join node_revision nr on nr.nid=cs.entity_id where cs.entity_id in(" . implode(',', $chambresSansPrix) . ") and cs.field_tarif_chambre_simple_value<>'NA' group by cs.entity_id order by field(cs.entity_id,".implode(',',$chambresSansPrix).")";#,timestamp asc
+
+    $chambresPrix = Alptech\Wip\fun::sql($sql);
+    $_nbPrixRemontes=count($x);
+    $a=1;
+    /*prix from 33007*/
+    foreach ($chambresPrix as $t) {
+        $rid = $chambre2residence[$t['cid']];
+        if (in_array($rid, $pf)/* or count($pf)>$range*/) {continue;}
+
+        $prices=explode(',', $t['v']);
+        $ph1 = array_unique($prices);
+        $priceHistory = array_slice($ph1, 0, 2);#les deux premieres variation uniquement
+
+        $tt=explode(',', $t['tt']);#parfois plusieurs modification sur same timestamp .. is really messy
+        $last=max($tt);
+
+        if(in_array($rid,$residencesTriggers));#toujours la conserver pour listing
+        if ($last > $ttLimit) {#et filter ici par date limite de dernière variation ( dernier record ), logique !!!!, seulement si lastVariationWithinInterval est à 0 bien entendu :)
+            $_expiredPrices[] = $rid;
+            $pf[] = $rid;#no price change within limit
+            continue;
+        }elseif($lastVariationWithinInterval){
+            if(count($ph1)<2){
+                $noHistory[]=$rid;
+                $pf[] = $rid;#'hasNoPriceHistory .. excluding from variations >Simple !!!';
+                continue;
+            }
+
+            $pptt=[];foreach($prices as $k=>$price){$k1=$tt[$k];while(isset($pptt[$k1])){$k1+=1;}/*#increment ms variations =)#*/$pptt[$k1]=$price;}krsort($pptt);
+
+            $lastprice=end($pptt);#the final one..
+            foreach($pptt as $time=>$price){
+                $diff=$price-$lastprice;
+                if($diff){#the variation
+                    if($time>$ttLimit){
+                        $_expiredPrices[] = $rid;
+                        $pf[] = $rid;#no price change within limit
+                        continue 2;
+                    }
+                    break;#price variation is valid.
+                }
+            }
+        }
+
+        if(0){#potentiels autres points d'arrêt ..
+            if ($rid == 33121) {
+                $a = 1;
+            }
+        }
+
+        $pf[] = $rid;
+        foreach ($priceHistory as $k => $v) {
+            if (0 and isset($cs0[$rid])) {#76.46 vs same
+                $err = 'déjà présent';
+            } else {#£:todo:attention : même si ces dernières n'ont pas évolué
+                if ($k == 0) {#now
+                    $cs1[$rid] = $v;#la première ..
+                }#by revision desc, so it should be the latest one
+                elseif ($k == 1) {#auparavant ..
+                    $cs0[$rid] = $v;
+                }#by revision desc, so it should be the latest one
+                $ph[$rid][$k] = $v;
+            }
+        }
+    }
+}
+
+
+
 /*
  * Red bonobo :: todo :: obtenir même moyenne concurrence que la concurrence indirecte ! Soit 77.9
 https://ehpad.home/ra?m83=ff58d146d4aa32d35985e69944263d58&rids=33089&range=10&nbMonth=12
 */
-if('2:choper tous tarifs then and now, nb: certaines peuvent ne jamais avoir varié, done non présents ici'){
-    $tarifs=$cs0=$cs1=$ph=$found=[];
+if('2:choper tous tarifs then and now, nb: certaines peuvent ne jamais avoir varié, done non présents ici'){}
+
 #sur la dernière MAJ ( order by date )
 #/* les 10 les plus proches :: field(rid,4,3,2,1) */
 #$ttLimit,$x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1,date from z_variations where rid in(".implode(',',$tutti).") and btime>".$dateLimite."  and cs_1 is not null and cs_0 is not null order by field(rid,".implode(',',$tutti)."),date desc");if(!$x)die('#nv:'.__line__);$found=[];
+
+if(0 and 'ancien modèle simple qui va prendre le dessus'){
     $variationsPrixDansIntervalle=Alptech\Wip\fun::sql("select rid,cs_0,cs_1,date from z_variations where rid in(".implode(',',$tutti).") and btime>".$dateLimite."  and cs_1 is not null and cs_0 is not null order by field(rid,".implode(',',$tutti)."),date desc");if(!$variationsPrixDansIntervalle)die('#nv:'.__line__);
     #$x=Alptech\Wip\fun::sql("select rid,cs_0,cs_1 from z_variations where rid in(".implode(',',$tutti).") and btime>".$dateLimite."  and cs_1 is not null and cs_0 is not null order by date desc");if(!$x)die('#nv:'.__line__);$found=[];
 #order by date desc(),field(rid,4,3,2,1),field
@@ -94,38 +180,33 @@ if('2:choper tous tarifs then and now, nb: certaines peuvent ne jamais avoir var
         $a=1;#splice by range and that's alll
     }
 
-if('residence2chambre'){
-    $x = Alptech\Wip\fun::sql("select entity_id,field_residence_target_id from field_data_field_residence where bundle='chambre' and field_residence_target_id in(" . implode(',',$tutti) . ") order by field(field_residence_target_id,".implode(',',$tutti).")");
-    $residence2chambre=$chambres=$_missingChambre=[];foreach($x as $t){$residence2chambre[$t['field_residence_target_id']]=$t['entity_id'];}
-    $chambre2residence=array_flip($residence2chambre);
-}
 
-$sql=0;$pf=[];#de toutes façons
+
 $nf=count($found)-$range;
 $notFound=array_diff($tutti,$found);
 $triggersSansPrix=array_diff($residencesTriggers,$found);
-    $chambresSansPrix=[];
+$chambresSansPrix=[];
 
-    if(1 and "5: ,ne pas récupérer tous les prix n'ayant subi aucune violence, ni variation, this is global scope"){
-        if(!$lastVariationWithinInterval and "on regarde les variations de prix au dela de l'intervalle"){#if(count($found)<$range) {
+    if(0 and "5: ,ne pas récupérer tous les prix n'ayant subi aucune violence, ni variation, this is global scope"){
+        if(!$lastVariationWithinInterval and "on regarde toutes les variations de prix au dela de l'intervalle"){#if(count($found)<$range) {
             $chambresSansPrix=$residence2chambre;
         }elseif($triggersSansPrix){
             foreach($triggersSansPrix as $rid){
                 $chambresSansPrix[]=$residence2chambre[$rid];
             }
             $a=1;
-        }if($chambresSansPrix){#donc
+        }if($chambresSansPrix){#donc, si l'un des ehpad parent n'a pas eu de variation de prix au cours des n derniers mois ..
             $sql = "select group_concat(nr.timestamp)as tt,group_concat(field_tarif_chambre_simple_value order by revision_id desc) as v,group_concat(revision_id order by revision_id desc) as revid,entity_id as cid from field_revision_field_tarif_chambre_simple cs inner join node_revision nr on nr.nid=cs.entity_id where cs.entity_id in(" . implode(',', $chambresSansPrix) . ") and cs.field_tarif_chambre_simple_value<>'NA' group by cs.entity_id order by field(cs.entity_id,".implode(',',$chambresSansPrix).")";#,timestamp asc
 
             $chambresPrix = Alptech\Wip\fun::sql($sql);
             $_nbPrixRemontes=count($x);
-            $a=1;$expiredPrices=[];
+            $a=1;$_expiredPrices=[];
 /*prix from 33007*/
             foreach ($chambresPrix as $t) {
                 $tt=explode(',', $t['tt']);
                 $last=max($tt);
                 $rid = $chambre2residence[$t['cid']];
-                if($last>$ttLimit){
+                if($last>$ttLimit){#et filter ici par date limite
                     $_expiredPrices[]=$rid;
                     continue;
                 }
@@ -162,6 +243,9 @@ if('9: tous les titres'){
     $sql="select b.name as v,entity_id as k from field_data_field_departement a inner join taxonomy_term_data b on b.tid=a.field_departement_tid where entity_id in(".implode(',',$tutti).")";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t){$dep[$t['k']]=$t['v'];}
     $sql="select nid,title from node where nid in(".implode(',',$tutti).") and title is not null";$x=Alptech\Wip\fun::sql($sql); foreach($x as $t){$rid2title[$t['nid']]=$t['title'];}
 }
+
+
+
 
 if('10 >> pour chacune des notifiees'){
     $prixManquantAuSeinDesVariations=$moyennes=[];
@@ -217,6 +301,17 @@ then, newest (+33063 before 33075 ) , original has 33135 = "82.1" before 33169
         $moyennes[$rid]=[$_cs0,$_cs1];
     }
 }
+
+
+if(isset($_SERVER['WINDIR'])){$__expiredPriceTitles=[];##
+    foreach($_expiredPrices as $k){
+        $__expiredPriceTitles[]=$rid2title[$k];
+    }foreach($noHistory as $k){
+        $__expiredPriceTitles[]=$rid2title[$k];
+    }
+    $a='$noHistory';#
+}
+
 #
 if($standAlone){
 echo"\n<html><head><link rel='preconnect' href='https://fonts.gstatic.com'><link href='https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap' rel='stylesheet'><style>html{font:10px 'IBM Plex Sans','Montserrat',sans-serif;background:#000;}    </style></head><body>";
