@@ -659,6 +659,7 @@ if($residenceIds){
             $ranking = getRankingOfResidence($r->nid, ['CONCURRENCE_DIRECTE']);
             if($ranking['concurrence_directe']<7){$r=null;continue;}
             $residencesConcurrentes = getResidencesProchesByStatus( $r->nid, $statuses = [$r->field_statut_value ], $limit = 10);
+            $a='has distance ?';
             $residencesConcurrentesTarif = array_map(function( $residenceConcurrente ) {
                 return $residenceConcurrente->field_tarif_chambre_simple_value;
             }, $residencesConcurrentes);
@@ -751,9 +752,7 @@ if($residenceIds){
     // STATISTIQUES
     $dashboardStatistics = array("Tarif moyen" => 0, "Tarif médian" => 0, "Tarif plus bas" => 0, "Tarif plus haut" => 0,);
 
-if(0 and 'why') {
-
-
+if(1 and '$residences->tarifs') {
     $query = db_select('node', 'n');
     $query->condition('n.type', "residence", '=');
     $query->condition('n.nid', $residenceIds, 'IN');

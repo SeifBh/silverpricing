@@ -1353,17 +1353,17 @@ function getResidencesProchesByStatus( $residenceNid, $statuses = [], $limit = 1
 
 if($clo) {
     if(!is_array($clo))$clo=explode(',',$clo);
+    #avec les listes fournies, il nous faut également les distances
+    $distances=getDistances($residenceNid);$r2dist=[];foreach($distances as $km=>$rids){foreach($rids as $rid){$r2dist[$rid]=$km;}}
     $a=2;
 }else{#retrouver lequels sont les plus proches si non fournis
     $clo = getClosests($residenceNid);#sans limites, as a list
-    $distances=getDistances($residenceNid);
-    $r2dist=[];foreach($distances as $km=>$rids){foreach($rids as $rid){$r2dist[$rid]=$km;}}
-
+    $distances=getDistances($residenceNid);$r2dist=[];foreach($distances as $km=>$rids){foreach($rids as $rid){$r2dist[$rid]=$km;}}
     $clo1=explode(',',$clo);$clo2 = array_slice($clo1, 0, $limit);
 
     if (!$statuses) {
         $clo=explode(',',$clo);
-    }else{
+    }else{#filtrer
         $s = "select entity_id from field_data_field_statut where field_statut_value IN ('" . implode("','", $statuses) . "') and entity_id in($clo) ORDER BY FIELD(entity_id,$clo)";# limit $limit on limite ensuite
         $dist=$clo=[];$x = Alptech\Wip\fun::sql($s);
         foreach ($x as $t) {$dist[$t['entity_id']]=$r2dist[$t['entity_id']];continue;$clo[] = $t['entity_id'];}
@@ -1424,7 +1424,7 @@ getResidencesProchesByStatus :: {"33171":"98.5","33121":"82.3","33133":"81.72","
 */
     foreach ($residences as &$t) {
         $a=1;#$r2dist
-        if(isset($r2dist[$t['nid']]))$t['distance']=$r2dist[$t['nid']];
+        if(isset($r2dist[$t['nid']])) {$t['distance']=$r2dist[$t['nid']];}#ici
         $id2tarif[$t['nid']]=$t['field_tarif_chambre_simple_value'];
         $t=(object)$t;
     }unset($t);

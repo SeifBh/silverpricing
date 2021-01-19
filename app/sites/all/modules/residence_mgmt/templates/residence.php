@@ -7,8 +7,8 @@ $("#pop").on("click", function() {
    $(this).modal();
 });
  */
-$cs=$chambre->field_tarif_chambre_simple['und'][0]['value'];
 $images=[];
+$cs=$chambre->field_tarif_chambre_simple['und'][0]['value'];
 $imp='/sites/default/files/ehpad/';
 $tnp='/sites/default/styles/thumbnail/public/ehpad/';
 
