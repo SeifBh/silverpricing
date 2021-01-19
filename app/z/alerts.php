@@ -68,7 +68,7 @@ if(!$notifiees)die('#'.__line__);
 $proxima10G=$proxima10=$notifiee2alerteOrigine=[];
 foreach($notifiees as $notifiee){#paddys 4 avenue du jura et de la poterie
     $liste=trim($notifiee['clo10'],',');$xliste=explode(',',$liste);
-    $closests=array_splice($xliste,0,$maxNeighbours);#parmi les 10 les plus proches
+    $closests=array_splice($xliste,0,$maxNeighbours);#Notifier les 10 EHPADS les plus proches d'une variation de prix
     $hasIntersections=array_intersect($closests,$residencesTriggers);#bien entendu, toujours
     if($hasIntersections){#could be multiple
         $proxima10[$notifiee['rid']]=[];

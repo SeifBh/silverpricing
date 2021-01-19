@@ -6,8 +6,10 @@ x1=`php -r 'echo md5(json_encode([31889,32855]));'`;echo $x1;#Par liste de notif
 php72 ~/home/ehpad/app/z/resFullAlert2.php '{"rids":"31889,32855","m83":"'$x1'"}'
 obtenir les variations les plus récentes de prix
 */
-
-$lastVariationWithinInterval=$month=1;$standAlone=$displayNull=$details=$range=0;#?details=1,2,3
+$range=10;#?details=1,2,3
+$lastVariationWithinInterval=$month=1;
+$standAlone=$displayNull=$details=$sql=0;
+$pf=$tarifs=$cs0=$cs1=$ph=$found=$_expiredPrices=[];
 if(strpos($_SERVER['REQUEST_URI'],'resFullAlert2.php'))$standAlone=1;
 
 /*
@@ -78,6 +80,19 @@ $neighbours=array_unique($neighbours);
 
 $tutti=array_filter(array_unique(array_merge($residencesTriggers,$neighbours)));#on veut également savoir pour la résidence notifiée également
 
+if('0:getAllLogos'){
+    $res2groupe=$logoParGroupe=[];
+    $x = Alptech\Wip\fun::sql("select entity_id,field_groupe_tid from field_data_field_groupe where entity_id in(".implode(',',$tutti).")");
+    foreach($x as $t){$res2groupe[$t['entity_id']]=$t['field_groupe_tid'];}
+    $sql="select field_logo_fid,entity_id from field_data_field_logo where entity_id in(".implode(',',array_unique($res2groupe)).")";
+    $x = Alptech\Wip\fun::sql($sql);#,,,,,
+    foreach($x as $t){
+        $fl=file_load($t['field_logo_fid']);#14
+        $logo=theme('image', ['path' => file_create_url($fl->uri), 'width' => 16]);
+        $logoParGroupe[$t['entity_id']]=$logo;
+    }
+}
+
 if('1:residence2chambre'){
     $x = Alptech\Wip\fun::sql("select entity_id,field_residence_target_id from field_data_field_residence where bundle='chambre' and field_residence_target_id in(" . implode(',',$tutti) . ") order by field(field_residence_target_id,".implode(',',$tutti).")");
     $residence2chambre=$chambres=$_missingChambre=[];foreach($x as $t){$residence2chambre[$t['field_residence_target_id']]=$t['entity_id'];}
@@ -88,8 +103,6 @@ if('1:residence2chambre'){
         $mainChambres[]=$residence2chambre[$rid];
     }
 }
-
-$sql=0;$pf=$tarifs=$cs0=$cs1=$ph=$found=$_expiredPrices=[];
 
 if("2:tous les prix sans distinctions pour l'instant"){
     $sql = "select group_concat(nr.timestamp)as tt,group_concat(field_tarif_chambre_simple_value order by revision_id desc) as v,group_concat(revision_id order by revision_id desc) as revid,entity_id as cid from field_revision_field_tarif_chambre_simple cs inner join node_revision nr on nr.nid=cs.entity_id where cs.entity_id in(" . implode(',', $chambresSansPrix) . ") and cs.field_tarif_chambre_simple_value<>'NA' group by cs.entity_id order by field(cs.entity_id,".implode(',',$chambresSansPrix).")";#,timestamp asc
@@ -110,7 +123,7 @@ if("2:tous les prix sans distinctions pour l'instant"){
         $last=max($tt);
 
         if(in_array($rid,$residencesTriggers));#toujours la conserver pour listing
-        if ($last > $ttLimit) {#et filter ici par date limite de dernière variation ( dernier record ), logique !!!!, seulement si lastVariationWithinInterval est à 0 bien entendu :)
+        elseif ($last > $ttLimit) {#et filter ici par date limite de dernière variation ( dernier record ), logique !!!!, seulement si lastVariationWithinInterval est à 0 bien entendu :)
             $_expiredPrices[] = $rid;
             $pf[] = $rid;#no price change within limit
             continue;
@@ -335,7 +348,9 @@ foreach($p102Neighbours as $rid=>$_rids){
     if(!isset($moyennes[$rid]))Continue;
     $evol=round($moyennes[$rid][1]-$moyennes[$rid][0],2);
     if($evol>0)$evol='+'.$evol;
-    echo"\n<tr class=r1 title='".$finesses[$rid]." » $rid » ".count($_rids).' » '.implode(',',$_rids)."'><td><a target=r href='/residence/$rid'>".$rid2title[$rid].'</a></td><td>'.trim(substr($dep[$rid],0,3)). '</td><td>'.$ph[$rid][1]. ' €</td><td>'.$ph[$rid][0].' €</td><td>'.$evol.'€</td><td> '.$moyennes[$rid][0].' €</td><td> '.$moyennes[$rid][1].' €</td><td></td></tr>';
+    $logo='';
+    if(isset($logoParGroupe[$res2groupe[$rid]]))$logo=$logoParGroupe[$res2groupe[$rid]];
+    echo"\n<tr class=r1 title='".$finesses[$rid]." » $rid » ".count($_rids).' » '.implode(',',$_rids)."'><td>".$logo."<a target=r href='/residence/$rid'>".$rid2title[$rid].'</a></td><td>'.trim(substr($dep[$rid],0,3)). '</td><td>'.$ph[$rid][1]. ' €</td><td>'.$ph[$rid][0].' €</td><td>'.$evol.'€</td><td> '.$moyennes[$rid][0].' €</td><td> '.$moyennes[$rid][1].' €</td><td></td></tr>';
     $newrow=$inc=0;
     foreach($_rids as $_rid){
         if($inc>=$range){continue;}
@@ -344,7 +359,7 @@ foreach($p102Neighbours as $rid=>$_rids){
             $evol=round($ph[$_rid][0]-$ph[$_rid][1],2);
             if($evol !=0 or $displayNull){
                 $dist=0;
-                $inc++;#display les prix pris en compte du coup
+                $inc++;#display les prix pris en compte du coup,
                 if($evol>0)$evol='+'.$evol;
                 if(!$newrow){$newrow=1;echo"\n<tr class='linge1 b'><td colspan=4>Résidences les plus proches de ".$rid2title[$rid]."</td><td>Variation</td><td>Ancien Prix</td><td>Nouveau prix</td><td>Km</td></tr>";}
 
@@ -353,8 +368,10 @@ foreach($p102Neighbours as $rid=>$_rids){
                 }else{
                     $a='err';
                 }
+                $logo='';
+                if(isset($logoParGroupe[$res2groupe[$_rid]]))$logo=$logoParGroupe[$res2groupe[$_rid]];
 
-                echo"\n<tr title='".$finesses[$_rid]." » $_rid'><td colspan=4 class='linge2 b'>  &nbsp; &nbsp; &nbsp; »»» <a target=r href='/residence/$_rid'>".$rid2title[$_rid].'</a></td><td>'.$evol.' €</td><td>'.$ph[$_rid][1].' €</td><td>'.$ph[$_rid][0].'€</td><td>'.$dist.'</td></tr>';#.' // => '.$cs0[$rid].' à '.$cs1[$rid];
+                echo"\n<tr title='".$finesses[$_rid]." » $_rid'><td colspan=4 class='linge2 b'>  &nbsp; &nbsp; &nbsp; »»» $logo <a target=r href='/residence/$_rid'>".$rid2title[$_rid].'</a></td><td>'.$evol.' €</td><td>'.$ph[$_rid][1].' €</td><td>'.$ph[$_rid][0].'€</td><td>'.$dist.'</td></tr>';#.' // => '.$cs0[$rid].' à '.$cs1[$rid];
             }
         }
     }

@@ -256,11 +256,15 @@
                         </thead>
                         <tbody>
                             <?php $rows = 0; foreach( $residences as $residence ):
+                                $a=1;
                                 $difTarifsMoyDep = round($residence->field_tarif_chambre_simple_value - $statistique_globale["Tarif moyen"], 2);
                                 $difTarifsMoyRequete = round($residence->field_tarif_chambre_simple_value - $requete_statistique["Tarif moyen"], 2);
                             ?>
                             <tr>
-                                <td><?php if( isset($residence->field_logo_fid) ) {echo theme('image', array('path' => file_create_url(file_load($residence->field_logo_fid)->uri), 'width' => 32));} ?></td>
+                                <td><?php if( isset($residence->field_logo_fid) ) {
+                                    $logo= theme('image', array('path' => file_create_url(file_load($residence->field_logo_fid)->uri), 'width' => 32));
+                                    echo $logo;
+                                } ?></td>
                                 <td><a href="<?php echo '/residence/' . $residence->nid; ?>"><?php echo $residence->title ?></a></td>
                                 <td><?php echo $residence->field_location_postal_code;# ?></td>
                                 <td><?php echo $residence->field_location_locality; ?></td>
