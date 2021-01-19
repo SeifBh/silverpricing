@@ -50,10 +50,16 @@ if('1:lister les variations pour chacune des 10 résidences les plus proches au 
     elseif($range==30)$c='list';
 
 $c='list';#anyways then splice
-
-    $sql="select rid,$c from z_geo where rid in(".implode(',',$residencesTriggers).")";#dont need more values, being Obviously Within in that list
+$closestByResidence=[];
+    $sql="select rid,$c,closest from z_geo where rid in(".implode(',',$residencesTriggers).")";#dont need more values, being Obviously Within in that list
     $dansLeVoisinage=Alptech\Wip\fun::sql($sql);#il nous faut tout
     foreach($dansLeVoisinage as $k=>$t) {
+        $closest=json_decode($t['closest'],1);
+        foreach($closest as $dist=>$rids2){
+            foreach($rids2 as $rids3){
+                $closestByResidence[$t['rid']][$rids3]=$dist;
+            }
+        }
         $clo10 = explode(',', trim($t[$c], ','));
         $p102Neighbours[$t['rid']] = array_diff($clo10,[$t['rid']]);#remove self from list
         if(isset($_SERVER['WINDIR'])){
@@ -323,22 +329,32 @@ echo"\n<style>
 #fullPriceAlert{    border-radius: 5px;border-collapse:collapse;margin:auto;background:#FAFAFA;box-shadow: 0 0 7px #fff;}       
 #fullPriceAlert td:nth-child(n+2) {text-align: right;}  #fullPriceAlert td{padding:1rem;}
 </style>
-<table border=1 id='fullPriceAlert'><thead><tr><td>Nom</td><td>Dep</td><td>Ancien tarif</td><td>Nouveau tarif</td><td>Variation</td><td>Ancienne moyenne concurrence</td><td>Nouvelle moyenne concurrence</td></tr></thead><tbody>";
+<table border=1 id='fullPriceAlert'><thead><tr><td>Nom</td><td>Dep</td><td>Ancien tarif</td><td>Nouveau tarif</td><td>Variation</td><td>Ancienne moyenne concurrence</td><td>Nouvelle moyenne concurrence</td><td>Km</td></tr></thead><tbody>";
+#todo: rajouter le logo du groupe pour chaque résidence
 foreach($p102Neighbours as $rid=>$_rids){
     if(!isset($moyennes[$rid]))Continue;
     $evol=round($moyennes[$rid][1]-$moyennes[$rid][0],2);
     if($evol>0)$evol='+'.$evol;
-    echo"\n<tr class=r1 title='".$finesses[$rid]." » $rid » ".count($_rids).' » '.implode(',',$_rids)."'><td><a target=r href='/residence/$rid'>".$rid2title[$rid].'</a></td><td>'.trim(substr($dep[$rid],0,3)). '</td><td>'.$ph[$rid][1]. ' €</td><td>'.$ph[$rid][0].' €</td><td>'.$evol.'€</td><td> '.$moyennes[$rid][0].' €</td><td> '.$moyennes[$rid][1].' €</td></tr>';
-    $inc=0;
+    echo"\n<tr class=r1 title='".$finesses[$rid]." » $rid » ".count($_rids).' » '.implode(',',$_rids)."'><td><a target=r href='/residence/$rid'>".$rid2title[$rid].'</a></td><td>'.trim(substr($dep[$rid],0,3)). '</td><td>'.$ph[$rid][1]. ' €</td><td>'.$ph[$rid][0].' €</td><td>'.$evol.'€</td><td> '.$moyennes[$rid][0].' €</td><td> '.$moyennes[$rid][1].' €</td><td></td></tr>';
+    $newrow=$inc=0;
     foreach($_rids as $_rid){
         if($inc>=$range){continue;}
         if($_rid==$rid)Continue;#self listing
         if(1 or ($ph[$_rid][1] and $ph[$_rid][0] != $ph[$_rid][1])){#Nb => il faut qu'il existe une réelle différence de prix
             $evol=round($ph[$_rid][0]-$ph[$_rid][1],2);
             if($evol !=0 or $displayNull){
+                $dist=0;
                 $inc++;#display les prix pris en compte du coup
                 if($evol>0)$evol='+'.$evol;
-                echo"\n<tr title='".$finesses[$_rid]." » $_rid'><td colspan=4>  &nbsp; &nbsp; &nbsp; »»» <a target=r href='/residence/$_rid'>".$rid2title[$_rid].'</a></td><td>'.$evol.' €</td><td>'.$ph[$_rid][1].' €</td><td>'.$ph[$_rid][0].'€</td></tr>';#.' // => '.$cs0[$rid].' à '.$cs1[$rid];
+                if(!$newrow){$newrow=1;echo"\n<tr class='linge1 b'><td colspan=4>Résidences les plus proches de ".$rid2title[$rid]."</td><td>Variation</td><td>Ancien Prix</td><td>Nouveau prix</td><td>Km</td></tr>";}
+
+                if(isset($closestByResidence[$rid][$_rid])){
+                    $dist=$closestByResidence[$rid][$_rid];
+                }else{
+                    $a='err';
+                }
+
+                echo"\n<tr title='".$finesses[$_rid]." » $_rid'><td colspan=4 class='linge2 b'>  &nbsp; &nbsp; &nbsp; »»» <a target=r href='/residence/$_rid'>".$rid2title[$_rid].'</a></td><td>'.$evol.' €</td><td>'.$ph[$_rid][1].' €</td><td>'.$ph[$_rid][0].'€</td><td>'.$dist.'</td></tr>';#.' // => '.$cs0[$rid].' à '.$cs1[$rid];
             }
         }
     }
