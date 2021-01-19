@@ -3,7 +3,7 @@
 define('DRUPAL_ROOT', getcwd());
 $f=DRUPAL_ROOT . '/includes/bootstrap.inc';
 require_once 'autoload.php';
-if(strpos($_SERVER['HTTP_HOST'],'.home')){
+if(strpos($_SERVER['HTTP_HOST'],'.home')){#£:ben:custom
     $_ENV['path']['drupal']['database']=DRUPAL_ROOT.'includes';   
     $f='/Users/ben/home/overrides/d7.bootstrap.php';
 }

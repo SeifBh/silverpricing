@@ -1,4 +1,5 @@
 <?php #
+function addMenuItem($url,$params){global $menuItems;$menuItems[$url]=$params;} $GLOBALS['menuItems']=[];
 require_once __DIR__ . "/ajax.php";
 require_once __DIR__ . "/ben.php";
 require_once __DIR__ . "/vendor/autoload.php";
@@ -17,10 +18,12 @@ require_once __DIR__ . "/inc/user.inc.php";
 require_once __DIR__ . "/inc/routing.inc.php";
 require_once __DIR__.'/../../../../autoload.php';#-> maps to composer
 
-#http://ehpad.silverpricing.fr/admin/config/development/performance
+addMenuItem('b',array('title' => 'a', 'page callback' => 'a', 'access callback' => true,));
+function a(){die(__FILE__.__LINE__);}
+#drushy cc all
 #cuj http://ehpad.silverpricing.fr/ccAll?m=83
 #cuj https://ehpad.home/ccAll?m=83;cuj https://ehpad.home/depStats a {} 1;
-function a(){die(__FILE__.__LINE__);}
+addMenuItem('ccAll',array('title' => 'ccAll', 'page callback' => 'ccAll', 'access callback' => true,));
 function ccAll(){
     if(!isset($_GET['m']) or $_GET['m']!=83)die('??');
     drupal_flush_all_caches();
@@ -28,6 +31,7 @@ function ccAll(){
     die('caches cleared');
 }
 
+addMenuItem('depStats',array('title' => 'depStats', 'page callback' => 'depStats', 'access callback'   => true/* 'hasrole'*/, 'access arguments'  => [['administrator']],));
 function depStats(){
     if(!DEV)die;
     $stats=[];$maxLitPop=$maxMsurPop=0;$minLitPop=$minMsurPop=99;
