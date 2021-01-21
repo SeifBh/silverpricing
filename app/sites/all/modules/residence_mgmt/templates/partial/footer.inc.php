@@ -471,7 +471,7 @@ var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getCo
             {
                 type:"scatter",
                 yAxisID: 'departement-tarif',
-                backgroundColor: 'rgba(0,0,0,0)', borderColor: '#000000',
+                backgroundColor: 'rgba(0,0,0,0)', borderColor: '#6f42c1',
                 fill: false,showLine:false,pointRadius:7,pointHoverRadius:10,
                 borderWidth: 1, label:"Mon tarif moyen",
 //https://jsfiddle.net/simonbrunel/sxzqwr80/
@@ -480,7 +480,7 @@ var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getCo
             },
 //{type:"scatter", yAxisID: 'departement-tarif', backgroundColor: 'rgba(0,0,120,0)', borderColor: '#0000DD', fill: false,showLine:false,pointRadius:6,pointHoverRadius:9, borderWidth: 0, label:"Mon tarif", data: detailParVille},
             {
-                type: 'line',
+                type: 'line',//La courbe
                 yAxisID: 'departement-tarif',
                 label: 'Tarif Moyen',
                 backgroundColor: '#65e0e0',
@@ -492,7 +492,7 @@ var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getCo
                 type: "line",
                 yAxisID: 'departement-tarif',
                 label: 'TARIF PLUS HAUT',
-                backgroundColor: '#008000',
+                backgroundColor: '#00800000',
                 borderColor: '#008000',
                 fill: false,
                 borderDash: [10,5],
@@ -504,7 +504,7 @@ var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getCo
                 type: "line",
                 yAxisID: 'departement-tarif',
                 label: 'TARIF MOYEN',
-                backgroundColor: '#808080',
+                backgroundColor: '#80808000',
                 borderColor: '#808080',
                 fill: false,
                 borderDash: [10,5],
@@ -516,13 +516,10 @@ var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getCo
                 type: "line",
                 yAxisID: 'departement-tarif',
                 label: 'TARIF PLUS BAS',
-                backgroundColor: '#f60303',
-                borderColor: '#f60303',
+                borderDash: [10,5],backgroundColor: '#f6030300', borderColor: '#f60303',
+                //backgroundColor: '#f6030300', borderColor: '#f6030355',borderDash: [1,1],
                 fill: false,
-                borderDash: [10,5],
-                pointRadius: 0,
-                borderWidth: 1,
-                data:tpb,
+                pointRadius: 0, borderWidth: 1, data:tpb,
             }, /*
 Répeter pour autant de valeurs par ville
 http://jsfiddle.net/onesev/bpcLs7uz/
@@ -535,7 +532,7 @@ http://www.chartjs.org/samples/latest/tooltips/custom-points.html
             }, {
                 yAxisID: 'nombre-residences',
                 label: 'Mes résidences',
-                backgroundColor: '#DD0000',
+                backgroundColor: '#6f42c1',
                 data: myres,
             },
         ],
@@ -626,12 +623,13 @@ if(0 and 'nosvg'){
 var fs=<?=$fs?>,color='<?=$color?>',svg=document.createElement('div');svg.innerHTML='<svg xmlns="http://www.w3.org/2000/svg"  style="margin:-36px 0 0 -14px" width="28px" height="36px"><path d="M 19 31 C 19 32.7 16.3 34 13 34 C 9.7 34 7 32.7 7 31 C 7 29.3 9.7 28 13 28 C 16.3 28 19 29.3 19 31 Z" fill="#000" fill-opacity=".2"/><path d="M 13 0 C 9.5 0 6.3 1.3 3.8 3.8 C 1.4 7.8 0 9.4 0 12.8 C 0 16.3 1.4 19.5 3.8 21.9 L 13 31 L 22.2 21.9 C 24.6 19.5 25.9 16.3 25.9 12.8 C 25.9 9.4 24.6 6.1 22.1 3.8 C 19.7 1.3 16.5 0 13 0 Z" fill="#fff"/><path d="M 13 2.2 C 6 2.2 2.3 7.2 2.1 12.8 C 2.1 16.1 3.1 18.4 5.2 20.5 L 13 28.2 L 20.8 20.5 C 22.9 18.4 23.8 16.2 23.8 12.8 C 23.6 7.07 20 2.2 13 2.2 Z" fill="#'+color+'"/><text x="10" y="19" font-size="'+fs+'pt" font-weight="bold" text-anchor="middle" fill="#fff"><?=$k?></text></svg>';
 markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfoBubble(hereMap,markerObject,"hoho");*/
 <?}?>
-        addInfoBubble(hereMap, markerObject,
+        addInfoBubble(<?/**/?>hereMap, markerObject,
         "<?php
             echo $groupeLogo . " <br />";
             echo "<a href='/residence/$dataMarker->nid'>" . htmlspecialchars($dataMarker->title) . "</a><br /> ";
             echo "$dataMarker->field_location_postal_code, $dataMarker->field_location_locality <br /> ";
-            echo "<strong>$dataMarker->field_tarif_chambre_simple_value €</strong>";
+#echo NBdechambres
+            echo "<b>$dataMarker->field_tarif_chambre_simple_value €</b>";
         ?>"
         );
 //map.addObject(markerObject);
@@ -690,7 +688,7 @@ cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressio
             }
         ?>
 
-        addInfoBubble(requestHereMap, markerObject,
+        addInfoBubble(<?/*departement*/?>requestHereMap, markerObject,
         "<?php
             echo "<a href='/residence/$r->nid'>" . htmlspecialchars($r->title) . "</a><br /> ";
             echo "$r->field_location_postal_code, $r->field_location_locality <br /> ";
@@ -809,18 +807,18 @@ $a='https://ehpad.home/residence/45337';
 
             ?>
 
-            addInfoBubble(residencesMap.<?php echo $concurrence; ?>, markerObject,
+            addInfoBubble(<?/*residence*/?>residencesMap.<?php echo $concurrence; ?>, markerObject,
                 "<?php
                 echo create_link($dataMarker->title, '/residence/' . $dataMarker->nid, residence_mgmt_user_plan_has_access("PAGE_DETAIL_RESIDENCE_CONCURRENTE")) . "<br/>";
                 echo "$dataMarker->field_location_postal_code, $dataMarker->field_location_locality <br /> ";
-                echo "<strong>$dataMarker->field_tarif_chambre_simple_value €</strong>";
+                echo "<b>$dataMarker->field_tarif_chambre_simple_value €</b>";
             ?>");
 
         <?php endforeach; ?>
 
         var myMarkerObject = new H.map.Marker({ lat: <?php echo $residence->field_latitude['und'][0]['value']; ?>, lng: <?php echo $residence->field_longitude['und'][0]['value']; ?> }, { icon: new H.map.Icon(BASE_ICON_PATH + 'search_marker.png') });
 
-        addInfoBubble(residencesMap.<?php echo $concurrence; ?>, myMarkerObject,
+        addInfoBubble(<?/*residence*/?>residencesMap.<?php echo $concurrence; ?>, myMarkerObject,
                 "<?php
                 echo create_link($residence->title, '/residence/' . $residence->nid, true);
             ?>");
@@ -1470,8 +1468,7 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
 
             ?>
 
-            addInfoBubble(hereMap, markerObject,
-            "<?php
+            addInfoBubble(hereMap, markerObject, "<?php #groupe
                 echo "<a href='/residence/$r->nid'>" . htmlspecialchars($r->title) . "</a><br /> ";
                 echo "$r->field_location_postal_code, $r->field_location_locality <br /> ";
                 echo "<strong>$r->field_tarif_chambre_simple_value €</strong>";
@@ -1521,8 +1518,7 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
 
             ?>
 
-            addInfoBubble(requestHereMap, markerObject,
-            "<?php
+            addInfoBubble(requestHereMap, markerObject, "<?php #groupe
                 echo "<a href='/residence/$r->nid'>" . htmlspecialchars($r->title) . "</a><br /> ";
                 echo "$r->field_location_postal_code, $r->field_location_locality <br /> ";
                 echo "<strong>$r->field_tarif_chambre_simple_value €</strong>";
@@ -1611,8 +1607,7 @@ $a='https://ehpad.home/recherche-silverex';#rechercher
 foreach( $healthOrganizations as $healthOrganization ){ ?>
 
 marker = { lat: <?php echo $healthOrganization->latitude; ?>, lng: <?php echo $healthOrganization->longitude; ?> };markers.push(marker);markerObject = new H.map.Marker(marker, { icon: icon.hospital });
-addInfoBubble(hereMap, markerObject,
-    "<?php
+addInfoBubble(hereMap, markerObject, "<?php #recherche
         echo "<strong>" . htmlspecialchars($healthOrganization->raison_sociale) . "</strong><br /> ";
         echo "FINESS : " . $healthOrganization->finess . "<br /> ";
         echo "Catégorie : " . $healthOrganization->lib_categorie . "<br /> ";
@@ -1643,7 +1638,7 @@ callbacksInc++;//hereMap is a global here :)
 callbacks[callbacksInc]=function(final,marker,callbacksInc,w,h) {
     cl({'loadedImg':callbacksInc,marker,final});
     var markerObject = new H.map.Marker(marker, {icon: new H.map.Icon('/z/markers/' + final),width:w,height:h});
-    addInfoBubble(hereMap, markerObject, "<?php
+    addInfoBubble(hereMap, markerObject, "<?php #recherche
         echo " #$k2 <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
         echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
         echo "<strong>$residence->field_tarif_chambre_simple_value €</strong>";
@@ -1750,7 +1745,7 @@ callbacks[callbacksInc]=function(final,marker,callbacksInc,w,h) {
 cl({'loadedImg':callbacksInc,marker,final});
 var markerObject = new H.map.Marker(marker, {icon: new H.map.Icon('/z/markers/' + final),width:w,height:h});
 
-addInfoBubble(hereMap, markerObject, "<?php
+addInfoBubble(hereMap, markerObject, "<?php #history
 echo " #$k2 <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
 echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
 echo "<strong>$residence->field_tarif_chambre_simple_value €</strong>";
@@ -1802,7 +1797,9 @@ markers.push(marker);
 
 var markerObject = new H.map.Marker(marker, { icon: icon.hospital });
 
-addInfoBubble(hereMap, markerObject, "<?php echo "<strong>" . htmlspecialchars($healthOrganization->raison_sociale) . "</strong><br /> FINESS : " . $healthOrganization->finess . "<br />Catégorie : " . $healthOrganization->lib_categorie . "<br />Statut : " . $healthOrganization->lib_statut . "<br />Tarif : " . $healthOrganization->lib_tarif . "<br /> ";?>");
+addInfoBubble(<?/*history*/?>hereMap, markerObject, "<?php echo "<b>" . htmlspecialchars($healthOrganization->raison_sociale) . "</b><br /> FINESS : " .
+    $healthOrganization->finess . "<br 
+/>Catégorie : " . $healthOrganization->lib_categorie . "<br />Statut : " . $healthOrganization->lib_statut . "<br />Tarif : " . $healthOrganization->lib_tarif . "<br /> ";?>");
 <?php }#endForeach WTO
 }
             ?>

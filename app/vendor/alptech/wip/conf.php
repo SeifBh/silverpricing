@@ -9,7 +9,9 @@ return [
     'defaultSenderMail'=>'Silverpricing <admin@silverpricing.fr>',
 
     'mysql'=>['h' => '127.0.0.1'/*ehpad.silverpricing.fr*/, 'u' => 'silverpricing', 'p' => 'Silverpicing@wynter@2020', 'db' => 'silverpricing_db','names'=>'utf8'],
+    'larav'=>['h' => '127.0.0.1'/*ehpad.silverpricing.fr*/, 'u' => 'silverpricing', 'p' => 'Silverpicing@wynter@2020', 'db' => 'silverpricing_data_db','names'=>'utf8'],
     'mysqlProd'=>['h' => 'ehpad.silverpricing.fr', 'u' => 'silverpricing', 'p' => 'Silverpicing@wynter@2020', 'db' => 'silverpricing_db','names'=>'utf8'],
+    'laravProd'=>['h' => 'ehpad.silverpricing.fr', 'u' => 'silverpricing', 'p' => 'Silverpicing@wynter@2020', 'db' => 'silverpricing_data_db','names'=>'utf8'],
     'mysql_host' => '127.0.0.1','mysql_user' => 'silverpricing', 'mysql_pass' => 'Silverpicing@wynter@2020', 'mysql_db' => 'silverpricing_db',#bash
 
     'routes'=>['/route1'=>['router','test']],

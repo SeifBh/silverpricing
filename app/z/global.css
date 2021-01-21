@@ -43,7 +43,7 @@ button,.pointer,.label,.zoom{cursor:pointer;}
 .classement tr.red td:nth-child(5) {
      color: rgba(220,53,69,0.99);
      font-weight: 700;
- }
+ }foo
 .classement tr td:nth-child(5) {
     color: #10b759;
 }
@@ -57,3 +57,5 @@ button,.pointer,.label,.zoom{cursor:pointer;}
 .linge2{background:linear-gradient(90deg, rgba(145,145,145,1) 0%, rgba(226,226,226,1) 5%, rgba(255,255,255,0) 100%);
 }
 .b{font-weight:bold;}
+
+.H_ib_body .H_ib_content{line-height:14px;font-size:12px;margin:12px 12px 12px;   }
