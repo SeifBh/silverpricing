@@ -6,7 +6,9 @@
  */
 
 function residence_mgmt_user_plan_has_access($access) {
-if(isset($_SERVER['WINDIR']))return TRUE;#dev
+    if(isset($_SERVER['WINDIR'])){
+        return TRUE;
+    }#dev
   if (user_is_logged_in()) {
 
       global $user;
@@ -135,13 +137,10 @@ function residence_mgmt_has_enough_user_balance( $pageRequest, $options = array(
  * UPDATE USER BALANCE
  */
 
-function residence_mgmt_update_user_balance( $pageRequest, $options = array(), $request = array(), $response = array() ,$name='') {
-
+function residence_mgmt_update_user_balance( $pageRequest, $options = [], $request = [], $response = [] ,$name='',$organismes=[]) {
   if (user_is_logged_in()) {
-
       global $user;
-
-      $history = array('title' => $pageRequest, 'name' => $name, 'creator' => $user->uid, 'body' => array('request' => $request, 'response' => $response));
+      $history = ['title' => $pageRequest, 'name' => $name, 'creator' => $user->uid, 'body' => ['request' => $request, 'response' => $response, 'organismes' => $organismes]];
       $account = user_load($user->uid);
       $plan = taxonomy_term_load($account->field_plan['und'][0]['target_id']);
       $balance = $account->field_balance['und'][0]['value'];

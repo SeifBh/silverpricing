@@ -996,7 +996,6 @@ function residence_mgmt_departements() {
 
     foreach( $departements as $key => $departement ) {
         $departementTarifs = explode(",", $departement->tarifs);
-
         $departements[$key]->tarif_min = min($departementTarifs);
         $departements[$key]->tarif_max = max($departementTarifs);
         $departements[$key]->tarif_moyen = round(moyen($departementTarifs), 2);
@@ -1012,6 +1011,7 @@ function residence_mgmt_departements() {
     include_once __DIR__ . "/templates/layouts/default.php";
 
 }
+
 function residence_mgmt_residences($departementId = null,$ret=0) {
     $departementId=explode('-',$departementId);
     $departementId=reset($departementId);
@@ -1642,14 +1642,15 @@ function residence_mgmt_recherche_silverex() {
             if(!$adr)$adr=$_POST['latitude'].'-'.$_POST['longitude'];
             $selectedStatut = ($_POST['statut'] != "aucun") ? $_POST['statut'] : null;#
             $residences = getResidencesConcurrentesOnAddress($_POST['latitude'], $_POST['longitude'], $_POST['perimetre'], $selectedStatut);
-            $name = trim($selectedStatut.' '.$_POST['categories'].' '.$_POST['perimetre'] . 'km autour de ' . $adr);
-            if( !empty($_POST['categories']) ){
+            $name = trim($selectedStatut.' '.implode('-',$_POST['categories']).' '.$_POST['perimetre'] . 'km autour de ' . $adr);
+            $healthOrganizations=[];
+            if( !empty($_POST['categories']) ){#102:CHR
                 $healthOrganizations = json_decode(postRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], [ 'categories' => $_POST['categories'] ] ));
             }
             $_SESSION['lastSearch']=$_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.implode(',',$_POST['categories']);#
         }
         $requete_statistiques = get_requete_statistique($residences,$name);
-        residence_mgmt_update_user_balance("RESIDENCES_REQUEST", array("perimetre" => $_POST['perimetre']), $_POST, $residences, $name);
+        residence_mgmt_update_user_balance("RESIDENCES_REQUEST", ["perimetre" => $_POST['perimetre']], $_POST, $residences, $name,$healthOrganizations);
     }
 
     ob_start();
@@ -1951,36 +1952,24 @@ function getMesResidencesByDepartement( $departmentId ) {
 }
 
 function residence_mgmt_get_my_histories() {
-
     global $user;
-
     $currentMenu = "histories";
     $account = user_load($user->uid);
-
     $histories = getHistories();
-
     ob_start();
-
     include_once __DIR__ . "/templates/histories.php";
-
     $content = ob_get_clean();
-
     include_once __DIR__ . "/templates/layouts/default.php";
 }
 
 function residence_mgmt_get_history( $historyId ) {
     global $user;
-
     $currentMenu = "history";
     $account = user_load($user->uid);
-
     $history = node_load($historyId);
     $historyBody = json_decode($history->body['und'][0]['value']);
-
     include_once __DIR__ . "/templates/history_view-search.php";
-
     $content = ob_get_clean();
-
     include_once __DIR__ . "/templates/layouts/default.php";
 }
 

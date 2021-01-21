@@ -933,7 +933,7 @@ function addTMHMaquetteToFavoris( $fieldFavoris, $maquetteId ) {
 
 function addHistory($historyData = array()) {
     $tel=$groupe=$lits=$adresse=$aidesoc=$tarifs=$alz=$ids=[];foreach($historyData['body']['response'] as $t){$ids[]=intval($t->nid);}
-    if($ids){
+    if($ids and 'données additionnelles pour création du fichier excel de statistiques'){
 #$r2c=res2ch($ids);$tarifs=chprix($r2c,1);foreach($tarifs as &$t){$t=end($t);}unset($t);#dernière historique $historiquePrix=implode(',',$chp[$rid]);
     $sql="select entity_id as k,field_telephone_value as v from field_data_field_telephone where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$tel[$t['k']]=$t['v'];
     $sql="select entity_id as k,field_alzheimer_value as v from field_data_field_alzheimer where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$alz[$t['k']]=$t['v'];

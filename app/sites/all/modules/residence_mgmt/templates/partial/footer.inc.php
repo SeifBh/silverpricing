@@ -1539,14 +1539,9 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
 
         <?php endif; 
 
-    elseif( $currentMenu == "recherche-silverex" ):
+elseif( $currentMenu == "recherche-silverex" ):
     $a='https://ehpad.home/recherche-silverex';?>
-
-
-    $('#categories').select2({
-        placeholder: 'Categories',
-    });
-
+    $('#categories').select2({placeholder: 'Categories',});
     // DATATABLES
     $(document).ready(function() {
         $('#residences-result-table').DataTable( {
@@ -1612,6 +1607,21 @@ elseif(count($residences)>100)$zoom=0.8;#plus de résultats, moins de zoom
 elseif(count($residences)>50)$zoom=0.9;
 
 $a='https://ehpad.home/recherche-silverex';#rechercher
+#above les marqueurs png calculés des svgs
+foreach( $healthOrganizations as $healthOrganization ){ ?>
+
+marker = { lat: <?php echo $healthOrganization->latitude; ?>, lng: <?php echo $healthOrganization->longitude; ?> };markers.push(marker);markerObject = new H.map.Marker(marker, { icon: icon.hospital });
+addInfoBubble(hereMap, markerObject,
+    "<?php
+        echo "<strong>" . htmlspecialchars($healthOrganization->raison_sociale) . "</strong><br /> ";
+        echo "FINESS : " . $healthOrganization->finess . "<br /> ";
+        echo "Catégorie : " . $healthOrganization->lib_categorie . "<br /> ";
+        echo "Statut : " . $healthOrganization->lib_statut . "<br /> ";
+        echo "Tarif : " . $healthOrganization->lib_tarif . "<br /> ";
+        ?>");
+<?php
+}#endForeach WTO
+
 foreach( $residences as $k=>$residence ){
     $k2=$k+1;
     $a=1;
@@ -1674,25 +1684,6 @@ defer(
 
 <?php
 }
-    foreach( $healthOrganizations as $healthOrganization ){ ?>
-
-        var marker = { lat: <?php echo $healthOrganization->latitude; ?>, lng: <?php echo $healthOrganization->longitude; ?> };
-        markers.push(marker);
-
-        var markerObject = new H.map.Marker(marker, { icon: icon.hospital });
-
-        addInfoBubble(hereMap, markerObject,
-            "<?php
-            echo "<strong>" . htmlspecialchars($healthOrganization->raison_sociale) . "</strong><br /> ";
-            echo "FINESS : " . $healthOrganization->finess . "<br /> ";
-            echo "Catégorie : " . $healthOrganization->lib_categorie . "<br /> ";
-            echo "Statut : " . $healthOrganization->lib_statut . "<br /> ";
-            echo "Tarif : " . $healthOrganization->lib_tarif . "<br /> ";
-        ?>");
-    <?php }#endForeach WTO
-/*
-
-*/
 ?>
     defer(
         function(){cl('ready?');addMarkersAndSetViewBounds(hereMap, markers);}.bind(this,hereMap,markers),
@@ -1702,12 +1693,12 @@ defer(
 
     <?php
 elseif( $currentMenu == "history" ):#http://ehpad.silverpricing.fr/history/47908
-$fs=14;$w=28;$h=36;$r=$h/$w;
-$w=40;$h=round($w*$r);$zoom=1;##anyways-- stupid otherwise
-#0.5 = vraiment petits
-if(count($historyBody->response)>200)$zoom=0.7;#plus de résultats, moins de zoom
-elseif(count($historyBody->response)>100)$zoom=0.8;#plus de résultats, moins de zoom
-elseif(count($historyBody->response)>50)$zoom=0.9;
+    $fs=14;$w=28;$h=36;$r=$h/$w;
+    $w=40;$h=round($w*$r);$zoom=1;##anyways-- stupid otherwise
+    #0.5 = vraiment petits
+    if(count($historyBody->response)>200)$zoom=0.7;#plus de résultats, moins de zoom
+    elseif(count($historyBody->response)>100)$zoom=0.8;#plus de résultats, moins de zoom
+    elseif(count($historyBody->response)>50)$zoom=0.9;
 
     ?>
 w=32;h=32;toload=[];markers = [];needSvgToCanvas();ajax('/z/ajax.php?markers=1','GET','',function(r){pngMarkers=JSON.parse(r);/*cl(pngMarkers);*/});
@@ -1725,21 +1716,18 @@ w=32;h=32;toload=[];markers = [];needSvgToCanvas();ajax('/z/ajax.php?markers=1',
                 ]
             });
         });
-
-        // MAP
-
-        var hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('map-recherche-silverex'));
-
+// MAP
+var markers = [],hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('map-recherche-silverex'));
         addFullScreenUIControl(hereMap);
-
         $(document).ready(function() {
             resetHereMap(hereMap);
             var location = {lat: <?php echo $historyBody->request->latitude; ?>, lng: <?php echo $historyBody->request->longitude; ?>};
             updateCenter(hereMap, location);
             addMarker(hereMap, location,  icon.search);
 
-            var markers = [];
-            <?php foreach( $historyBody->response as $k=>$residence ){
+
+            <?php
+            foreach( $historyBody->response as $k=>$residence ){
                 $k2=$k+1;
                 switch($residence->field_statut_value) {
                     case "Associatif":$color='EB9B6C';$txtcolor='000';$b='FFF';break;
@@ -1800,7 +1788,24 @@ return x;
 }
 );
 
-            <?php } ?>
+            <?php }
+$a=1;
+if(isset($historyBody->organismes)){
+foreach( $historyBody->organismes as $healthOrganization ){
+
+
+
+    ?>
+
+var marker = { lat: <?php echo $healthOrganization->latitude; ?>, lng: <?php echo $healthOrganization->longitude; ?> };
+markers.push(marker);
+
+var markerObject = new H.map.Marker(marker, { icon: icon.hospital });
+
+addInfoBubble(hereMap, markerObject, "<?php echo "<strong>" . htmlspecialchars($healthOrganization->raison_sociale) . "</strong><br /> FINESS : " . $healthOrganization->finess . "<br />Catégorie : " . $healthOrganization->lib_categorie . "<br />Statut : " . $healthOrganization->lib_statut . "<br />Tarif : " . $healthOrganization->lib_tarif . "<br /> ";?>");
+<?php }#endForeach WTO
+}
+            ?>
 
             addMarkersAndSetViewBounds(hereMap, markers);
 

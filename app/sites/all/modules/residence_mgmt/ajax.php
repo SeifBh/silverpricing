@@ -3,24 +3,33 @@
 #cuj http://ehpad.silverpricing.fr/ajax/get-evolution-menusuelle-des-tarifs/33007 a {} 1
 function residence_mgmt_get_evolution_menusuelle_des_tarifs($residenceId = null,$limit=10)
 {
-    if ($residenceId == null) {return;}$residenceNid=$residenceId;
+    if ($residenceId == null) {
+        return;
+    }
+    $residenceNid = $residenceId;
     $residence = entity_load('node', array($residenceId), array('type' => 'residence'));
-    $sameStatut=$residence[$residenceId]->field_statut['und'][0]['value'];
-    $clo=$_closestResidences = getResidencesProchesByStatus($residenceNid, [$sameStatut], $limit,1);#nb:by status !!!
-    $k0=array_slice($_closestResidences,0,10);
+    $sameStatut = $residence[$residenceId]->field_statut['und'][0]['value'];
+    $clo = $_closestResidences = getResidencesProchesByStatus($residenceNid, [$sameStatut], $limit, 1);#nb:by status !!!
+    $k0 = array_slice($_closestResidences, 0, 10);
 #array_slice(,0,10)
 
-$as=$_t3=[];$tarifss_1=0;$__sup='direct-withStatus';
-$prochesByStatus = getResidencesProchesByStatus(compact('residenceNid','clo','limit','__sup'));
-foreach($prochesByStatus as $t){$_t3[$t->nid]=$t->field_tarif_chambre_simple_value;}ksort($_t3);
-    $as[3]=array_sum($_t3);
-
-if(isset($_SERVER['WINDIR'])){#
-    $tarifsA=[33089=>'{"33171":"98.5","33121":"82.3","33133":"81.72","33169":"98.2","33135":"82.1","33087":"55.57","33147":"84.28","33151":"87.5","33119":"79.83", "33127":"80.86"}'];#
-    if(isset($tarifsA[$residenceId])) {
-        $_tarifss_1 = json_decode($tarifsA[$residenceId], 1);$as[1]=array_sum($_tarifss_1);#
+    $as = $_t3 = [];
+    $tarifss_1 = 0;
+    $__sup = 'direct-withStatus';
+    $prochesByStatus = getResidencesProchesByStatus(compact('residenceNid', 'clo', 'limit', '__sup'));
+    foreach ($prochesByStatus as $t) {
+        $_t3[$t->nid] = $t->field_tarif_chambre_simple_value;
     }
-}
+    ksort($_t3);
+    $as[3] = array_sum($_t3);
+
+    if (isset($_SERVER['WINDIR'])) {#
+        $tarifsA = [33089 => '{"33171":"98.5","33121":"82.3","33133":"81.72","33169":"98.2","33135":"82.1","33087":"55.57","33147":"84.28","33151":"87.5","33119":"79.83", "33127":"80.86"}'];#
+        if (isset($tarifsA[$residenceId])) {
+            $_tarifss_1 = json_decode($tarifsA[$residenceId], 1);
+            $as[1] = array_sum($_tarifss_1);#
+        }
+    }
 
 
     $chartData = ['xAxe' => [], 'dataResidence' => [], 'dataDepartement' => [], 'dataResidencesConcurrents' => [],];
@@ -125,14 +134,57 @@ if(isset($_SERVER['WINDIR'])){#
     $query->fields('c', array('nid', 'title'));
     $residences = fetchAll($query);
 
-    $chambresNids = [];foreach ($residences as $r) {$chambresNids[] = $r->c_nid;}
-/*
-$query = db_select('field_revision_field_date_de_modification', 'dm');
-$query->leftJoin('field_revision_field_tarif_chambre_simple', 'cs', 'cs.revision_id = dm.revision_id', array());
-$query->condition('dm.entity_id', $chambresNids, 'IN');
-$query->addExpression("DATE_FORMAT(dm.field_date_de_modification_value, '%Y-%m')", 'date_modification');
-*/
-    $query=db_select('field_revision_field_tarif_chambre_simple', 'cs');
+    $chambresNids = [];
+    foreach ($residences as $r) {
+        $chambresNids[] = $r->c_nid;
+    }
+    /*
+    $query = db_select('field_revision_field_date_de_modification', 'dm');
+    $query->leftJoin('field_revision_field_tarif_chambre_simple', 'cs', 'cs.revision_id = dm.revision_id', array());
+    $query->condition('dm.entity_id', $chambresNids, 'IN');
+    $query->addExpression("DATE_FORMAT(dm.field_date_de_modification_value, '%Y-%m')", 'date_modification');
+    */
+
+if (1 and 'new') {
+    $first = $prixParMois = [];
+    $depChambres = Alptech\Wip\fun::sql("select entity_id as k,field_tarif_chambre_simple_value as v,nr.timestamp as t from field_revision_field_tarif_chambre_simple cs inner join node_revision nr on cs.revision_id=nr.vid where cs.entity_id in (" . implode(',', $chambresNids) . ") and cs.field_tarif_chambre_simple_value<>'NA' order by timestamp asc");
+    $mois=[];
+    foreach ($depChambres as $t) {
+        $mois[]=$month = date('Y-m', $t['t']);
+        if (!isset($first[$t['k']])) {
+            $first[$t['k']] = $month;
+        }
+        $prixParMois[$month][$t['k']] = $t['v'];#toujours la dernière valeur ,
+    }
+    $mois=array_unique($mois);
+    $moisHasPrices=[];
+    foreach ($chambresNids as $cid) {
+        $last = $started = 0;
+        foreach ($chartData['xAxe'] as $mois) {
+            if(!in_array($mois,$moisHasPrices))$moisHasPrices[]=$mois;
+            if (isset($prixParMois[$mois][$cid])) {
+                $last = $prixParMois[$mois][$cid];
+            } elseif ($last) {
+                $prixParMois[$mois][$cid] = $last;
+                #report du précédent ..étalage de la confiture
+            }else{#bah rien
+
+            }
+        }
+    }
+    ksort($prixParMois);
+#$diff=array_diff($chartData['xAxe'],$moisHasPrices);foreach($diff )
+    $last = reset($prixParMois);
+    $last = round(array_sum($last) / count($last), 2);
+    foreach ($chartData['xAxe'] as $mois) {
+        if (isset($prixParMois[$mois])) {
+            $last = round(array_sum($prixParMois[$mois]) / count($prixParMois[$mois]), 2);
+        }
+        $chartData['dataDepartement'][] = $last;#prend la dernière valeur, de toutes façons
+    }
+    $a = 1;
+} else{
+    $query = db_select('field_revision_field_tarif_chambre_simple', 'cs');
     $query->condition('cs.entity_id', $chambresNids, 'IN');
     $query->condition('cs.field_tarif_chambre_simple_value', 'NA', '<>');
     $query->join('node_revision', 'nr', 'cs.revision_id = nr.vid', []);#$query->addExpression("DATE_FORMAT(FROM_UNIXTIME(nr.timestamp), '%Y-%m')", 'date_modification');
@@ -143,19 +195,24 @@ $query->addExpression("DATE_FORMAT(dm.field_date_de_modification_value, '%Y-%m')
     //$query->groupBy('date_modification');
     $query->orderBy('date_modification', 'asc');
     $departementChambres = fetchAll($query);
+#cuj http://ehpad.home/ajax/get-evolution-menusuelle-des-tarifs/33007 a {} 1
 
-    $x=[];
-    foreach($departementChambres as $t){
-        $x[$t->date_modification][$t->entity_id]=$t->field_tarif_chambre_simple_value;
+    $a = 1;
+
+    $x = [];
+    foreach ($departementChambres as $t) {
+        $x[$t->date_modification][$t->entity_id] = $t->field_tarif_chambre_simple_value;
     }
-    $first=reset($x);
-    $last=round(array_sum($first)/count($first),2);
+
+    $first = reset($x);
+    $last = round(array_sum($first) / count($first), 2);
     foreach ($chartData['xAxe'] as $key => $xAxe) {
-        if(isset($x[$xAxe])) {
-            $last = round(array_sum($x[$xAxe]) / count($x[$xAxe]),2);
+        if (isset($x[$xAxe])) {
+            $last = round(array_sum($x[$xAxe]) / count($x[$xAxe]), 2);
         }
-        $chartData['dataDepartement'][] =$last;
+        $chartData['dataDepartement'][] = $last;#prend la dernière valeur, de toutes façons
     }
+}
 
 if(0){
 #md5(serialize($departementChambres))=="059fd9718b113fc2ac8096427532c5c6", 1562 entités
