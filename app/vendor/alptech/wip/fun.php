@@ -1009,7 +1009,7 @@ class fun /* extends base */
         if (is_array($sql)) {
             extract($sql);
         }#overrides
-        $k = 'sqlc:' . $s['h'] . ':' . $names;
+        $k = 'sqlc:' . $s['h'] . ':' . $s['db'] . ':' . $names;
         if (!isset($_ENV[$k])) {#mysqlclose on shutdown
             $_ENV[$k] = mysqli_connect($s['h'], $s['u'], $s['p']);
             mysqli_select_db($_ENV[$k], $s['db']);
@@ -1236,6 +1236,31 @@ class fun /* extends base */
         if($utf) return strtr($str, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
         #operates is ascii context (latin1)
         return strtr(utf8_decode($str), utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
+    }
+
+    static function distance($lat1,$lat2,$lng1,$lng2)
+    {
+        $pi80 = M_PI / 180;#1 rad
+        $lat1 *= $pi80;
+        $lng1 *= $pi80;
+        $lat2 *= $pi80;
+        $lng2 *= $pi80;
+
+        $r = 6372.797; // rayon moyen de la Terre en km
+        $dlat = $lat2 - $lat1;
+        $dlng = $lng2 - $lng1;
+        $a = sin($dlat / 2) * sin($dlat / 2) + cos($lat1) * cos($lat2) * sin($dlng / 2) * sin($dlng / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        $km = $r * $c;
+        return $km;
+    }
+
+    static function shortDist($olat,$olon,$dist){
+        $latDegDist=fun::distance($olat,$olat+1,$olon,$olon);#updown::  111 km par deg
+        $lonDegDist=fun::distance($olat,$olat,$olon,$olon+1);#rightleft:: 77 km
+        $dlon=$dist/$lonDegDist;
+        $dlat=$dist/$latDegDist;
+        $rect=[$olat-$dlat,$olat+$dlat,$olon-$dlon,$olon+$dlon];
     }
 }
 

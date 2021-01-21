@@ -1624,7 +1624,11 @@ function residence_mgmt_departement_info($departementId) {
 
 function residence_mgmt_recherche_silverex() {
     $currentMenu = "recherche-silverex";
-    $categories = json_decode(getRequest( BASE_API_URL . "/api/health-organizations/categories/list" ));
+#$categories = json_decode(getRequest( BASE_API_URL . "/api/health-organizations/categories/list" ));$s=(object)['code_categorie'=>-1,'lib_categorie'=>'Etablissements prescripteurs'];array_unshift($categories,$s);
+$categories=\Alptech\wip\fun::sql('select distinct(code_categorie),lib_categorie from silverpricing_data_db.health_organizations','larav');
+$s=['code_categorie'=>-1,'lib_categorie'=>'Etablissements prescripteurs'];array_unshift($categories,$s);
+foreach($categories as &$t){$t=(object)$t;}unset($t);
+
     $residences = $healthOrganizations = array();
     $requete_statistiques = null;
 #Si F5
@@ -1640,21 +1644,21 @@ function residence_mgmt_recherche_silverex() {
         if( isset($_POST['latitude']) && isset($_POST['longitude']) && isset($_POST['perimetre'])) {
             $adr=$_POST['adresse'];
             if(!$adr)$adr=$_POST['latitude'].'-'.$_POST['longitude'];
+            $lat=$_POST['latitude'];$lon=$_POST['longitude'];$perimetre=$_POST['perimetre'];#
             $selectedStatut = ($_POST['statut'] != "aucun") ? $_POST['statut'] : null;#
             $residences = getResidencesConcurrentesOnAddress($_POST['latitude'], $_POST['longitude'], $_POST['perimetre'], $selectedStatut);
             $name = trim($selectedStatut.' '.implode('-',$_POST['categories']).' '.$_POST['perimetre'] . 'km autour de ' . $adr);
             $healthOrganizations=[];
             if( !empty($_POST['categories']) ){#102:CHR
                 $a=1;
-                $x=fun::sql("select prescripteur,id from health_organizations where prescripteur=1 limit 10",$h);
-/*
-where acos ...
-$query->addExpression('(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude))))', 'distance', array( ':latitude' => $latitude, ':longitude' => $longitude ));
-$query->where('(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude)))) <= :perimetre', array( ':perimetre' => $perimetre, ':latitude' => $latitude, ':longitude' => $longitude ));
- */
-                $healthOrganizations = json_decode(postRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], [ 'categories' => $_POST['categories'] ] ));
-
-
+                $wor=['code_categorie in ('.implode(',',$_POST['categories']).')'];
+                if(in_array(-1,$_POST['categories']))$wor[]='prescripteur=1';
+#(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude))))
+$s="select * from silverpricing_data_db.health_organizations where (".implode(' or ',$wor).") and (6371 * acos(cos(radians(latitude)) * cos(radians($lat) ) * cos(radians($lon) -radians(longitude)) + sin(radians(latitude)) * sin(radians($lat)))) <= $perimetre";
+$healthOrganizations=\Alptech\wip\fun::sql($s,'larav');
+foreach($healthOrganizations as &$t){$t=(object)$t;}unset($t);
+#$rkv=\Alptech\wip\fun::sql('select k from z_rkv limit 1','mysql');
+#$healthOrganizations = json_decode(postRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], [ 'categories' => $_POST['categories'] ] ));#20 resultats
                 $a=1;
             }
             $_SESSION['lastSearch']=$_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.implode(',',$_POST['categories']);#
