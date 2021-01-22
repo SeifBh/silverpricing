@@ -31,6 +31,12 @@ function ccAll(){
     die('caches cleared');
 }
 
+addMenuItem('xlsStats', ['title' => 'xlsStats', 'page callback' => 'xlsStats', 'access callback' => 'hasrole', 'access arguments' => [['administrator']]]);
+function xlsStats(){
+    $included=1;
+    require_once $_SERVER['DOCUMENT_ROOT'].'/z/json2excel.php';die;
+}
+
 addMenuItem('depStats',array('title' => 'depStats', 'page callback' => 'depStats', 'access callback'   => true/* 'hasrole'*/, 'access arguments'  => [['administrator']],));
 function depStats(){
     if(!DEV)die;
@@ -1203,10 +1209,7 @@ function residence_mgmt_get_groupe_details( $groupeId = null ) {
 
     // CHART PRICING HISTORIES
 
-    $chartData = [
-        'xAxe' => [],
-        'dataGroupe' => []
-    ];
+    $chartData = ['xAxe' => [], 'dataGroupe' => []];
 
     for( $i = 0 ; $i < 24 ; $i++ ) { $chartData['xAxe'][] = date('Y-m', strtotime(date('Y-m-d') . "- $i month")); }
     $chartData['xAxe'] = array_reverse($chartData['xAxe']);
@@ -1261,14 +1264,8 @@ function residence_mgmt_get_groupe_details( $groupeId = null ) {
         residence_mgmt_update_user_balance( "GROUP_REQUEST", array(), $_POST, $residencesFiltered,$name);
     }
 
-    ob_start();
-
-    include_once __DIR__ . "/templates/groupe.php";
-
-    $content = ob_get_clean();
-
-    include_once __DIR__ . "/templates/layouts/default.php";
-
+    $x='/templates/groupe.php';ob_start();include_once __DIR__ . $x;$content = ob_get_clean();include_once __DIR__ . "/templates/layouts/default.php";
+    #_render('/templates/groupe.php');
 }
 
 function residence_mgmt_get_my_groups() {
@@ -2301,3 +2298,7 @@ function resmgmt_database_interpolateQuery($query, $params,$objcontext=null)
     return $query;
 }
 
+function _render($x){
+    #attention au contexte perdu des arguments la fonction précédente !!!!!
+    ob_start();include_once __DIR__ . $x;$content = ob_get_clean();include_once __DIR__ . "/templates/layouts/default.php";
+}

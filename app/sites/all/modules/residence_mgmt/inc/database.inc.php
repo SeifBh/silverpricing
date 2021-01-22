@@ -68,6 +68,11 @@ function findResidencesByGroup( $groupId ) {
     $query->join('field_data_field_capacite', 'capacite', 'capacite.entity_id =  n.nid', array());
     $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
     $query->join('field_data_field_tarif_chambre_simple', 't', 't.entity_id = rc.entity_id', array());
+
+#$query->leftjoin('taxonomy_term_data', 'grpt', 'grp.field_groupe_tid = grpt.tid',[]);$query->leftjoin('field_data_field_logo', 'logo', 'logo.entity_id = grpt.tid',[]);$query->fields('logo',['field_logo_fid']);
+$query->leftjoin('field_data_field_logo', 'logo', 'logo.entity_id = grp.field_groupe_tid',[]);$query->fields('logo',['field_logo_fid']);
+
+
     $query->fields('n', array('nid', 'title'));
     $query->fields('ff', array('field_finess_value'));
     $query->fields('l', array('field_location_locality', 'field_location_postal_code'));
@@ -86,7 +91,7 @@ function searchResidencesByGroup($groupeId = null, $dataForm = array()) {
 
   $query = db_select('node', 'n');
   $query->condition('n.type', "residence", '=');
-  $query->join('field_data_field_groupe', 'g', 'g.entity_id = n.nid and g.field_groupe_tid = :groupeId', array( ':groupeId' => $groupeId ));
+  $query->join('field_data_field_groupe', 'g', 'g.entity_id = n.nid and g.field_groupe_tid = :groupeId', [ ':groupeId' => $groupeId ]);
   $query->join('field_data_field_finess', 'ff', 'ff.entity_id = n.nid', array());
   $query->join('field_data_field_statut', 's', 's.entity_id = n.nid', array());
   $query->join('field_data_field_location', 'l', 'l.entity_id = n.nid', array());
@@ -97,7 +102,10 @@ function searchResidencesByGroup($groupeId = null, $dataForm = array()) {
   $query->join('taxonomy_term_data', 'd', 'd.tid = dn.field_departement_tid', array());
   $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
   $query->join('field_data_field_tarif_chambre_simple', 't', 't.entity_id = rc.entity_id', array());
-  $query->leftjoin('taxonomy_term_data', 'grp', 'g.field_groupe_tid = grp.tid', array());
+
+  #$query->leftjoin('field_data_field_groupe', 'g', 'g.entity_id = n.nid',[]);
+  #$query->leftjoin('taxonomy_term_data', 'grp', 'g.field_groupe_tid =:groupeId', array());
+  $query->leftjoin('taxonomy_term_data', 'grp', 'g.field_groupe_tid = grp.tid',[ ':groupeId' => $groupeId ]);
   $query->leftjoin('field_data_field_logo', 'logo', 'logo.entity_id = grp.tid', array());
 
   $query->fields('n', array('nid', 'title'));
@@ -574,6 +582,7 @@ function getResidencesConcurrentesOnAddress($latitude, $longitude, $perimetre = 
     } else {
       $query->join('field_data_field_statut', 's', 's.entity_id = n.nid', array());
     }
+    $query->join('field_data_field_capacite', 'cap', 'cap.entity_id = n.nid', array());
     $query->join('field_data_field_location', 'l', 'l.entity_id = n.nid', array());
     $query->join('field_data_field_gestionnaire', 'g', 'g.entity_id = n.nid', array());
     $query->join('field_data_field_residence', 'rc', 'rc.field_residence_target_id = n.nid', array());
@@ -593,6 +602,7 @@ function getResidencesConcurrentesOnAddress($latitude, $longitude, $perimetre = 
     $query->fields('n', array('nid', 'title'));
     $query->fields('s', array('field_statut_value'));
     $query->fields('l', array('field_location_locality', 'field_location_postal_code'));
+    $query->fields('cap', array('field_capacite_value'));
     $query->fields('cs', array('field_tarif_chambre_simple_value'));
     $query->fields('g', array('field_gestionnaire_value'));
     $query->fields('lat', array('field_latitude_value'));
@@ -1167,9 +1177,9 @@ function getLatLngResidencesByDepartment( $departementId ) {
     $query->innerjoin('node', 'c', 'rc.entity_id = c.nid', array());
     $query->join('field_data_field_tarif_chambre_simple', 't', 't.entity_id = c.nid and t.field_tarif_chambre_simple_value != :tarif', array( ':tarif' => 'NA' ));
 
-    $query->leftjoin('field_data_field_groupe', 'g', 'g.entity_id = n.nid', array());
-    $query->leftjoin('taxonomy_term_data', 'grp', 'g.field_groupe_tid = grp.tid', array());
-    $query->leftjoin('field_data_field_logo', 'logo', 'logo.entity_id = grp.tid', array());
+    $query->leftjoin('field_data_field_capacite', 'cap', 'cap.entity_id = n.nid',[]);$query->fields('cap', ['field_capacite_value']);
+    $query->leftjoin('field_data_field_groupe', 'g', 'g.entity_id = n.nid',[]);
+    $query->leftjoin('taxonomy_term_data', 'grp', 'g.field_groupe_tid = grp.tid',[]);$query->leftjoin('field_data_field_logo', 'logo', 'logo.entity_id = grp.tid',[]);$query->fields('logo',['field_logo_fid']);
 
     $query->fields('n', array('nid', 'title'));
     $query->fields('ff', array('field_finess_value'));
@@ -1178,7 +1188,7 @@ function getLatLngResidencesByDepartment( $departementId ) {
     $query->fields('lat', array('field_latitude_value'));
     $query->fields('l', array('field_location_locality', 'field_location_postal_code'));
     $query->fields('t', array('field_tarif_chambre_simple_value'));
-    $query->fields('logo', array('field_logo_fid'));
+
 
     $residences = fetchAll($query);
 
@@ -1337,6 +1347,9 @@ function getResidencesProchesByStatus( $residenceNid, $statuses = [], $limit = 1
         $query->fields('cs', array('field_tarif_chambre_simple_value'));
         $query->fields('lat', array('field_latitude_value'));
         $query->fields('lng', array('field_longitude_value'));
+
+        $query->leftjoin('field_data_field_capacite', 'cap', 'cap.entity_id = n.nid',[]);$query->fields('cap', ['field_capacite_value']);$query->leftjoin('field_data_field_groupe', 'g', 'g.entity_id = n.nid',[]);$query->leftjoin('taxonomy_term_data', 'grp', 'g.field_groupe_tid = grp.tid',[]);$query->leftjoin('field_data_field_logo', 'logo', 'logo.entity_id = grp.tid',[]);$query->fields('logo',['field_logo_fid']);
+
         $query->orderBy('di.distance', 'ASC');
         $query->range(0, $limit);
         $residences = fetchAll($query);#->execute()->fetchAll();
@@ -1404,7 +1417,7 @@ if($clo) {
 #$residenceConcurrent->field_capacite['und'][0]['value'];
 
 
-$sql="SELECT cs.entity_id as cid,n.nid AS nid, n.title AS title, $residenceNid AS primary_nid,  s.field_statut_value AS field_statut_value, l.field_location_locality AS field_location_locality, l.field_location_postal_code AS field_location_postal_code, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value, lat.field_latitude_value AS field_latitude_value, lng.field_longitude_value AS field_longitude_value,field_capacite_value as cap
+$sql="SELECT cs.entity_id as cid,n.nid AS nid, n.title AS title, $residenceNid AS primary_nid,  s.field_statut_value AS field_statut_value, l.field_location_locality AS field_location_locality, l.field_location_postal_code AS field_location_postal_code, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value, lat.field_latitude_value AS field_latitude_value, lng.field_longitude_value AS field_longitude_value,field_capacite_value as cap,field_logo_fid
 FROM node n
 -- INNER JOIN distance_indexation di ON di.secondary_nid = n.nid and di.primary_nid = $residenceNid
 INNER JOIN field_data_field_statut s ON s.entity_id = n.nid -- and s.field_statut_value IN ('') -- déjà triée sur le volet
@@ -1416,6 +1429,11 @@ INNER JOIN field_data_field_tarif_chambre_simple cs ON cs.entity_id = rc.entity_
 INNER JOIN field_data_field_latitude lat ON lat.entity_id = n.nid
 INNER JOIN field_data_field_longitude lng ON lng.entity_id = n.nid
 left JOIN field_data_field_capacite cap ON cap.entity_id = n.nid
+
+left JOIN field_data_field_groupe g on g.entity_id = n.nid
+left JOIN taxonomy_term_data grp on g.field_groupe_tid = grp.tid
+left JOIN field_data_field_logo logo on logo.entity_id  = grp.tid
+
 WHERE n.type = 'residence' and n.nid<>$residenceNid and n.nid in(".implode(',',$clo).") order by FIELD(n.nid,".implode(',',$clo).") limit $limit";
 $_ENV['stop']=__line__.__file__;
     $residences = Alptech\Wip\fun::sql($sql);

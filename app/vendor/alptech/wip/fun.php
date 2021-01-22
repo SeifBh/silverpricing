@@ -1261,6 +1261,7 @@ class fun /* extends base */
         $dlon=$dist/$lonDegDist;
         $dlat=$dist/$latDegDist;
         $rect=[$olat-$dlat,$olat+$dlat,$olon-$dlon,$olon+$dlon];
+        return $rect;
     }
 }
 

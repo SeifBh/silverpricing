@@ -92,18 +92,13 @@ $('#recherche-residence').on('change', function(e) {var residenceName  = $('#rec
         // MAP
 
 var markers = [],hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('dashboard-map-result'));
-
         // Create a marker using the previously instantiated icon and add marker to the map:
-
-        <?php $a='home dashboard';
+        <?php
+        $a='home dashboard';
         foreach( $dataMarkers as $dataMarker ): ?>
             var marker = { lat: <?php echo $dataMarker->field_latitude_value; ?>, lng: <?php echo $dataMarker->field_longitude_value; ?> };
-            markers.push(marker);
-
-            var markerObject = null;
-
+            markers.push(marker);var markerObject = null;
             <?php
-
                 switch($dataMarker->field_statut_value) {
                 case "Public":
                     echo "markerObject = new H.map.Marker(marker, { icon: icon.public });";
@@ -116,34 +111,28 @@ var markers = [],hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIx
                     break;
                 }
 
-            ?>
-
-            <?php
                 $groupeLogo = "";
                 if( isset($dataMarker->field_logo_fid) ) {
-                    $groupeLogo = "<img src='" . file_create_url(file_load($dataMarker->field_logo_fid)->uri) . "' width='24' alt='' />";
+                    $groupeLogo = "<img src='" . file_create_url(file_load($dataMarker->field_logo_fid)->uri) . "' width='16' alt='' />";
                 }
             ?>
 
-            addInfoBubble(hereMap, markerObject,
+            addInfoBubble(/*dashboard*/hereMap, markerObject,
             "<?php
-                echo $groupeLogo . " <br />";
-                echo "<a href='/residence/$dataMarker->nid'>" . htmlspecialchars($dataMarker->title) . "</a><br /> ";
+                echo $groupeLogo;
+                echo " <a href='/residence/$dataMarker->nid'>" . htmlspecialchars($dataMarker->title) . "</a><br /> ";
                 echo "$dataMarker->field_location_postal_code, $dataMarker->field_location_locality <br /> ";
-                echo "<strong>$dataMarker->field_tarif_chambre_simple_value €</strong>";
+                echo "Nblits :$dataMarker->field_capacite_value <br /> ";
+                echo "<b>$dataMarker->field_tarif_chambre_simple_value €</b>";
             ?>"
             );
 
             //map.addObject(markerObject);
 
         <?php endforeach; ?>
-
         updateCenter(hereMap, markers[0]);
-
         addFullScreenUIControl(hereMap);
-
         addMarkersAndSetViewBounds(hereMap, markers);
-
 
     <?php elseif( $currentMenu == "quick_win" ): ?>
 
@@ -608,7 +597,7 @@ var markerObject,marker,markers = [],hereMap = initHereMap('XbtFBu4z4GHw4B_nIv1A
 <?php
 $groupeLogo = '';
 if( isset($dataMarker->field_logo_fid) ) {
-    $groupeLogo = "<img src='" . file_create_url(file_load($dataMarker->field_logo_fid)->uri) . "' width='24' alt='' />";
+    $groupeLogo = "<img src='" . file_create_url(file_load($dataMarker->field_logo_fid)->uri) . "' width='16' alt='' />";
 }
 switch($dataMarker->field_statut_value) {
     case "Public":$color='836983';echo "markerObject = new H.map.Marker(marker, { icon: icon.public });";break;
@@ -623,12 +612,12 @@ if(0 and 'nosvg'){
 var fs=<?=$fs?>,color='<?=$color?>',svg=document.createElement('div');svg.innerHTML='<svg xmlns="http://www.w3.org/2000/svg"  style="margin:-36px 0 0 -14px" width="28px" height="36px"><path d="M 19 31 C 19 32.7 16.3 34 13 34 C 9.7 34 7 32.7 7 31 C 7 29.3 9.7 28 13 28 C 16.3 28 19 29.3 19 31 Z" fill="#000" fill-opacity=".2"/><path d="M 13 0 C 9.5 0 6.3 1.3 3.8 3.8 C 1.4 7.8 0 9.4 0 12.8 C 0 16.3 1.4 19.5 3.8 21.9 L 13 31 L 22.2 21.9 C 24.6 19.5 25.9 16.3 25.9 12.8 C 25.9 9.4 24.6 6.1 22.1 3.8 C 19.7 1.3 16.5 0 13 0 Z" fill="#fff"/><path d="M 13 2.2 C 6 2.2 2.3 7.2 2.1 12.8 C 2.1 16.1 3.1 18.4 5.2 20.5 L 13 28.2 L 20.8 20.5 C 22.9 18.4 23.8 16.2 23.8 12.8 C 23.6 7.07 20 2.2 13 2.2 Z" fill="#'+color+'"/><text x="10" y="19" font-size="'+fs+'pt" font-weight="bold" text-anchor="middle" fill="#fff"><?=$k?></text></svg>';
 markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfoBubble(hereMap,markerObject,"hoho");*/
 <?}?>
-        addInfoBubble(<?/**/?>hereMap, markerObject,
+        addInfoBubble(<?/*departement*/?>hereMap, markerObject,
         "<?php
-            echo $groupeLogo . " <br />";
+            echo $groupeLogo;
             echo "<a href='/residence/$dataMarker->nid'>" . htmlspecialchars($dataMarker->title) . "</a><br /> ";
             echo "$dataMarker->field_location_postal_code, $dataMarker->field_location_locality <br /> ";
-#echo NBdechambres
+            echo "Nblits :$dataMarker->field_capacite_value <br /> ";
             echo "<b>$dataMarker->field_tarif_chambre_simple_value €</b>";
         ?>"
         );
@@ -690,9 +679,11 @@ cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressio
 
         addInfoBubble(<?/*departement*/?>requestHereMap, markerObject,
         "<?php
+            if (isset($r->field_logo_fid)) echo"<img src='" . file_create_url(file_load($r->field_logo_fid)->uri) . "' width='16' alt='' />";
             echo "<a href='/residence/$r->nid'>" . htmlspecialchars($r->title) . "</a><br /> ";
             echo "$r->field_location_postal_code, $r->field_location_locality <br /> ";
-            echo "<strong>$r->field_tarif_chambre_simple_value €</strong>";
+            echo "Nblits :$r->field_capacite_value <br /> ";
+            echo "<b>$r->field_tarif_chambre_simple_value €</b>";
         ?>"
         );
 
@@ -770,16 +761,10 @@ cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressio
             ,"order":[[3,"asc"]]
         });
     });
-
-    // MAP
-
-    var residencesMap = {direct: null, indirect: null,};
-    var markers = {direct : [], indirect : [],};
-    // HERE MAP
+var residencesMap = {direct: null, indirect: null,},markers = {direct : [], indirect : [],};
     <?php
 $a='https://ehpad.home/residence/45337';
     foreach( $residencesConcurrentes as $concurrence => $dataMarkers ): ?>
-
         residencesMap.<?php echo $concurrence; ?> = initHereMap(
             "XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8",
             document.getElementById('residence-concurrente-<?php echo $concurrence; ?>-map')
@@ -809,9 +794,11 @@ $a='https://ehpad.home/residence/45337';
 
             addInfoBubble(<?/*residence*/?>residencesMap.<?php echo $concurrence; ?>, markerObject,
                 "<?php
-                echo create_link($dataMarker->title, '/residence/' . $dataMarker->nid, residence_mgmt_user_plan_has_access("PAGE_DETAIL_RESIDENCE_CONCURRENTE")) . "<br/>";
-                echo "$dataMarker->field_location_postal_code, $dataMarker->field_location_locality <br /> ";
-                echo "<b>$dataMarker->field_tarif_chambre_simple_value €</b>";
+if (isset($dataMarker->field_logo_fid)) echo"<img src='" . file_create_url(file_load($dataMarker->field_logo_fid)->uri) . "' width='16' alt='' />";
+echo create_link($dataMarker->title, '/residence/' . $dataMarker->nid, residence_mgmt_user_plan_has_access("PAGE_DETAIL_RESIDENCE_CONCURRENTE")) . "<br/>";
+echo "$dataMarker->field_location_postal_code, $dataMarker->field_location_locality <br /> ";
+echo "Nblits :$dataMarker->cap <br /> ";
+echo "<b>$dataMarker->field_tarif_chambre_simple_value €</b>";
             ?>");
 
         <?php endforeach; ?>
@@ -1433,16 +1420,10 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
         });
 
         // REQUEST FORM
-        $('#departement-field').select2({
-            placeholder: 'Choisissez un département',
-        });
+        $('#departement-field').select2({placeholder: 'Choisissez un département',});
 
         // RESIDENCES MAP
-
-        var hereMap = initHereMap(
-            "XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8",
-            document.getElementById('residences-map')
-        );
+        var hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('residences-map'));
 
         var markers = [];
 
@@ -1468,10 +1449,12 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
 
             ?>
 
-            addInfoBubble(hereMap, markerObject, "<?php #groupe
+            addInfoBubble(/*groupes*/hereMap, markerObject, "<?php #groupes
+                 if (isset($r->field_logo_fid)) echo"<img src='" . file_create_url(file_load($r->field_logo_fid)->uri) . "' width='16' alt='' />";
                 echo "<a href='/residence/$r->nid'>" . htmlspecialchars($r->title) . "</a><br /> ";
                 echo "$r->field_location_postal_code, $r->field_location_locality <br /> ";
-                echo "<strong>$r->field_tarif_chambre_simple_value €</strong>";
+                echo "Nblits:$r->field_capacite_value <br>";
+                echo "<b>$r->field_tarif_chambre_simple_value €</b>";
             ?>"
             );
 
@@ -1488,20 +1471,12 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
         if( residence_mgmt_user_plan_has_access('PAGE_GROUPE_SECTION_RECHERCHE') ):  
         $a=1;?>
         // REQUEST HERE MAP
-
-        var requestHereMap = initHereMap(
-            "XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8",
-            document.getElementById('residences-map-result')
-        );
-
+        var requestHereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('residences-map-result'));
         var requestMarkers = [];
-
         <?php foreach( $residencesFiltered as $r ): ?>
             var m = { lat: <?php echo $r->field_latitude_value; ?>, lng: <?php echo $r->field_longitude_value; ?> };
             requestMarkers.push(m);
-
             var markerObject = null;
-
             <?php
 
                 switch($r->field_statut_value) {
@@ -1518,10 +1493,12 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
 
             ?>
 
-            addInfoBubble(requestHereMap, markerObject, "<?php #groupe
+            addInfoBubble(requestHereMap, markerObject, "<?php #groupe-section recherche droite bas
+                    if (isset($r->field_logo_fid)) echo"<img src='" . file_create_url(file_load($r->field_logo_fid)->uri) . "' width='16' alt='' />";
                 echo "<a href='/residence/$r->nid'>" . htmlspecialchars($r->title) . "</a><br /> ";
                 echo "$r->field_location_postal_code, $r->field_location_locality <br /> ";
-                echo "<strong>$r->field_tarif_chambre_simple_value €</strong>";
+                echo "Nblits:$r->field_capacite_value <br>";
+                echo "<b>$r->field_tarif_chambre_simple_value €</b>";
             ?>"
             );
 
@@ -1608,7 +1585,7 @@ foreach( $healthOrganizations as $healthOrganization ){ ?>
 
 marker = { lat: <?php echo $healthOrganization->latitude; ?>, lng: <?php echo $healthOrganization->longitude; ?> };markers.push(marker);markerObject = new H.map.Marker(marker, { icon: icon.hospital });
 addInfoBubble(hereMap, markerObject, "<?php #recherche
-        echo "<strong>" . htmlspecialchars($healthOrganization->raison_sociale) . "</strong><br /> ";
+        echo "<b>" . htmlspecialchars($healthOrganization->raison_sociale) . "</b><br /> ";
         echo "FINESS : " . $healthOrganization->finess . "<br /> ";
         echo "Catégorie : " . $healthOrganization->lib_categorie . "<br /> ";
         echo "Statut : " . $healthOrganization->lib_statut . "<br /> ";
@@ -1639,9 +1616,11 @@ callbacks[callbacksInc]=function(final,marker,callbacksInc,w,h) {
     cl({'loadedImg':callbacksInc,marker,final});
     var markerObject = new H.map.Marker(marker, {icon: new H.map.Icon('/z/markers/' + final),width:w,height:h});
     addInfoBubble(hereMap, markerObject, "<?php #recherche
-        echo " #$k2 <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
+        $groupeLogo=''; if (isset($residence->field_logo_fid)) {$groupeLogo = "<img src='" . file_create_url(file_load($residence->field_logo_fid)->uri) . "' width='16' alt='' />";}
+        echo " #$k2 $groupeLogo <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
         echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
-        echo "<strong>$residence->field_tarif_chambre_simple_value €</strong>";
+        echo "Nblits :$residence->field_capacite_value <br /> ";
+        echo "<b>$residence->field_tarif_chambre_simple_value €</b>";
         ?>");
     return final;
 }.bind(this,final,marker,callbacksInc,w,h);
@@ -1746,8 +1725,10 @@ cl({'loadedImg':callbacksInc,marker,final});
 var markerObject = new H.map.Marker(marker, {icon: new H.map.Icon('/z/markers/' + final),width:w,height:h});
 
 addInfoBubble(hereMap, markerObject, "<?php #history
-echo " #$k2 <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
+$groupeLogo=''; if (isset($residence->field_logo_fid)) {$groupeLogo = "<img src='" . file_create_url(file_load($residence->field_logo_fid)->uri) . "' width='16' alt='' />";}
+echo " #$k2 $groupeLogo <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
 echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
+echo "Nblits :$residence->field_capacite_value <br /> ";
 echo "<strong>$residence->field_tarif_chambre_simple_value €</strong>";
 ?>");
 return final;

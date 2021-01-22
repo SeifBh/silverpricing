@@ -15,5 +15,5 @@ echo $Ymdhm>1mincron.log
 #GMT : h-1#7:30 sont donc 8:30
 if ([ $h -eq "7" ] && [ $m -eq '30' ]); then
     #su -c "php7.1 app.silverpricing.fr/z/alerts.php" ubuntu;
-    php7.1 app.silverpricing.fr/z/alerts.php | tee alerts.$Ymdhm.log
+    php7.1 app.silverpricing.fr/z/alerts.php | tee app.silverpricing.fr/z/logs/alerts.$Ymdhm.log
 fi;
