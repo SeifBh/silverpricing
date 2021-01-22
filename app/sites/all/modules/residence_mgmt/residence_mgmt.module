@@ -1624,7 +1624,13 @@ function residence_mgmt_recherche_silverex() {
 #$categories = json_decode(getRequest( BASE_API_URL . "/api/health-organizations/categories/list" ));$s=(object)['code_categorie'=>-1,'lib_categorie'=>'Etablissements prescripteurs'];array_unshift($categories,$s);
 $categories=\Alptech\wip\fun::sql('select distinct(code_categorie),lib_categorie from silverpricing_data_db.health_organizations','larav');
 $s=['code_categorie'=>-1,'lib_categorie'=>'Etablissements prescripteurs'];array_unshift($categories,$s);
-foreach($categories as &$t){$t=(object)$t;}unset($t);
+$_ENV['id2cat']=[];
+foreach($categories as &$t){
+    if($t['code_categorie']){
+        $_ENV['id2cat'][$t['code_categorie']]=$t['lib_categorie'];
+    }
+    $t=(object)$t;
+}unset($t);
 
     $residences = $healthOrganizations = array();
     $requete_statistiques = null;
@@ -1646,6 +1652,7 @@ foreach($categories as &$t){$t=(object)$t;}unset($t);
             $residences = getResidencesConcurrentesOnAddress($_POST['latitude'], $_POST['longitude'], $_POST['perimetre'], $selectedStatut);
             $name = trim($selectedStatut.' '.implode('-',$_POST['categories']).' '.$_POST['perimetre'] . 'km autour de ' . $adr);
             $healthOrganizations=[];
+
             if( !empty($_POST['categories']) ){#102:CHR
                 $a=1;
                 $wor=['code_categorie in ('.implode(',',$_POST['categories']).')'];

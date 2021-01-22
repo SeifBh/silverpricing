@@ -1263,6 +1263,55 @@ class fun /* extends base */
         $rect=[$olat-$dlat,$olat+$dlat,$olon-$dlon,$olon+$dlon];
         return $rect;
     }
+
+    static function addPhotoWaterMark($baseImg = null, $sign = null, $target = null, $position = 'br', $edgeMargin = 10, $quality = 90, $maxW = 100, $maxH = 100)
+    {
+        if (is_array($baseImg)) {
+            extract($baseImg);
+        }
+        if (!$baseImg) {
+            return;
+        }
+        $im = imagecreatefromjpeg($baseImg);
+        $w = imagesx($im);
+        $h = imagesy($im);
+        $wr = $w / $h;#1.17
+        $stamp = imagecreatefrompng($sign);
+        $sx = imagesx($stamp);
+        $sy = imagesy($stamp);
+        $sr = $sx / $sy;#3.8
+        if ($sx > ($w * $maxW / 100)) {
+            $nw = round($w * $maxW / 100);
+            $nh = round($nw / $sr);
+            $tmp = imagecreatetruecolor($nw, $nh);
+            $destX = $destY = $srcx = $srcy = 0;
+            imagealphablending($tmp, false);
+            imagesavealpha($tmp, true);
+            $transparent = imagecolorallocatealpha($tmp, 255, 255, 255, 127);
+            imagefilledrectangle($tmp, 0, 0, $nw, $wr, $transparent);
+            $res = imagecopyresampled($tmp, $stamp, $destX, $destY, $srcx, $srcy, $nw, $nh, $sx, $sy);
+            #imagePng($tmp,uniqid().'.png',9);
+            $stamp = $tmp;
+            $sx = $nw;
+            $sy = $nh;
+        }
+#todo#¤: others positions, max watermark width %, max watermark height %
+        switch ($position) {
+            case'br':
+                $wp = $w - $sx - $edgeMargin;
+                $hp = $h - $sy - $edgeMargin;
+                break;
+        }
+
+        imagecopy($im, $stamp, $wp, $hp, 0, 0, $sx, $sy);#placer dessus aux coordonnées calculées
+
+        imageJpeg($im, $target, $quality);
+        imagedestroy($im);
+        return [$target, filesize($target)];
+        #header('Content-type: image/png');imagepng($im,$target,$quality);
+
+    }
+
 }
 
 return; ?>

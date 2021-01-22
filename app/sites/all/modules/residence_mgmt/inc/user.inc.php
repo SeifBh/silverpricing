@@ -138,6 +138,7 @@ function residence_mgmt_has_enough_user_balance( $pageRequest, $options = array(
  */
 
 function residence_mgmt_update_user_balance( $pageRequest, $options = [], $request = [], $response = [] ,$name='',$organismes=[]) {
+    ini_set('max_execution_time',-1);
   if (user_is_logged_in()) {
       global $user;
       $history = ['title' => $pageRequest, 'name' => $name, 'creator' => $user->uid, 'body' => ['request' => $request, 'response' => $response, 'organismes' => $organismes]];
@@ -172,7 +173,7 @@ function residence_mgmt_update_user_balance( $pageRequest, $options = [], $reque
       if( $updatedBalance != null ) {
           $edit = ['field_balance' => ['und' => [0 => [ 'value' => $updatedBalance ]]]];
           user_save( $account, $edit );
-          addHistory($history) ;
+          addHistory($history,$organismes) ;
           return TRUE;
       }
 

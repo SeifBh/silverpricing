@@ -122,7 +122,7 @@ var markers = [],hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIx
                 echo $groupeLogo;
                 echo " <a href='/residence/$dataMarker->nid'>" . htmlspecialchars($dataMarker->title) . "</a><br /> ";
                 echo "$dataMarker->field_location_postal_code, $dataMarker->field_location_locality <br /> ";
-                echo "Nblits :$dataMarker->field_capacite_value <br /> ";
+                echo "Nb lits :$dataMarker->field_capacite_value <br /> ";
                 echo "<b>$dataMarker->field_tarif_chambre_simple_value €</b>";
             ?>"
             );
@@ -617,7 +617,7 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
             echo $groupeLogo;
             echo "<a href='/residence/$dataMarker->nid'>" . htmlspecialchars($dataMarker->title) . "</a><br /> ";
             echo "$dataMarker->field_location_postal_code, $dataMarker->field_location_locality <br /> ";
-            echo "Nblits :$dataMarker->field_capacite_value <br /> ";
+            echo "Nb lits :$dataMarker->field_capacite_value <br /> ";
             echo "<b>$dataMarker->field_tarif_chambre_simple_value €</b>";
         ?>"
         );
@@ -638,7 +638,7 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
     if( residence_mgmt_user_plan_has_access('PAGE_DEPARTEMENT_SECTION_RECHERCHE') ):
 #todo:définition dynamique des minimum / maximums
     ?>
-var popTot=<?=$totalPopulation?>,nbMaisonTot=<?=$statistique_globale['Nbre de maisons']?>,meslits=<?=$mesLits?>,nbLits=<?=$capaciteDepartement->nombre_lits?>,ratio=meslits/nbLits,mesRes=Math.round(ratio*100,2)<?php #echo round( 100 - (() * 100) , 2); ?>;
+var popTot=<?=$totalPopulation?>,nbMaisonTot=<?=$statistique_globale['Nbre de maisons']?>,meslits=<?=$mesLits?>,Nb lits=<?=$capaciteDepartement->nombre_lits?>,ratio=meslits/Nb lits,mesRes=Math.round(ratio*100,2)<?php #echo round( 100 - (() * 100) , 2); ?>;
 nbMaisonSurPop=<?php echo round( (($statistique_globale['Nbre de maisons'] / $totalPopulation) * 100) , 2); ?>;//0.17
 pressionlits=<?php echo round( (( $capaciteDepartement->nombre_lits / $totalPopulation ) * 100) , 2 ); ?>;
 
@@ -648,7 +648,7 @@ prespopmin=0.04;prespopmax=0.3;
 if(pressionlits>pressionlitsMax)pressionlitsMax=pressionlits;
 if(nbMaisonSurPop>prespopmax)prespopmax=nbMaisonSurPop;
 
-cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressionlits,pressionlitsMin,pressionlitsMax});
+cl({popTot,mesRes,nbMaisonTot,meslits,Nb lits,nbMaisonSurPop,Nb lits,ratio,pressionlits,pressionlitsMin,pressionlitsMax});
 
 //cl('mesRes',mesRes);cl('nbMaisonSurPop',nbMaisonSurPop);cl('pressionlits',pressionlits);
     // REQUEST FORM
@@ -682,7 +682,7 @@ cl({popTot,mesRes,nbMaisonTot,meslits,nbLits,nbMaisonSurPop,nbLits,ratio,pressio
             if (isset($r->field_logo_fid)) echo"<img src='" . file_create_url(file_load($r->field_logo_fid)->uri) . "' width='16' alt='' />";
             echo "<a href='/residence/$r->nid'>" . htmlspecialchars($r->title) . "</a><br /> ";
             echo "$r->field_location_postal_code, $r->field_location_locality <br /> ";
-            echo "Nblits :$r->field_capacite_value <br /> ";
+            echo "Nb lits :$r->field_capacite_value <br /> ";
             echo "<b>$r->field_tarif_chambre_simple_value €</b>";
         ?>"
         );
@@ -797,7 +797,7 @@ $a='https://ehpad.home/residence/45337';
 if (isset($dataMarker->field_logo_fid)) echo"<img src='" . file_create_url(file_load($dataMarker->field_logo_fid)->uri) . "' width='16' alt='' />";
 echo create_link($dataMarker->title, '/residence/' . $dataMarker->nid, residence_mgmt_user_plan_has_access("PAGE_DETAIL_RESIDENCE_CONCURRENTE")) . "<br/>";
 echo "$dataMarker->field_location_postal_code, $dataMarker->field_location_locality <br /> ";
-echo "Nblits :$dataMarker->cap <br /> ";
+echo "Nb lits :$dataMarker->cap <br /> ";
 echo "<b>$dataMarker->field_tarif_chambre_simple_value €</b>";
             ?>");
 
@@ -1453,7 +1453,7 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
                  if (isset($r->field_logo_fid)) echo"<img src='" . file_create_url(file_load($r->field_logo_fid)->uri) . "' width='16' alt='' />";
                 echo "<a href='/residence/$r->nid'>" . htmlspecialchars($r->title) . "</a><br /> ";
                 echo "$r->field_location_postal_code, $r->field_location_locality <br /> ";
-                echo "Nblits:$r->field_capacite_value <br>";
+                echo "Nb lits:$r->field_capacite_value <br>";
                 echo "<b>$r->field_tarif_chambre_simple_value €</b>";
             ?>"
             );
@@ -1497,7 +1497,7 @@ var cl3,cl2,rmi='<?php echo RESIDENCE_MGMT_URI; ?>';
                     if (isset($r->field_logo_fid)) echo"<img src='" . file_create_url(file_load($r->field_logo_fid)->uri) . "' width='16' alt='' />";
                 echo "<a href='/residence/$r->nid'>" . htmlspecialchars($r->title) . "</a><br /> ";
                 echo "$r->field_location_postal_code, $r->field_location_locality <br /> ";
-                echo "Nblits:$r->field_capacite_value <br>";
+                echo "Nb lits:$r->field_capacite_value <br>";
                 echo "<b>$r->field_tarif_chambre_simple_value €</b>";
             ?>"
             );
@@ -1619,7 +1619,7 @@ callbacks[callbacksInc]=function(final,marker,callbacksInc,w,h) {
         $groupeLogo=''; if (isset($residence->field_logo_fid)) {$groupeLogo = "<img src='" . file_create_url(file_load($residence->field_logo_fid)->uri) . "' width='16' alt='' />";}
         echo " #$k2 $groupeLogo <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
         echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
-        echo "Nblits :$residence->field_capacite_value <br /> ";
+        echo "Nb lits :$residence->field_capacite_value <br /> ";
         echo "<b>$residence->field_tarif_chambre_simple_value €</b>";
         ?>");
     return final;
@@ -1728,7 +1728,7 @@ addInfoBubble(hereMap, markerObject, "<?php #history
 $groupeLogo=''; if (isset($residence->field_logo_fid)) {$groupeLogo = "<img src='" . file_create_url(file_load($residence->field_logo_fid)->uri) . "' width='16' alt='' />";}
 echo " #$k2 $groupeLogo <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
 echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
-echo "Nblits :$residence->field_capacite_value <br /> ";
+echo "Nb lits :$residence->field_capacite_value <br /> ";
 echo "<strong>$residence->field_tarif_chambre_simple_value €</strong>";
 ?>");
 return final;

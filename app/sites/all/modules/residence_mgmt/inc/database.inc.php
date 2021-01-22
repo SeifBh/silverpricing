@@ -941,7 +941,8 @@ function addTMHMaquetteToFavoris( $fieldFavoris, $maquetteId ) {
  *  History
  */
 
-function addHistory($historyData = array()) {
+function addHistory($historyData = [], $organismes = [])
+{
     $tel=$groupe=$lits=$adresse=$aidesoc=$tarifs=$alz=$ids=[];foreach($historyData['body']['response'] as $t){$ids[]=intval($t->nid);}
     if($ids and 'données additionnelles pour création du fichier excel de statistiques'){
 #$r2c=res2ch($ids);$tarifs=chprix($r2c,1);foreach($tarifs as &$t){$t=end($t);}unset($t);#dernière historique $historiquePrix=implode(',',$chp[$rid]);
@@ -1016,6 +1017,38 @@ $a=1;
             file_put_contents(ini_get('error_log'),"\n\n}{".print_r($e,1),8);
             $err=1;
         }
+        if($organismes){
+            try{
+                $lines=$cats=[];#$letter = 'A';while ($letter !== 'AAA') {$cols[] = $letter++;}
+                foreach($_POST['categories'] as $cat){$cats[]=$_ENV['id2cat'][$cat];}
+                $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+                $sheet = $spreadsheet->getActiveSheet();
+                $sheet->setTitle(substr(preg_replace('~[^a-z0-9 \.]+~is','','organismes '.implode(',',$cats)),0,31));#31 max chars '.$historyData['body']['request']['adresse'].','.$historyData['body']['request']['perimetre']);
+                $fields=array_keys((array)reset($organismes));
+                $lines=array_merge([[$historyData['name'].'- organismes : '.implode(',',$cats)],$fields],$organismes);
+if('doesnotwork' and 0){
+    foreach ($lines as &$t) {if (!is_array($t)) {$t = (array)$t;}}unset($t);
+    $sheet->fromArray([$lines], NULL, 'A1');
+} else{
+    $sheet->getCell('A1')->setValue($historyData['name'].'- organismes : '.implode(',',$cats));
+    if ('organismes') {
+        foreach ($lines as $l => $t) {
+            if(!is_array($t))$t=(array)$t;
+            $c=0;foreach ($t as $v) {$x = $cols[$c];$c++;$coord = $x . '' . ($l+2);$sheet->getCell($coord)->setValue($v);}
+        }
+    }
+}
+                $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+                $rp='z/xls/'.$fn.'-'.implode('-',$_POST['categories']).'-'.$GLOBALS['user']->uid.'-'.$GLOBALS['user']->name.'-'.uniqid().'.xlsx';
+    #could not close
+                $writer->save(rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/'.$rp);#$GLOBALS['user']???
+                $history->field_excelorganismes['und'][0]['value'] =  '/'.$rp;#a pas vouloire persister ???????
+            }catch(\Exception $__e){
+                $err=1;
+                file_put_contents(ini_get('error_log'),"\n\n}{".print_r($__e,1),8);
+            }
+        }
+
     }#end excel
       $history->body[$history->language][0]['value'] = json_encode($historyData['body']);
 
