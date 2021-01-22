@@ -164,6 +164,10 @@ function residence_mgmt_update_user_balance( $pageRequest, $options = [], $reque
               $history['balance_consumed'] = $plan->field_developpement_tool_request['und']['0']['value'];
           break;
       }
+      
+      if($organismes){
+          $history['balance_consumed'] +=  count($organismes);
+      }
 
       if( $updatedBalance != null ) {
 
