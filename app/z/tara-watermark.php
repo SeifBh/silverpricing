@@ -2,13 +2,15 @@
 /*
 echo C:/Users/ben/signaturesPhotos/*_.png
 phpx ~/home/ehpad/app/z/tara-watermark.php C:/Users/ben/Desktop/mists.jpg 'C:/Users/ben/signaturesPhotos/_£.png';
-phpx ~/home/ehpad/app/z/tara-watermark.php '{"baseImg":"C:/Users/ben/Desktop/mi£ts.jpg","sign":"C:/Users/ben/signaturesPhotos/_£.png","maxW":10,"quality":90,"position":"br"}';
+phpx ~/home/ehpad/app/z/tara-watermark.php '{"baseImg":"C:/Users/ben/Desktop/toSign/£.jpg","sign":"C:/Users/ben/signaturesPhotos/_£.png","maxW":10,"quality":90,"position":"br","output":"C:/Users/ben/Desktop/signed/"}';
  */
 namespace Alptech\Wip;chdir(__DIR__);require_once'../autoload.php';
 if(!$included and !isset($argv))die('no argv nor included');
 
-$baseImg=trim($argv[1]," '");$sign=trim($argv[2]," '");$maxW=100;$quality=90;$position='br';
+$output='C:/Users/ben/Desktop/toSign/--';$baseImg=trim($argv[1]," '");$sign=trim($argv[2]," '");$maxW=100;$quality=90;$position='br';
 if($x=io::isJson($baseImg) and $x){extract($x);}#else{$baseImg=explode(',',$baseImg);#peut être la seule ..}
+
+if(!is_dir($output))mkdir($output,0777,1);
 
 if(!isset($sign)){$sign='C:/Users/ben/signaturesPhotos/£_.png';}
 $sign=str_replace('£','*',$sign);
@@ -25,9 +27,8 @@ foreach($baseImgs as $baseImg) {
     foreach ($signs as $sign) {
         $x = explode('/', $sign);
         $end = end($x);
-        echo $end . ',';
-        $target = 'C:/Users/ben/Desktop/Signed-' . $end . $eb;
-
+        #echo $end . ',';
+        $target =$output . $end . $eb;
         print_r(addPhotoWaterMark(compact('baseImg', 'sign', 'target', 'position', 'maxW')));
         #print_r(addPhotoWaterMark($baseImg,$sign,$target,10,90,15));
     }
