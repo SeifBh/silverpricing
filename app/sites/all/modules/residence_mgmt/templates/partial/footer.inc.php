@@ -638,7 +638,7 @@ markerObject=new H.map.DomMarker(marker,{icon:new H.map.DomIcon(svg)});//addInfo
     if( residence_mgmt_user_plan_has_access('PAGE_DEPARTEMENT_SECTION_RECHERCHE') ):
 #todo:définition dynamique des minimum / maximums
     ?>
-var popTot=<?=$totalPopulation?>,nbMaisonTot=<?=$statistique_globale['Nbre de maisons']?>,meslits=<?=$mesLits?>,Nb lits=<?=$capaciteDepartement->nombre_lits?>,ratio=meslits/Nb lits,mesRes=Math.round(ratio*100,2)<?php #echo round( 100 - (() * 100) , 2); ?>;
+var popTot=<?=$totalPopulation?>,nbMaisonTot=<?=$statistique_globale['Nbre de maisons']?>,meslits=<?=$mesLits?>,Nblits=<?=$capaciteDepartement->nombre_lits?>,ratio=meslits/Nblits,mesRes=Math.round(ratio*100,2)<?php #echo round( 100 - (() * 100) , 2); ?>;
 nbMaisonSurPop=<?php echo round( (($statistique_globale['Nbre de maisons'] / $totalPopulation) * 100) , 2); ?>;//0.17
 pressionlits=<?php echo round( (( $capaciteDepartement->nombre_lits / $totalPopulation ) * 100) , 2 ); ?>;
 
@@ -648,7 +648,7 @@ prespopmin=0.04;prespopmax=0.3;
 if(pressionlits>pressionlitsMax)pressionlitsMax=pressionlits;
 if(nbMaisonSurPop>prespopmax)prespopmax=nbMaisonSurPop;
 
-cl({popTot,mesRes,nbMaisonTot,meslits,Nb lits,nbMaisonSurPop,Nb lits,ratio,pressionlits,pressionlitsMin,pressionlitsMax});
+cl({popTot,mesRes,nbMaisonTot,meslits,Nblits,nbMaisonSurPop,Nblits,ratio,pressionlits,pressionlitsMin,pressionlitsMax});
 
 //cl('mesRes',mesRes);cl('nbMaisonSurPop',nbMaisonSurPop);cl('pressionlits',pressionlits);
     // REQUEST FORM

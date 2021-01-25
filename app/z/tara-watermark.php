@@ -3,6 +3,7 @@
 echo C:/Users/ben/signaturesPhotos/*_.png
 phpx ~/home/ehpad/app/z/tara-watermark.php C:/Users/ben/Desktop/mists.jpg 'C:/Users/ben/signaturesPhotos/_£.png';
 phpx ~/home/ehpad/app/z/tara-watermark.php '{"baseImg":"C:/Users/ben/Desktop/toSign/£.jpg","sign":"C:/Users/ben/signaturesPhotos/_£.png","maxW":10,"quality":90,"position":"br","output":"C:/Users/ben/Desktop/signed/"}';
+phpx ~/home/ehpad/app/z/tara-watermark.php '{"baseImg":"C:/Users/ben/Desktop/toSign/£.jpg","sign":"C:/Users/ben/signaturesPhotos/_s74white£.png","maxW":10,"quality":90,"position":"br","output":"C:/Users/ben/Desktop/signed/"}';
  */
 namespace Alptech\Wip;chdir(__DIR__);require_once'../autoload.php';
 if(!$included and !isset($argv))die('no argv nor included');
