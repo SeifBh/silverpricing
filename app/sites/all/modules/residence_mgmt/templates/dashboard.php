@@ -42,7 +42,7 @@
                 </div>
                 <div class="card-body">
 
-                    <div class="row">
+                    <div class="row hidden">
                         <div class="col-md-8">
                             <div class="search-form">
                                 <input type="search" class="form-control" placeholder="Recherche résidence" id="recherche-residence">
@@ -51,7 +51,7 @@
                         </div>
                     </div>
 
-                    <div class="row mg-t-15">
+                    <div class="row _mg-t-15">
                         <div class="col-md-12">
                             <table id="dashboard-mes-maquettes-table" class="table table-sm table-hover">
                                 <thead>

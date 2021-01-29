@@ -11,6 +11,7 @@
                           <tr>
                               <td>Favoris</td>
                               <td>Résidence</td>
+                              <td>Voir</td>
                               <td>Département</td>
                               <td>Tarif a partir de</td>
                               <td>Diff tarif actuel</td>
@@ -24,7 +25,9 @@
                             <td><?php echo ( $maquette->field_favoris_value == 0 ) ? '<i class="far fa-star"></i>':'<i class="fas fa-star"></i>'; ?></td>
                             <td>
                                 <a href="<?php echo '/residence/' . $maquette->nid; ?>"><?php echo $maquette->title ?></a>
-                                <a href="<?php echo '/maquette/' . $maquette->n_nid; ?>" class="badge badge-primary">Voir la maquette</a>
+                            </td>
+                            <td>
+                                <button data-url="/maquette/<?=$maquette->n_nid;?>" class="btn btn-sm btn-primary mg-t-10 maquettePopin" data-toggle="modal" data-target="#maquettePopin"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
                             </td>
                             <td><?php echo $maquette->name; ?></td>
                             <td><?php echo $maquette->field_tarif_chambre_simple_value; ?> €</td>
@@ -40,3 +43,26 @@
         </div>
     </div>
 </section>
+
+<div id="maquettePopin" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;"><div class="modal-dialog modal-dialog-centered modal-xl inside" role="document"></div></div>
+
+<script>
+    $(function() {
+        $('.maquettePopin').on('click', function (event) {
+            var url=this.getAttribute('data-url');
+            cl('ev',url);
+            $.ajax(url, {
+                    method: 'GET',
+                    success: function (response, status, xhr) {
+                        //cl(response);
+                        $('.inside').html(response);
+                    }
+                }
+            );
+        });
+    });
+</script>
+<?return;?>
+
+
+<a onlick="window.open('/maquette/'<?=$maquette->n_nid;?>','webcam','width=320,height=240');" href="#<?php echo '/maquette/' . $maquette->n_nid; ?>" class="badge badge-primary"></a>

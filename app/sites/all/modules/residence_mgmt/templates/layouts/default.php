@@ -13,8 +13,8 @@ echo"var json=".json_encode($json).",rgm,rmi='".RESIDENCE_MGMT_URI."',  frenchDa
 $a=$user->uid.'-'.$user->name;
 ?>
     </script>
-    <link id="gcss" rel="stylesheet" href="/z/global.css?a=<?=filemtime($_SERVER['DOCUMENT_ROOT'].'z/global.css')?>" title="/z/global.css" />
-    <script async id="gjs" src="/z/global.js?a=<?=filemtime($_SERVER['DOCUMENT_ROOT'].'z/global.js')?>" title="/z/global.js" ></script>
+    <link id="gcss" rel="stylesheet" href="/z/global.css?a=<?=filemtime(rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/z/global.css')?>" title="/z/global.css" />
+    <script async id="gjs" src="/z/global.js?a=<?=filemtime(rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/z/global.js')?>" title="/z/global.js" ></script>
     <script async src="https://code.iconify.design/1/1.0.7/iconify.min.js#rendersExcel"></script>
 
     <!-- Required meta tags -->

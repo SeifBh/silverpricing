@@ -1,36 +1,3 @@
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/jquery/jquery.min.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/jqvmap/jquery.vmap.min.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/jqvmap/maps/jquery.vmap.france.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/feather-icons/feather.min.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/perfect-scrollbar/perfect-scrollbar.min.js"></script>
-
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/prismjs/prism.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/js/jquery.dataTables.min.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net-dt/js/dataTables.dataTables.min.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net-responsive-dt/js/responsive.dataTables.min.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/sorting_natural.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/select2/js/select2.min.js"></script>
-
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/dashforge.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/dashforge.aside.js"></script>
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/chart.js/Chart.bundle.min.js"></script>
-<?#<script src="/js/chartjs-plugin-datalabels.js"></script>?>
-<!-- HERE MAP DEPENDENCIES -->
-<script src="https://js.api.here.com/v3/3.1/mapsjs-core.js" type="text/javascript" charset="utf-8"></script>
-<script src="https://js.api.here.com/v3/3.1/mapsjs-service.js" type="text/javascript" charset="utf-8"></script>
-<script src="https://js.api.here.com/v3/3.1/mapsjs-ui.js" type="text/javascript" charset="utf-8"></script>
-<script src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js" type="text/javascript"></script>
-<script src="https://js.api.here.com/v3/3.1/mapsjs-clustering.js" type="text/javascript"></script>
-
-<!-- HERE MAP LIBRARY -->
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/here_library.js"></script>
-<!-- LEAFLET MAP -->
-<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
-<!-- SLIDER RANGE -->
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/ion-rangeslider/js/ion.rangeSlider.min.js"></script>
-
 <!-- GAUGE CHART  -->
 <?php if( $currentMenu == "residences" ): ?>
 <script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/raphael-2.1.4.min.js"></script>
@@ -61,9 +28,10 @@ $('#departements-field').select2({placeholder: 'Choisissez-en un'});
 p= {"language": {url: frenchDataTables}, "searching": false, "lengthChange": false, "paging": true, "info": false, "order": [[ 4, "desc" ]], "pageLength": 5, "columnDefs": [{ type: 'natural-nohtml', targets: [1,2,3] }]};
 $('#dashboard-quick-win-table').DataTable(p);
 
-p={"language": {url: frenchDataTables}, "searching": false, "lengthChange": false, "paging": true, "info": false, "pageLength": 5, "columnDefs": [{ type: 'natural-nohtml', targets: [3, 4, 5] }]};
+p={"language": {url: frenchDataTables}, "searching": true, "lengthChange": false, "paging": true, "info": false, "pageLength": 5, "columnDefs": [{ type: 'natural-nohtml', targets: [3, 4, 5] },{"searchable": false, "targets": [0,1,4,5]}]};
 $('#dashboard-mes-maquettes-table').DataTable(p);
 
+    $('#recherche-residence').on('change', function(e) {var residenceName  = $('#recherche-residence').val();cl(residenceName);});
 
 p= {
     "language": {url: frenchDataTables}, "searching": true, "lengthChange": false, "paging": true, "info": false, "pageLength": 10, "order": [[4, "desc"]]
@@ -87,7 +55,6 @@ p= {
 };
 $('#mes-residences-table').DataTable(p);
 // REQUEST FORM
-$('#recherche-residence').on('change', function(e) {var residenceName  = $('#recherche-residence').val();cl(residenceName);});
 
         // MAP
 
@@ -134,19 +101,13 @@ var markers = [],hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIx
         addFullScreenUIControl(hereMap);
         addMarkersAndSetViewBounds(hereMap, markers);
 
-    <?php elseif( $currentMenu == "quick_win" ): ?>
-
-        // DATA TABLES
+    <?php elseif( $currentMenu == "quick_win" ):// DATA TABLES ?>
         $('#quick-win-table').DataTable( {
-            "language": {
-                url: frenchDataTables
-            },
+            "language": {url: frenchDataTables},
             "searching": true,
             "lengthChange": false,
-            "pageLength": 50,
-            "columnDefs": [
-                { type: 'natural-nohtml', targets: [1,2,3,4] }
-            ]
+            "pageLength": 50, "order": [[2, "desc"]],
+            "columnDefs": [{ type: 'natural-nohtml', targets: [1,2,3,4] }]
         });
 
     <?php elseif(  $currentMenu == "profile-view" ): ?>
@@ -173,7 +134,7 @@ var markers = [],hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIx
             },
             "searching": true,
             "lengthChange": false,
-            "pageLength": 10,
+            "pageLength": 25,
             "columnDefs": [
                 { type: 'natural-nohtml', targets: [3, 4, 5] }
             ]

@@ -1,4 +1,5 @@
 <!-- vendor css -->
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/jquery/jquery.min.js"></script>
 <link href="<?php echo RESIDENCE_MGMT_URI; ?>/lib/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
 <link href="<?php echo RESIDENCE_MGMT_URI; ?>/lib/ionicons/css/ionicons.min.css" rel="stylesheet">
 <link href="<?php echo RESIDENCE_MGMT_URI; ?>/lib/jqvmap/jqvmap.min.css" rel="stylesheet">
@@ -21,3 +22,36 @@
 
 <!-- SILVERPRICING CSS -->
 <link rel="stylesheet" href="<?php echo RESIDENCE_MGMT_URI; ?>/assets/css/main.css" />
+
+
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/jqvmap/jquery.vmap.min.js"></script>
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/jqvmap/maps/jquery.vmap.france.js"></script>
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/feather-icons/feather.min.js"></script>
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/prismjs/prism.js"></script>
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net-dt/js/dataTables.dataTables.min.js"></script>
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/datatables.net-responsive-dt/js/responsive.dataTables.min.js"></script>
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/sorting_natural.js"></script>
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/select2/js/select2.min.js"></script>
+
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/dashforge.js"></script>
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/dashforge.aside.js"></script>
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/chart.js/Chart.bundle.min.js"></script>
+<?#<script src="/js/chartjs-plugin-datalabels.js"></script>?>
+<!-- HERE MAP DEPENDENCIES -->
+<script src="https://js.api.here.com/v3/3.1/mapsjs-core.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://js.api.here.com/v3/3.1/mapsjs-service.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://js.api.here.com/v3/3.1/mapsjs-ui.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js" type="text/javascript"></script>
+<script src="https://js.api.here.com/v3/3.1/mapsjs-clustering.js" type="text/javascript"></script>
+
+<!-- HERE MAP LIBRARY -->
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/here_library.js"></script>
+<!-- LEAFLET MAP -->
+<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+<!-- SLIDER RANGE -->
+<script src="<?php echo RESIDENCE_MGMT_URI; ?>/lib/ion-rangeslider/js/ion.rangeSlider.min.js"></script>

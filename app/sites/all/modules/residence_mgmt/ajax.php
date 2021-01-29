@@ -113,16 +113,32 @@ function residence_mgmt_get_evolution_menusuelle_des_tarifs($residenceId = null,
         }
     }
 
+$dernierMoyenTarif = null;
+$first=reset($resultList);
+$last = $first['tarif_chambre_simple']/$first['nombre_revision'];
 
-    $dernierMoyenTarif = null;
-    foreach ($resultList as $data) {
+foreach ($chartData['xAxe'] as $mois) {
+    #if(!in_array($mois,$moisHasPrices))$moisHasPrices[]=$mois;
+    if (isset($resultList[$mois]['tarif_chambre_simple'])) {
+        $last = $resultList[$mois]['tarif_chambre_simple']/$resultList[$mois]['nombre_revision'];
+    } elseif (0 and $last) {
+        $resultList[$mois]['tarif_chambre_simple'] = $last;
+        #report du précédent ..étalage de la confiture
+    }else{#bah rien
+        #$chartData['dataResidence'][] = $dernierMoyenTarif;
+    }
+    $chartData['dataResidence'][] = $last;
+}
+
+
+/*
         if ($data['nombre_revision'] != 0) {
             $dernierMoyenTarif = round($data['tarif_chambre_simple'] / $data['nombre_revision'], 2);
             $chartData['dataResidence'][] = $dernierMoyenTarif;
         } else {
             $chartData['dataResidence'][] = $dernierMoyenTarif;
         }
-    }
+*/
 
     // DEPARTEMENTS
     $query = db_select('node', 'n');

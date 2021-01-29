@@ -1,4 +1,7 @@
 <?php #
+$_ENV['ajax']=0;
+if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')$_ENV['ajax']=1;
+
 function addMenuItem($url,$params){global $menuItems;$menuItems[$url]=$params;} $GLOBALS['menuItems']=[];
 require_once __DIR__ . "/ajax.php";
 require_once __DIR__ . "/ben.php";
@@ -956,20 +959,12 @@ function residence_mgmt_get_mes_maquettes() {
 }
 
 function residence_mgmt_get_ma_maquette( $maquetteNid ) {
-
     $currentMenu = "ma_maquette";
-
     $maquette = node_load( $maquetteNid );
-
-    // varDebug($maquette);
-    // exit();
-
     ob_start();
-
     include_once __DIR__ . "/templates/maquette.php";
-
     $content = ob_get_clean();
-
+    if($_ENV['ajax'])die($content);
     include_once __DIR__ . "/templates/layouts/default.php";
 }
 
