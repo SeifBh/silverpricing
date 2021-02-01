@@ -1,10 +1,53 @@
-<?php #
+<?php /*
+ cuj https://ehpad.home/ccAll?m=83
+ */
 use Alptech\Wip\fun;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 $_ENV['ajax']=0;
 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')$_ENV['ajax']=1;
 
 function addMenuItem($url,$params){global $menuItems;$menuItems[$url]=$params;} $GLOBALS['menuItems']=[];
+
+addMenuItem('prescripteurs', ['title' => 'prescripteurs', 'page callback' => 'prescripteurs', 'access callback' => 'residence_mgmt_user_plan_has_access', 'access arguments' => ['PAGE_RESIDENCES'],]);
+function prescripteurs(){
+    $_ENV['id2cat']=$residences = $healthOrganizations = [];$requete_statistiques = null;
+    $categories=\Alptech\wip\fun::sql('select distinct(code_categorie),lib_categorie from silverpricing_data_db.health_organizations','larav');
+    $s=['code_categorie'=>-1,'lib_categorie'=>'Etablissements prescripteurs'];array_unshift($categories,$s);
+    
+    foreach($categories as &$t){
+        if($t['code_categorie']){$_ENV['id2cat'][$t['code_categorie']]=$t['lib_categorie'];}$t=(object)$t;
+    }unset($t);
+
+    if( !empty($_POST) && residence_mgmt_has_enough_user_balance('RESIDENCES_REQUEST',['perimetre' => $_POST['perimetre']])){
+        if( isset($_POST['latitude']) && isset($_POST['longitude']) && isset($_POST['perimetre'])) {
+            $adr=$_POST['adresse'];
+            if(!$adr)$adr=$_POST['latitude'].'-'.$_POST['longitude'];
+            $lat=$_POST['latitude'];$lon=$_POST['longitude'];$perimetre=$_POST['perimetre'];#
+            $selectedStatut = ($_POST['statut'] != "aucun") ? $_POST['statut'] : null;#
+            #$residences = getResidencesConcurrentesOnAddress($_POST['latitude'], $_POST['longitude'], $_POST['perimetre'], $selectedStatut);
+            $name = trim($selectedStatut.' '.implode('-',$_POST['categories']).' '.$_POST['perimetre'] . 'km autour de ' . $adr);
+            
+            if(!empty($_POST['categories']))$wor=['code_categorie in ('.implode(',',$_POST['categories']).')'];
+            if(in_array(-1,$_POST['categories']))$wor[]='prescripteur=1';
+#(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude))))
+            $s="select * from silverpricing_data_db.health_organizations where (".implode(' or ',$wor).") and (6371 * acos(cos(radians(latitude)) * cos(radians($lat) ) * cos(radians($lon) -radians(longitude)) + sin(radians(latitude)) * sin(radians($lat)))) <= $perimetre";
+            $healthOrganizations=\Alptech\wip\fun::sql($s,'larav');
+            foreach($healthOrganizations as &$t){$t=(object)$t;}unset($t);
+#$rkv=\Alptech\wip\fun::sql('select k from z_rkv limit 1','mysql');
+#$healthOrganizations = json_decode(postRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], [ 'categories' => $_POST['categories'] ] ));#20 resultats               
+            $_SESSION['lastSearch']=$_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.implode(',',$_POST['categories']);#
+        }
+        #$requete_statistiques = get_requete_statistique($residences,$name);
+        residence_mgmt_update_user_balance('prescripteurs', ["perimetre" => $_POST['perimetre']], $_POST, $healthOrganizations, $name);
+    }
+
+    ob_start();
+    include_once __DIR__ . "/templates/prescripteurs.php";
+    $content = ob_get_clean();
+    include_once __DIR__ . "/templates/layouts/default.php";
+}
+
+
 require_once __DIR__ . "/ajax.php";
 require_once __DIR__ . "/ben.php";
 require_once __DIR__ . "/vendor/autoload.php";
@@ -1692,7 +1735,7 @@ function residence_mgmt_departement_info($departementId) {
 }
 
 function residence_mgmt_recherche_silverex() {
-    $currentMenu = "recherche-silverex";
+    $currentMenu = "recherche-silverex";$residences = $healthOrganizations = array();$requete_statistiques = null;
 #$categories = json_decode(getRequest( BASE_API_URL . "/api/health-organizations/categories/list" ));$s=(object)['code_categorie'=>-1,'lib_categorie'=>'Etablissements prescripteurs'];array_unshift($categories,$s);
 $categories=\Alptech\wip\fun::sql('select distinct(code_categorie),lib_categorie from silverpricing_data_db.health_organizations','larav');
 $s=['code_categorie'=>-1,'lib_categorie'=>'Etablissements prescripteurs'];array_unshift($categories,$s);
@@ -1702,10 +1745,7 @@ foreach($categories as &$t){
         $_ENV['id2cat'][$t['code_categorie']]=$t['lib_categorie'];
     }
     $t=(object)$t;
-}unset($t);
-
-    $residences = $healthOrganizations = array();
-    $requete_statistiques = null;
+}unset($t);    
 #Si F5
     if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE and  isset($_SESSION['hid']) and isset($_POST['latitude']) and isset($_POST['longitude']) and isset($_POST['perimetre']) and
         $_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.implode(',',$_POST['categories'])==$_SESSION['lastSearch']) {

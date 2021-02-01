@@ -137,7 +137,7 @@ function residence_mgmt_has_enough_user_balance( $pageRequest, $options = array(
  * UPDATE USER BALANCE
  */
 
-function residence_mgmt_update_user_balance( $pageRequest, $options = [], $request = [], $response = [] ,$name='',$organismes=[]) {
+function residence_mgmt_update_user_balance( $pageRequest, $options = [], $request = [], $response = [] ,$name='',$organismes=[],$credits=0) {
     ini_set('max_execution_time',-1);
   if (user_is_logged_in()) {
       global $user;
@@ -148,6 +148,8 @@ function residence_mgmt_update_user_balance( $pageRequest, $options = [], $reque
       $updatedBalance = null;
 #£:balance décrementation crédit
       switch( $pageRequest ) {
+          case "prescripteurs":
+              $history['balance_consumed'] = $credits;$updatedBalance = $balance - $credits;
           case "DEPARTMENT_REQUEST":
               $updatedBalance = ($balance - $plan->field_department_request['und']['0']['value']);
               $history['balance_consumed'] = $plan->field_department_request['und']['0']['value'];
@@ -159,15 +161,14 @@ function residence_mgmt_update_user_balance( $pageRequest, $options = [], $reque
           case "RESIDENCES_REQUEST":
               $updatedBalance = ($balance - ($plan->field_residence_request['und']['0']['value'] * $options['perimetre']));
               $history['balance_consumed'] = ($plan->field_residence_request['und']['0']['value'] * $options['perimetre']);
+              if($organismes){
+                  $history['balance_consumed'] +=  count($organismes);
+              }
           break;
           case "DEVELOPMENT_TOOLS_REQUEST":
               $updatedBalance = ($balance - $plan->field_developpement_tool_request['und']['0']['value']);
               $history['balance_consumed'] = $plan->field_developpement_tool_request['und']['0']['value'];
           break;
-      }
-
-      if($organismes){
-          $history['balance_consumed'] +=  count($organismes);
       }
 
       if( $updatedBalance != null ) {
