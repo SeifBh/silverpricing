@@ -10,7 +10,12 @@ function addMenuItem($url,$params){global $menuItems;$menuItems[$url]=$params;} 
 
 addMenuItem('prescripteurs', ['title' => 'prescripteurs', 'page callback' => 'prescripteurs', 'access callback' => 'residence_mgmt_user_plan_has_access', 'access arguments' => ['PAGE_RESIDENCES'],]);
 function prescripteurs(){
-    $_ENV['id2cat']=$residences = $healthOrganizations = [];$requete_statistiques = null;
+    $_ENV['id2cat']=$residences = $healthOrganizations =$finesses=[];$requete_statistiques = null;$nbr=0;$errmsg='';
+
+    global $user;
+    $account = user_load($user->uid);
+    $balance = $account->field_balance['und'][0]['value'];
+
     $categories=\Alptech\wip\fun::sql('select distinct(code_categorie),lib_categorie from silverpricing_data_db.health_organizations','larav');
     $s=['code_categorie'=>-1,'lib_categorie'=>'Etablissements prescripteurs'];array_unshift($categories,$s);
     
@@ -18,7 +23,8 @@ function prescripteurs(){
         if($t['code_categorie']){$_ENV['id2cat'][$t['code_categorie']]=$t['lib_categorie'];}$t=(object)$t;
     }unset($t);
 
-    if( !empty($_POST) && residence_mgmt_has_enough_user_balance('RESIDENCES_REQUEST',['perimetre' => $_POST['perimetre']])){
+
+    if( !empty($_POST)){
         if( isset($_POST['latitude']) && isset($_POST['longitude']) && isset($_POST['perimetre'])) {
             $adr=$_POST['adresse'];
             if(!$adr)$adr=$_POST['latitude'].'-'.$_POST['longitude'];
@@ -31,20 +37,31 @@ function prescripteurs(){
             if(in_array(-1,$_POST['categories']))$wor[]='prescripteur=1';
 #(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude))))
             $s="select * from silverpricing_data_db.health_organizations where (".implode(' or ',$wor).") and (6371 * acos(cos(radians(latitude)) * cos(radians($lat) ) * cos(radians($lon) -radians(longitude)) + sin(radians(latitude)) * sin(radians($lat)))) <= $perimetre";
-            $healthOrganizations=\Alptech\wip\fun::sql($s,'larav');
-            foreach($healthOrganizations as &$t){$t=(object)$t;}unset($t);
-#$rkv=\Alptech\wip\fun::sql('select k from z_rkv limit 1','mysql');
-#$healthOrganizations = json_decode(postRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], [ 'categories' => $_POST['categories'] ] ));#20 resultats               
-            $_SESSION['lastSearch']=$_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.implode(',',$_POST['categories']);#
-        }
-        #$requete_statistiques = get_requete_statistique($residences,$name);
-        residence_mgmt_update_user_balance('prescripteurs', ["perimetre" => $_POST['perimetre']], $_POST, $healthOrganizations, $name);
-    }
+            $healthOrganizations=fun::sql($s,'larav');
+            foreach($healthOrganizations as &$t){$finesses[]=$t['finess'];$t=(object)$t;}unset($t);
+            $nbr=count($healthOrganizations);
 
+            if($_POST['prescripteurs']){
+                $s="select * from silverpricing_data_db.professionels_sante where finess in('".implode("','",$finesses)."')";$x=fun::sql($s,'larav');
+                foreach($x as $t){$fin=$t['finess'];unset($t['finess']);$persons[$fin][]=$t;}
+                $nbr+=count($x);
+            }
+            if(!residence_mgmt_has_enough_user_balance('prescripteur',[],$nbr)){
+                $errmsg="Cette requête nécessite $nbr crédits, vous n'en disposez que de $balance";
+                $a=1;
+            }
+            if(!$_POST['confirm'] or $_POST['confirm']!=$nbr){
+                $healthOrganizations=$persons=[];
+                #return 'cette requête va consommer '.$nbr.' crédits';
+            }else{
+                residence_mgmt_update_user_balance('prescripteur', ["perimetre" => $_POST['perimetre']], $_POST, $healthOrganizations, $name,$persons,$nbr);
+            }
+        }
+    }
     ob_start();
-    include_once __DIR__ . "/templates/prescripteurs.php";
+    include_once __DIR__ . '/templates/prescripteurs.php';
     $content = ob_get_clean();
-    include_once __DIR__ . "/templates/layouts/default.php";
+    include_once __DIR__ . '/templates/layouts/default.php';
 }
 
 
@@ -67,9 +84,7 @@ require_once __DIR__ . "/inc/routing.inc.php";
 require_once __DIR__.'/../../../../autoload.php';#-> maps to composer
 
 function iep($form, &$form_state) {
-    $form['iep'] = [
-        '#type' => 'file', '#title' => t('Fichier excel contenant les personnes ( precripteurs liés à un établissement par un id finess )'), '#maxlength' => 32, '#required' => TRUE,
-    ];
+    $form['iep'] = ['#type' => 'file', '#title' => t('Fichier excel contenant les personnes ( precripteurs liés à un établissement par un id finess )'), '#maxlength' => 32, '#required' => TRUE,];
     $form['submit'] = ['#type' => 'submit', '#value' => t('Import')];
     return $form;
 }
@@ -2141,27 +2156,17 @@ function residence_mgmt_generate_document( $userId, $historyId ) {
 
   ob_start();
   switch($history->title) {
-      case "RESIDENCES_REQUEST":
-          include __DIR__ . "/templates/partial/pdf/residences_request.php";
-      break;
-      case "DEPARTMENT_REQUEST":
-          include __DIR__ . "/templates/partial/pdf/department_request.php";
-      break;
-      case "GROUP_REQUEST":
-          include __DIR__ . "/templates/partial/pdf/group_request.php";
-      break;
-      case "DEVELOPMENT_TOOLS_REQUEST":
-          include __DIR__ . "/templates/partial/pdf/development_tools_request.php";
-      break;
-      default:
-          echo "YEAP ! IT'S WORKING";
+      case "prescripteur":  include __DIR__ . "/templates/partial/pdf/prescripteur.php";    break;
+      case "RESIDENCES_REQUEST":include __DIR__ . "/templates/partial/pdf/residences_request.php";break;
+      case "DEPARTMENT_REQUEST":include __DIR__ . "/templates/partial/pdf/department_request.php";break;
+      case "GROUP_REQUEST":include __DIR__ . "/templates/partial/pdf/group_request.php";break;
+      case "DEVELOPMENT_TOOLS_REQUEST":include __DIR__ . "/templates/partial/pdf/development_tools_request.php";break;
+      default:echo "YEAP ! IT'S WORKING";
   }
   $content = ob_get_clean();
-
+  die($content);
   $generatedFile = $history->title . "_" . $history->nid;
-
   include __DIR__ . "/templates/layouts/default.pdf.php";
-
 }
 
 function updateDepartements() {

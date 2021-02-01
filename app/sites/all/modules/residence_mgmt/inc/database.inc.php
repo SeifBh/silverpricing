@@ -965,6 +965,7 @@ $a=1;
         #$history->field_name = $historyData['name'];#[$history->language][0]['value']
          if($historyData['name']) {$history->field_name[LANGUAGE_NONE][0]['value'] = $historyData['name'];}#
       node_object_prepare($history);
+
     if($historyData['name'] and 1 and 'excel'){
         $fn=$historyData['body']['request']['adresse'].'-'.$historyData['body']['request']['perimetre'];
         $t=(array)$historyData['body']['response'][0];unset($t['nid'],$t['field_logo_fid'],$t['grp_term_name']);
@@ -1017,7 +1018,8 @@ $a=1;
             file_put_contents(ini_get('error_log'),"\n\n}{".print_r($e,1),8);
             $err=1;
         }
-        if($organismes){
+
+        if(1 and $organismes){#second excel : personnes
             try{
                 $lines=$cats=[];#$letter = 'A';while ($letter !== 'AAA') {$cols[] = $letter++;}
                 foreach($_POST['categories'] as $cat){$cats[]=$_ENV['id2cat'][$cat];}
@@ -1042,7 +1044,7 @@ if('doesnotwork' and 0){
                 $rp='z/xls/'.$fn.'-'.implode('-',$_POST['categories']).'-'.$GLOBALS['user']->uid.'-'.$GLOBALS['user']->name.'-'.uniqid().'.xlsx';
     #could not close
                 $writer->save(rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/'.$rp);#$GLOBALS['user']???
-                $history->field_excelorganismes['und'][0]['value'] =  '/'.$rp;#a pas vouloire persister ???????
+#$history->field_excelorganismes['und'][0]['value'] =  '/'.$rp;#a pas vouloire persister ???????
             }catch(\Exception $__e){
                 $err=1;
                 file_put_contents(ini_get('error_log'),"\n\n}{".print_r($__e,1),8);
@@ -1050,9 +1052,9 @@ if('doesnotwork' and 0){
         }
 
     }#end excel
-      $history->body[$history->language][0]['value'] = json_encode($historyData['body']);
+    $history->body[$history->language][0]['value'] = json_encode($historyData['body']);
 
-      $history->field_balance_consumed[$history->language][0]['value'] = $historyData['balance_consumed'];
+    $history->field_balance_consumed[$history->language][0]['value'] = $historyData['balance_consumed'];
     node_save($history);
     $_SESSION['public']=['hid'=>$history->nid];
     $_SESSION['hid']=$history->nid;

@@ -91,7 +91,7 @@ function residence_mgmt_permission() {
  * HAS ENOUGH USER BALANCE
  */
 
-function residence_mgmt_has_enough_user_balance( $pageRequest, $options = array() ) {
+function residence_mgmt_has_enough_user_balance( $pageRequest, $options = [],$credits=0 ) {
 
   if (user_is_logged_in()) {
 
@@ -102,8 +102,10 @@ function residence_mgmt_has_enough_user_balance( $pageRequest, $options = array(
       $balance = $account->field_balance['und'][0]['value'];
       $hasEnoughBalance = FALSE;
 
-
       switch( $pageRequest ) {
+          case 'prescripteur':
+              if($balance >=$credits) $hasEnoughBalance =  TRUE;
+              break;
           case "DEPARTMENT_REQUEST":
             if( $balance >= $plan->field_department_request['und']['0']['value'] ) {
                 $hasEnoughBalance =  TRUE;
@@ -148,7 +150,7 @@ function residence_mgmt_update_user_balance( $pageRequest, $options = [], $reque
       $updatedBalance = null;
 #£:balance décrementation crédit
       switch( $pageRequest ) {
-          case "prescripteurs":
+          case 'prescripteur':
               $history['balance_consumed'] = $credits;$updatedBalance = $balance - $credits;
           case "DEPARTMENT_REQUEST":
               $updatedBalance = ($balance - $plan->field_department_request['und']['0']['value']);
