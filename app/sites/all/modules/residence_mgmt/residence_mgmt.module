@@ -1,4 +1,6 @@
 <?php #
+use Alptech\Wip\fun;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 $_ENV['ajax']=0;
 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')$_ENV['ajax']=1;
 
@@ -21,12 +23,91 @@ require_once __DIR__ . "/inc/user.inc.php";
 require_once __DIR__ . "/inc/routing.inc.php";
 require_once __DIR__.'/../../../../autoload.php';#-> maps to composer
 
-addMenuItem('b',array('title' => 'a', 'page callback' => 'a', 'access callback' => true,));
+function iep($form, &$form_state) {
+    $form['iep'] = [
+        '#type' => 'file', '#title' => t('Fichier excel contenant les personnes ( precripteurs liés à un établissement par un id finess )'), '#maxlength' => 32, '#required' => TRUE,
+    ];
+    $form['submit'] = ['#type' => 'submit', '#value' => t('Import')];
+    return $form;
+}
+
+function iep_validate($form, &$form_state) {
+    $ext=explode('.',$_FILES['files']['name']['iep']);
+    $ext=end($ext);
+    if(!in_array($ext,explode(',','xls,xlsx,csv,tsv,odt'))){
+        drupal_set_message("extension $ext non valide");
+        return ;
+    }
+
+    $spreadsheet = IOFactory::load($_FILES["files"]["tmp_name"]["iep"]);
+    if (!$spreadsheet) {
+        drupal_set_message("fichier non valide");
+        return;
+        $json['error'][$file][] = "cant load spreadsheet";
+        die('cant load spreadsheet');
+    }
+
+    $worksheet = $spreadsheet->getActiveSheet();
+    $rows = $worksheet->toArray();
+    foreach($rows as &$t){$t=array_filter($t);}unset($t);$rows=array_filter($rows);
+    $fields=array_shift($rows);
+    $r2field=explode(',','finess,service,fonction,titre,nom,prenom,adresse,codepostal,ville,telephone,email,commentaire');
+    #750803371
+
+    foreach($fields as &$t)$t=_u($t);unset($t);
+    #,nom,prenom,email
+$inserted=$modified=$err=0;$existing=[];$s='select id,md5 from professionels_sante';$x=fun::sql($s,'larav');
+    foreach($x as $t){$existing[$t['md5']]=$t['id'];}
+
+    foreach($rows as $t){
+        $t2=[];$update=[];
+        foreach($t as $k=>$v){
+            $k2=$fields[$k];
+            if(in_array($k2,$r2field)){
+                $t2[$k2]=$v;
+            }
+        }
+        $t2['updated']=date('Y-m-d H:i:s');
+        $md5=md5(_u($t2['titre'].$t2['nom'].$t2['prenom'].$t2['ville']));
+        if(!$md5){
+            $err=1;
+            continue;
+        }
+
+        if(isset($existing[$md5])){
+            foreach($t2 as $k=>$v)$update[]="$k='".addslashes($v)."'";
+            $s='update professionels_sante set '.implode(',',$update)." where md5='$md5'";$_id=fun::sql($s,'larav');
+            $modified++;
+            $a=1;#-999 si non modifié
+        }else{
+            $t2['md5']=$md5;
+            $s='insert into professionels_sante '.fun::insertValues($t2);$_id=fun::sql($s,'larav');
+            if(!$_id){
+                $err++;
+                #echo"<li>";
+            }else $inserted++;
+        }
+    }
+    drupal_set_message("$inserted importés, $modified modifiés, $err erreurs");
+}
+
+function iep_submit($form, &$form_state)
+{
+
+    #return;#
+    $a=1;
+}
+/*$menuItems['admin/config/content/import_residence_by_finess'] = array('title' => t('Import residence by Finess'),'description' => t('This feature give you the possibility to import a new single residence with just finess.'),'page callback' => 'drupal_get_form','page arguments' => array('residence_mgmt_get_residence_by_finess'),'access arguments' => ['administer users'],'type' => MENU_NORMAL_ITEM,);#*/
+addMenuItem('admin/config/content/importExcelPersons',['type' => MENU_NORMAL_ITEM,'title' => 'importExcelPersons','description'=>'importExcelPersons', 'page callback' => 'drupal_get_form', 'page arguments'=>['iep'],'access arguments' => ['administer users']/*,'access callback' => true,*/]);
+#addMenuItem('admin/config/content/importExcelPersons',['title'=>'a','page callback'=>'importExcelPersons','access callback'=>true]);
+
+
+addMenuItem('b',['title' => 'a', 'page callback' => 'a', 'access callback' => true,]);
 function a(){die(__FILE__.__LINE__);}
 #drushy cc all
 #cuj http://ehpad.silverpricing.fr/ccAll?m=83
 #cuj https://ehpad.home/ccAll?m=83;cuj https://ehpad.home/depStats a {} 1;
-addMenuItem('ccAll',array('title' => 'ccAll', 'page callback' => 'ccAll', 'access callback' => true,));
+addMenuItem('ccAll',['title' => 'ccAll', 'page callback' => 'ccAll', 'access callback' => true,]);
 function ccAll(){
     if(!isset($_GET['m']) or $_GET['m']!=83)die('??');
     drupal_flush_all_caches();
@@ -949,13 +1030,9 @@ function residence_mgmt_get_mes_maquettes() {
     $maquettes = fetchAll($query);
 
     ob_start();
-
     include_once __DIR__ . "/templates/mes_maquettes.php";
-
     $content = ob_get_clean();
-
     include_once __DIR__ . "/templates/layouts/default.php";
-
 }
 
 function residence_mgmt_get_ma_maquette( $maquetteNid ) {
@@ -2303,4 +2380,8 @@ function resmgmt_database_interpolateQuery($query, $params,$objcontext=null)
 function _render($x){
     #attention au contexte perdu des arguments la fonction précédente !!!!!
     ob_start();include_once __DIR__ . $x;$content = ob_get_clean();include_once __DIR__ . "/templates/layouts/default.php";
+}
+
+function _u($x){
+    return preg_replace("~[^a-z]~is",'',mb_strtolower(fun::stripAccents($x,0)));
 }

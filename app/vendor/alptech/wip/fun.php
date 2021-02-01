@@ -1232,6 +1232,7 @@ class fun /* extends base */
         return $this->set($k, $v, 0, 1);#1er passage -- afin de pouvoir l'intercepter plus haut
     }
 /*}end base methods{*/
+#stripAccents('1456 route de Lafrançaise')
     static function stripAccents($str,$utf=1) {#utf0 if opening a windows encoded file
         if($utf) return strtr($str, 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY');
         #operates is ascii context (latin1)
@@ -1311,7 +1312,6 @@ class fun /* extends base */
         #header('Content-type: image/png');imagepng($im,$target,$quality);
 
     }
-
 }
 
 return; ?>
