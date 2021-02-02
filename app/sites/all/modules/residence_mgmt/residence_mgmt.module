@@ -30,13 +30,14 @@ function prescripteurs(){
         if( isset($_POST['latitude']) && isset($_POST['longitude']) && isset($_POST['perimetre'])) {
             $p=array_filter($_POST);unset($p['confirm']);
             $_lat=$_POST['latitude'];$_lon=$_POST['longitude'];$_dist=$_POST['perimetre'];
+            $lat=$_POST['latitude'];$lon=$_POST['longitude'];$perimetre=$_POST['perimetre'];#
             $x=fun::shortDist($_lat,$_lon,1);
             $_km=[$_lat-$x[0],$_lon-$x[2]];
             $_rect=fun::shortDist($_lat,$_lon,$_POST['perimetre']);
 
             $adr=$_POST['adresse'];
             if(!$adr)$adr=$_POST['latitude'].'-'.$_POST['longitude'];
-            $lat=$_POST['latitude'];$lon=$_POST['longitude'];$perimetre=$_POST['perimetre'];#
+
             $selectedStatut = ($_POST['statut'] != "aucun") ? $_POST['statut'] : null;#
             #$residences = getResidencesConcurrentesOnAddress($_POST['latitude'], $_POST['longitude'], $_POST['perimetre'], $selectedStatut);
             $name = trim($selectedStatut.' '.implode('-',$_POST['categories']).' '.$_POST['perimetre'] . 'km autour de ' . $adr);
@@ -44,7 +45,7 @@ function prescripteurs(){
             if(!empty($_POST['categories']))$wor=['code_categorie in ('.implode(',',$_POST['categories']).')'];
             if(in_array(-1,$_POST['categories']))$wor[]='prescripteur=1';
 #harversine :: fastest (with indexes)
-$s="select (6371 * acos(cos(radians(latitude)) * cos(radians($lat) ) * cos(radians($lon) -radians(longitude)) + sin(radians(latitude)) * sin(radians($lat)))) as distance,a.* from silverpricing_data_db.health_organizations a where (".implode(' or ',$wor).") and (6371 * acos(cos(radians(latitude)) * cos(radians($lat) ) * cos(radians($lon) -radians(longitude)) + sin(radians(latitude)) * sin(radians($lat))))  <= $perimetre order by distance asc";
+$s="select (6371 * acos(cos(radians(latitude)) * cos(radians($_lat) ) * cos(radians($_lon) -radians(longitude)) + sin(radians(latitude)) * sin(radians($_lat)))) as distance,a.* from silverpricing_data_db.health_organizations a where ".(($wor)?implode(' or ',$wor):1)." and (6371 * acos(cos(radians(latitude)) * cos(radians($_lat) ) * cos(radians($_lon) -radians(longitude)) + sin(radians(latitude)) * sin(radians($_lat))))  <= $perimetre order by distance asc";
 
             $healthOrganizations=fun::sql($s,'larav');
             foreach($healthOrganizations as &$t){$finesses[]=$t['finess'];$t=(object)$t;}unset($t);

@@ -1618,63 +1618,53 @@ elseif( $currentMenu == "history" ):#http://ehpad.silverpricing.fr/history/47908
     elseif(count($historyBody->response)>100)$zoom=0.8;#plus de résultats, moins de zoom
     elseif(count($historyBody->response)>50)$zoom=0.9;
 
-    ?>
-w=32;h=32;toload=[];markers = [];needSvgToCanvas();ajax('/z/ajax.php?markers=1','GET','',function(r){pngMarkers=JSON.parse(r);/*cl(pngMarkers);*/});
+?>
+$(document).ready(function(){
+    w=32;h=32;toload=[];markers = [];needSvgToCanvas();
+    ajax('/z/ajax.php?markers=1','GET','',function(r){pngMarkers=JSON.parse(r);/*cl(pngMarkers);*/});
 
-        // DATATABLES
-        $(document).ready(function() {
-            $('#residences-result-table').DataTable( {
-                "language": {
-                    url: frenchDataTables
-                },
-                "searching": false,
-                "order": [[ 4, "asc" ]],
-                columnDefs: [
-                    { type: 'natural-nohtml', targets: 6 }
-                ]
-            });
-        });
-// MAP
-var markers = [],hereMap = initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('map-recherche-silverex'));
-        addFullScreenUIControl(hereMap);
-        $(document).ready(function() {
-            resetHereMap(hereMap);
-            var location = {lat: <?php echo $historyBody->request->latitude; ?>, lng: <?php echo $historyBody->request->longitude; ?>};
-            updateCenter(hereMap, location);
-            addMarker(hereMap, location,  icon.search);
+var markers=[],hereMap=initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('map-recherche-silverex'));
+addFullScreenUIControl(hereMap);
 
+resetHereMap(hereMap);
+var location = {lat: <?php echo $historyBody->request->latitude; ?>, lng: <?php echo $historyBody->request->longitude; ?>};
+updateCenter(hereMap, location);
+addMarker(hereMap, location,  icon.search);
 
-            <?php
-            foreach( $historyBody->response as $k=>$residence ){
-                $k2=$k+1;
-                switch($residence->field_statut_value) {
-                    case "Associatif":$color='EB9B6C';$txtcolor='000';$b='FFF';break;
-                    case "Public":$color='836983';$txtcolor='FFF';$b='000';break;#gris bof
-                    case "Privé":$color='584AB9';$txtcolor='FFF';$b='000';break;
-                    default:$color='FFF';$txtcolor='000';$b='FFF';break;
-                }
-                ?>
+<?php
+foreach( $historyBody->response as $k=>$residence ){
+    if($history->title=='prescripteur'){#as établissements ?>
+    marker={ lat: <?php echo $residence->latitude; ?>, lng: <?php echo $residence->longitude; ?> };
+    markers.push(marker);
+addInfoBubble(
+    hereMap
+    , new H.map.Marker(marker, { icon: icon.hospital })
+    , "<?php echo "<b>" . htmlspecialchars($residence->raison_sociale) . "</b><br /> FINESS : " . $residence->finess . "<br />Catégorie : " . $residence->lib_categorie . "<br />Statut : " . $residence->lib_statut . "<br />Tarif : " . $residence->lib_tarif . "<br /> ";?>");
+    <?php
+    }else{
+        $groupeLogo=''; if (isset($residence->field_logo_fid)) {$groupeLogo = "<img src='" . file_create_url(file_load($residence->field_logo_fid)->uri) . "' width='16' alt='' />";}
+        $desc=" #$k2 $groupeLogo <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br />$residence->field_location_postal_code, $residence->field_location_locality <br />Nb lits :$residence->field_capacite_value <br /><b>$residence->field_tarif_chambre_simple_value €</b>";
+
+    $k2=$k+1;
+    switch($residence->field_statut_value) {
+        case "Associatif":$color='EB9B6C';$txtcolor='000';$b='FFF';break;
+        case "Public":$color='836983';$txtcolor='FFF';$b='000';break;#gris bof
+        case "Privé":$color='584AB9';$txtcolor='FFF';$b='000';break;
+        default:$color='FFF';$txtcolor='000';$b='FFF';break;
+    }?>
 fs=<?=$fs?>;k=<?=$k2?>;bgColor='<?=$color?>';txtColor='<?=$txtcolor?>';border='<?=$b?>';w=<?=$w?>;h=<?=$h?>;zoom=<?=$zoom?>;
 pngFileName=k+'-'+bgColor+'-'+txtColor+'-'+border+'-'+w+'-'+h+'-'+zoom;
 var final=pngFileName+'.png';
 
-var marker = { lat: <?php echo $residence->field_latitude_value; ?>, lng: <?php echo $residence->field_longitude_value; ?> };
+var markerObject = null,marker = { lat: <?php echo $residence->field_latitude_value; ?>, lng: <?php echo $residence->field_longitude_value; ?> };
 markers.push(marker);
-var markerObject = null;
-
 
 callbacksInc++;//hereMap is a global here :)
 callbacks[callbacksInc]=function(final,marker,callbacksInc,w,h) {
 cl({'loadedImg':callbacksInc,marker,final});
-var markerObject = new H.map.Marker(marker, {icon: new H.map.Icon('/z/markers/' + final),width:w,height:h});
+markerObject = new H.map.Marker(marker, {icon: new H.map.Icon('/z/markers/' + final),width:w,height:h});
 
-addInfoBubble(hereMap, markerObject, "<?php #history
-$groupeLogo=''; if (isset($residence->field_logo_fid)) {$groupeLogo = "<img src='" . file_create_url(file_load($residence->field_logo_fid)->uri) . "' width='16' alt='' />";}
-echo " #$k2 $groupeLogo <a href='/residence/$residence->nid'>" . htmlspecialchars($residence->title) . "</a><br /> ";
-echo "$residence->field_location_postal_code, $residence->field_location_locality <br /> ";
-echo "Nb lits :$residence->field_capacite_value <br /> ";
-echo "<strong>$residence->field_tarif_chambre_simple_value €</strong>";
-?>");
+addInfoBubble(hereMap, markerObject, "<?=$desc?>");
 return final;
 }.bind(this,final,marker,callbacksInc,w,h);
 
@@ -1708,30 +1698,22 @@ return x;
 }
 );
 
-            <?php }
+<?php }#end regular
+}
 $a=1;
-if(isset($historyBody->organismes)){
-foreach( $historyBody->organismes as $healthOrganization ){
 
-
-
+if(isset($historyBody->organismes) and $history->title != 'prescripteur'){
+    foreach( $historyBody->organismes as $finess=>$healthOrganization ){
     ?>
-
 var marker = { lat: <?php echo $healthOrganization->latitude; ?>, lng: <?php echo $healthOrganization->longitude; ?> };
+var markerObject = new H.map.Marker(marker, { icon: icon.hospital });
 markers.push(marker);
 
-var markerObject = new H.map.Marker(marker, { icon: icon.hospital });
-
-addInfoBubble(<?/*history*/?>hereMap, markerObject, "<?php echo "<b>" . htmlspecialchars($healthOrganization->raison_sociale) . "</b><br /> FINESS : " .
-    $healthOrganization->finess . "<br 
-/>Catégorie : " . $healthOrganization->lib_categorie . "<br />Statut : " . $healthOrganization->lib_statut . "<br />Tarif : " . $healthOrganization->lib_tarif . "<br /> ";?>");
+addInfoBubble(<?/*history*/?>hereMap, markerObject, "<?php echo "<b>" . htmlspecialchars($healthOrganization->raison_sociale) . "</b><br /> FINESS : " . $healthOrganization->finess . "<br />Catégorie : " . $healthOrganization->lib_categorie . "<br />Statut : " . $healthOrganization->lib_statut . "<br />Tarif : " . $healthOrganization->lib_tarif . "<br /> ";?>");
 <?php }#endForeach WTO
-}
-            ?>
-
-            addMarkersAndSetViewBounds(hereMap, markers);
-
-        });
+}?>
+    addMarkersAndSetViewBounds(hereMap, markers);
+});
 
     <?php elseif($currentMenu == "mes-residences"): ?>
         $(document).ready(function() {

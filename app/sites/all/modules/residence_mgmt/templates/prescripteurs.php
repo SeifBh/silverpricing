@@ -133,7 +133,7 @@ if($healthOrganizations){?>
                                 <td><?=$t->code_postal?></td>
                                 <td><?=$t->libelle_routage?></td>
                                 <td><?=substr($t->code_postal,0,2)?></td>
-                                <td><?=$t->distance?></td>
+                                <td><?=round($t->distance,2)?></td>
                                 <td><?=$t->tel?></td>
                                 <td><?=$t->eml?></td>
                             </tr>
@@ -224,13 +224,17 @@ function historyCheck(el){
 
 $(document).ready(function(){
     $('#categories').select2({placeholder: 'Categories',});
+    $("#search-form button").click(function( event ) {
+        event.preventDefault();
+        var adresse = document.querySelector("#adresse").value;
+        if( adresse != null && adresse.length > 0 ) {   getGeoCodingSilverex( adresse );    } else {$("#search-form").submit();}
+    });
 
 if(nbr){
+cl('ready',nbr);
 currentMap=hereMap=initHereMap("XbtFBu4z4GHw4B_nIv1A-6d9OixFidUGKc_41OIxoN8", document.getElementById('map-recherche-silverex'));
 
 currentMap.map.getEngine().addEventListener('render',function(e){if (currentMap.map.getEngine() === e.target) {rendered=1;cl('rendered',renderingSteps);}renderingSteps++;});//It renders 2 time, then 2 more for copy
-
-addFullScreenUIControl(hereMap);
 
     if($('#residences-result-table').length){
         $('#residences-result-table').DataTable( {"language": {url: frenchDataTables},"paging":true,"pagelength":25,"searching": true, "order": [[ 5, "asc" ]]
@@ -251,32 +255,31 @@ addFullScreenUIControl(hereMap);
     } else {
         addDraggableMarker(hereMap, icon.search);
     }
-
-    $("#search-form button").click(function( event ) {
-        event.preventDefault();
-        var adresse = document.querySelector("#adresse").value;
-        if( adresse != null && adresse.length > 0 ) {getGeoCodingSilverex( adresse );} else {$("#search-form").submit();}
-    });
     <?php
-    #above les marqueurs png calculés des svgs
-        if($healthOrganizations){#2100 Marqueurs .. c'est beaucoup !!
-            foreach( $healthOrganizations as $healthOrganization ){ ?>
-addInfoBubble(hereMap, new H.map.Marker({ lat: <?php echo $healthOrganization->latitude; ?>, lng: <?php echo $healthOrganization->longitude; ?> }, { icon: icon.hospital }), "<?php #recherche#Attention:le truc merde à la ligne 4676
+#above les marqueurs png calculés des svgs
+if($healthOrganizations){#2100 Marqueurs .. c'est beaucoup !!
+    foreach( $healthOrganizations as $healthOrganization ){ ?>
+marker={lat:<?php echo $healthOrganization->latitude;?>,lng:<?php echo $healthOrganization->longitude;?>};
+markers.push(marker);
+addInfoBubble(hereMap, new H.map.Marker(marker, { icon: icon.hospital }), "<?php #recherche#Attention:le truc merde à la ligne 4676
 echo "<b>" . htmlspecialchars($healthOrganization->raison_sociale) . "</b><br /> ";
 echo "FINESS : " . $healthOrganization->finess . "<br /> ";
 echo "Catégorie : " . $healthOrganization->lib_categorie . "<br /> ";
 echo "Statut : " . $healthOrganization->lib_statut . "<br /> ";
 echo "Tarif : " . $healthOrganization->lib_tarif . "<br /> ";
 ?>");
-            <?php
-            }
-    }#endForeach WTO?>
+    <?php
+    }
+}#endForeach WTO?>
+
+//updateCenter(hereMap, markers[0]);
+addFullScreenUIControl(hereMap);addMarkersAndSetViewBounds(hereMap, markers);
 
     if(typeof post['latitude']!='undefined' && typeof post['confirm']!='undefined'){
         defer(captureMap,function(){x=(toload.length==0 && typeof window['hereMap']=='object' && typeof  window['jQuery']=='function');cl('capmap',x);return x;});
     }
-}
-});
+}//end nbr
+});//end docready
 
 </script>
 <?return;?>
