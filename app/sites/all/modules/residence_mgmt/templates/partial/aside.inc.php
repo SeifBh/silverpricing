@@ -53,6 +53,9 @@
     <li class="nav-item <?php echo ( $currentMenu == "recherche-silverex" ) ? "active" : "" ?>"><a href="/recherche-silverex" class="nav-link">
         <i data-feather="zoom-in"></i> <span>Résidences</span></a>
     </li>
+    <li class="nav-item <?php echo (strpos($_SERVER['REQUEST_URI'],'prescripteurs')!==FALSE) ? "active" : "" ?>"><a href="/prescripteurs" class="nav-link">
+        <i data-feather="user"></i> <span>Prescripteurs</span></a>
+    </li>
     <?php endif;
 if(0){
     if( residence_mgmt_user_plan_has_access('PAGE_MES_RESIDENCES') ): ?>

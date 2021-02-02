@@ -1,27 +1,10 @@
 <!-- GAUGE CHART  -->
-<?php if( $currentMenu == "residences" ): ?>
+<?php if( $currentMenu == "residences" ){?>
 <script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/raphael-2.1.4.min.js"></script>
 <script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/justgage.js"></script>
-<?php endif; ?>
+<?php }?>
 
-<!-- SERVICES JS -->
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/services.js"></script>
-<!-- MAIN JS -->
-<script src="<?php echo RESIDENCE_MGMT_URI; ?>/assets/js/main.js"></script>
-
-
-<script type="text/javascript">
-
-    // Create an icon:
-    var BASE_ICON_PATH = "<?php echo RESIDENCE_MGMT_URI; ?>/assets/img/";
-    var icon = {
-        public : new H.map.Icon(BASE_ICON_PATH + 'public_marker.png'),
-        associatif: new H.map.Icon(BASE_ICON_PATH + 'associatif_marker.png'),
-        prive: new H.map.Icon(BASE_ICON_PATH + 'prive_marker.png'),
-        search: new H.map.Icon(BASE_ICON_PATH + 'search_marker.png'),
-        hospital: new H.map.Icon(BASE_ICON_PATH + 'hospital_marker.png')
-    };
-
+<script type="text/javascript" id="<?=$currentMenu?>">
     <?php if( $currentMenu == "dashboard" ): ?>
 $('#departements-field').select2({placeholder: 'Choisissez-en un'});
 // DATA TABLES

@@ -65,3 +65,4 @@ label,button,.pointer,.label,.zoom{cursor:pointer;}
     position: relative;
     margin-top: -60px;
 }
+.prescripteurs .dataTables_filter label{margin-top: -2px;}/*arent you overreacting borther ? */

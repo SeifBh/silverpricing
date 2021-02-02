@@ -2,7 +2,9 @@
  cuj https://ehpad.home/ccAll?m=83
  */
 use Alptech\Wip\fun;
+use Alptech\Wip\io;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+
 $_ENV['ajax']=0;
 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')$_ENV['ajax']=1;
 
@@ -10,13 +12,13 @@ function addMenuItem($url,$params){global $menuItems;$menuItems[$url]=$params;} 
 
 addMenuItem('prescripteurs', ['title' => 'prescripteurs', 'page callback' => 'prescripteurs', 'access callback' => 'residence_mgmt_user_plan_has_access', 'access arguments' => ['PAGE_RESIDENCES'],]);
 function prescripteurs(){
-    $_ENV['id2cat']=$residences = $healthOrganizations =$finesses=[];$requete_statistiques = null;$nbr=0;$errmsg='';
+    $_ENV['id2cat']=$residences = $healthOrganizations =$finesses=[];$requete_statistiques = null;$nbr=0;$confirmMd5=$errmsg='';
 
     global $user;
     $account = user_load($user->uid);
     $balance = $account->field_balance['und'][0]['value'];
 
-    $categories=\Alptech\wip\fun::sql('select distinct(code_categorie),lib_categorie from silverpricing_data_db.health_organizations','larav');
+    $categories=fun::sql('select distinct(code_categorie),lib_categorie from silverpricing_data_db.health_organizations','larav');
     $s=['code_categorie'=>-1,'lib_categorie'=>'Etablissements prescripteurs'];array_unshift($categories,$s);
     
     foreach($categories as &$t){
@@ -26,6 +28,12 @@ function prescripteurs(){
 
     if( !empty($_POST)){
         if( isset($_POST['latitude']) && isset($_POST['longitude']) && isset($_POST['perimetre'])) {
+            $p=array_filter($_POST);unset($p['confirm']);
+            $_lat=$_POST['latitude'];$_lon=$_POST['longitude'];$_dist=$_POST['perimetre'];
+            $x=fun::shortDist($_lat,$_lon,1);
+            $_km=[$_lat-$x[0],$_lon-$x[2]];
+            $_rect=fun::shortDist($_lat,$_lon,$_POST['perimetre']);
+
             $adr=$_POST['adresse'];
             if(!$adr)$adr=$_POST['latitude'].'-'.$_POST['longitude'];
             $lat=$_POST['latitude'];$lon=$_POST['longitude'];$perimetre=$_POST['perimetre'];#
@@ -35,10 +43,12 @@ function prescripteurs(){
             
             if(!empty($_POST['categories']))$wor=['code_categorie in ('.implode(',',$_POST['categories']).')'];
             if(in_array(-1,$_POST['categories']))$wor[]='prescripteur=1';
-#(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude))))
-            $s="select * from silverpricing_data_db.health_organizations where (".implode(' or ',$wor).") and (6371 * acos(cos(radians(latitude)) * cos(radians($lat) ) * cos(radians($lon) -radians(longitude)) + sin(radians(latitude)) * sin(radians($lat)))) <= $perimetre";
+#harversine :: fastest (with indexes)
+$s="select (6371 * acos(cos(radians(latitude)) * cos(radians($lat) ) * cos(radians($lon) -radians(longitude)) + sin(radians(latitude)) * sin(radians($lat)))) as distance,a.* from silverpricing_data_db.health_organizations a where (".implode(' or ',$wor).") and (6371 * acos(cos(radians(latitude)) * cos(radians($lat) ) * cos(radians($lon) -radians(longitude)) + sin(radians(latitude)) * sin(radians($lat))))  <= $perimetre order by distance asc";
+
             $healthOrganizations=fun::sql($s,'larav');
             foreach($healthOrganizations as &$t){$finesses[]=$t['finess'];$t=(object)$t;}unset($t);
+/*$healthOrganizations[]*/
             $nbr=count($healthOrganizations);
 
             if($_POST['prescripteurs']){
@@ -46,15 +56,18 @@ function prescripteurs(){
                 foreach($x as $t){$fin=$t['finess'];unset($t['finess']);$persons[$fin][]=$t;}
                 $nbr+=count($x);
             }
-            if(!residence_mgmt_has_enough_user_balance('prescripteur',[],$nbr)){
+            $confirmMd5=md5(json_encode($p));
+
+            if($balance<$nbr /*!residence_mgmt_has_enough_user_balance('prescripteur',[],$nbr)*/){
                 $errmsg="Cette requête nécessite $nbr crédits, vous n'en disposez que de $balance";
-                $a=1;
-            }
-            if(!$_POST['confirm'] or $_POST['confirm']!=$nbr){
+                $healthOrganizations=$persons=[];
+            } elseif(!$_POST['confirm'] or $_POST['confirm']!=$confirmMd5){
                 $healthOrganizations=$persons=[];
                 #return 'cette requête va consommer '.$nbr.' crédits';
             }else{
-                residence_mgmt_update_user_balance('prescripteur', ["perimetre" => $_POST['perimetre']], $_POST, $healthOrganizations, $name,$persons,$nbr);
+                $p=$_POST;
+
+                residence_mgmt_update_user_balance('prescripteur', ["perimetre" => $_POST['perimetre']], $p, $healthOrganizations, $name,$persons,$nbr);
             }
         }
     }
@@ -183,7 +196,7 @@ addMenuItem('depStats',array('title' => 'depStats', 'page callback' => 'depStats
 function depStats(){
     if(!DEV)die;
     $stats=[];$maxLitPop=$maxMsurPop=0;$minLitPop=$minMsurPop=99;
-    $x=Alptech\Wip\fun::sql("select distinct(field_departement_tid)as v from field_data_field_departement");
+    $x=fun::sql("select distinct(field_departement_tid)as v from field_data_field_departement");
     foreach($x as $t){
         $y=residence_mgmt_residences($t['v'],1);
         if($y['nbMaisonSurPop']>$maxMsurPop)$maxMsurPop=$y['nbMaisonSurPop'];
@@ -213,14 +226,14 @@ function listResidenceLinks($a=null){
     $f=__FILE__.'-'.$md5.'.cache';
 
     $r2lock=[];
-    $x=Alptech\Wip\fun::sql("select v,k2 from z_rkv where k='chambreTarifMailLock'");
+    $x=fun::sql("select v,k2 from z_rkv where k='chambreTarifMailLock'");
     foreach($x as $t){$r2lock[$t['k2']]=$t['v'];}
 
     if(is_file($f) and filemtime($f)>$now-3600){$content=file_get_contents($f);}
     else{
         $cond="left join field_data_field_tarif_chambre_simple e on e.entity_id=a.entity_id";
         if(isset($_GET['se']))$cond="inner join field_data_field_tarif_chambre_simple e on e.entity_id=a.entity_id and field_tarif_chambre_simple_value='NA'";
-    $x = Alptech\Wip\fun::sql("select a.entity_id as cid,a.field_residence_target_id as rid,b.field_email_value as email,c.field_uuid_value as uuid,d.changed,e.field_tarif_chambre_simmple_value as csTarif, f.field_location_locality as city,f.field_location_postal_code as cp,d.title,g.field_finess_value as finess,z.v as mailLockTime
+    $x = fun::sql("select a.entity_id as cid,a.field_residence_target_id as rid,b.field_email_value as email,c.field_uuid_value as uuid,d.changed,e.field_tarif_chambre_simmple_value as csTarif, f.field_location_locality as city,f.field_location_postal_code as cp,d.title,g.field_finess_value as finess,z.v as mailLockTime
     ,h.field_groupe_tid as groupeId
     ,h1.name as groupe ,i.field_logo_fid as fieldLogo,j.field_gestionnaire_value as gestionnaire,k.field_statut_value as statut,l.field_site_value as website  
      from field_data_field_residence a
@@ -357,7 +370,7 @@ function residence_mgmt_node_presave( $n ) {
 #/edit-residence/31459
 function updateAllRoomsUuid(){
     #select n.nid,u.field_uuid_value as uuid from node n left join field_data_field_uuid u on n.nid=u.entity_id where type='chambre' and u.field_uuid_value is not null -- sauvegardées : 20
-    $x = Alptech\Wip\fun::sql("select n.nid from node n left join field_data_field_uuid u on n.nid=u.entity_id where type='chambre' and u.field_uuid_value is null");
+    $x = fun::sql("select n.nid from node n left join field_data_field_uuid u on n.nid=u.entity_id where type='chambre' and u.field_uuid_value is null");
     foreach($x as $t){
         $y=node_load($t['nid']);
         $y->field_uuid['und'][0]['value']=uniqid();
@@ -374,9 +387,9 @@ function capretraite(){
 /*Extrait les images depuis le site capretraite : listing résidences et pages par région, puis résidence par résidence .. todo : md5 of prod url instead of uniqid() so next import wont overwrite those neat images*/
     $imgset=0;
     ini_set('max_execution_time',9999999);
-    $x=Alptech\Wip\io::fgcj($_SERVER['DOCUMENT_ROOT'].'z/capretraite.json');
+    $x=io::fgcj($_SERVER['DOCUMENT_ROOT'].'z/capretraite.json');
     $fitnesses=array_keys($x);$fitness2id=[];
-    $y=Alptech\Wip\fun::sql("select field_finess_value,entity_id from field_data_field_finess where field_finess_value in('".implode("','",$fitnesses)."')");
+    $y=fun::sql("select field_finess_value,entity_id from field_data_field_finess where field_finess_value in('".implode("','",$fitnesses)."')");
     foreach($y as $t){$fitness2id[$t['field_finess_value']]=$t['entity_id'];}
 
 try{
@@ -399,7 +412,7 @@ if(!$files){
 
         foreach ($data['images'][1] as $img) {
             $md5=md5($img);
-            $ext = Alptech\Wip\fun::getExtension($img);
+            $ext = fun::getExtension($img);
             $fn=$fitness.'-'.$md5 . '.' . $ext;#final expected path#
             #$files[0]["filename"]
             /*foreach($fpaths as $imgt){
@@ -429,13 +442,13 @@ $a=1;
                 $a = 1;#ok
             } else {
                 $opts = [CURLOPT_URL => $fq, CURLOPT_HEADER => 1, CURLINFO_HEADER_OUT => 1, CURLOPT_VERBOSE => 1, CURLOPT_RETURNTRANSFER => 1, CURLOPT_AUTOREFERER => 1, CURLOPT_FOLLOWLOCATION => 1, CURLOPT_TIMEOUT => 50, CURLOPT_CONNECTTIMEOUT => 50, CURLOPT_SSL_VERIFYHOST => false, CURLOPT_SSL_VERIFYPEER => false];#, CURLOPT_HTTPHEADER => $headers
-                $curlFile = Alptech\Wip\fun::cuo($opts);
+                $curlFile = fun::cuo($opts);
                 $_curl=$curlFile['info']['download_content_length'];
                 if ($curlFile['error'] or $curlFile['info']['http_code'] != 200 or $curlFile["info"]["download_content_length"] < 200) {
                     $err = 1;
                     continue;
                 } else {
-                    $_written = Alptech\Wip\io::FPC($dlp, $curlFile['contents']);
+                    $_written = io::FPC($dlp, $curlFile['contents']);
                 }
             }
             if(is_file($dlp2))$dlp=$dlp2;
@@ -445,13 +458,13 @@ $a=1;
                 continue;
             }elseif(/*$fs>400000 and */$dlp != $dlp2){#not recursive please!!!
                 #$is=getimagesize($dlp,$if);#osef
-                $_resized=Alptech\Wip\fun::resizeImage($dlp,1200,null,$dlp2);#1200 max as jpg 70
+                $_resized=fun::resizeImage($dlp,1200,null,$dlp2);#1200 max as jpg 70
                 unlink($dlp);
                 $dlp=$dlp2;
             }
 /* Calculation :: the thumbnail */
             $t2=rtrim($_SERVER['DOCUMENT_ROOT'],'/') . '/sites/default/styles/thumbnail/public/ehpad/'.$fn;
-            if(!is_file($t2)){$_resized=Alptech\Wip\fun::resizeImage($dlp,100,null,$t2);}#1200 max as jpg 70
+            if(!is_file($t2)){$_resized=fun::resizeImage($dlp,100,null,$t2);}#1200 max as jpg 70
 
             $imgset++;$ajoutImage++;
             $file = (object)['uid' => 1, 'uri' => $dlp, 'filemime' => file_get_mimetype($dlp), 'status' => 1];
@@ -479,19 +492,19 @@ $a=1;
 
 function editChambreByUuid($uuid=null){
     if(!$uuid){
-        Alptech\Wip\fun::r404('nothing here');
+        fun::r404('nothing here');
     }
-    $x=Alptech\Wip\fun::sql("SELECT entity_id FROM field_data_field_uuid a WHERE a.field_uuid_value='".addslashes($uuid)."'");
+    $x=fun::sql("SELECT entity_id FROM field_data_field_uuid a WHERE a.field_uuid_value='".addslashes($uuid)."'");
     if(!$x){
-        Alptech\Wip\fun::r404('nothing here 2');
+        fun::r404('nothing here 2');
     } elseif(count($x)>1){
-        Alptech\Wip\fun::r404('multiple results ... ?');
+        fun::r404('multiple results ... ?');
     }
     $eid=$x[0]['entity_id'];
     #node_load(); ..
     if( isset($_POST) && !empty($_POST) ) {
         updateChambre($eid, $_POST);
-        Alptech\Wip\fun::r302('?');
+        fun::r302('?');
     } else {#chargement données et template
         $chambre = entity_load('node', array($eid), array('type' => 'chambre'));
         $chambre = $chambre[$eid];
@@ -1180,7 +1193,7 @@ function residence_mgmt_residences($departementId = null,$ret=0) {
     $query->leftjoin('field_data_field_capacite', 'c', 'c.entity_id = n.nid', array());
     $query->addExpression('SUM(c.field_capacite_value)', 'nombre_lits');
     $capaciteTotale = $query->execute()->fetch();#France globale
-#$x = Alptech\Wip\fun::sql("select sum(field_capacite_value)as v from field_data_field_capacite");$sommeFrance=$x[0]['v'];
+#$x = fun::sql("select sum(field_capacite_value)as v from field_data_field_capacite");$sommeFrance=$x[0]['v'];
 
 // CUSTOM STATISTICS
 
@@ -1752,7 +1765,7 @@ function residence_mgmt_departement_info($departementId) {
 function residence_mgmt_recherche_silverex() {
     $currentMenu = "recherche-silverex";$residences = $healthOrganizations = array();$requete_statistiques = null;
 #$categories = json_decode(getRequest( BASE_API_URL . "/api/health-organizations/categories/list" ));$s=(object)['code_categorie'=>-1,'lib_categorie'=>'Etablissements prescripteurs'];array_unshift($categories,$s);
-$categories=\Alptech\wip\fun::sql('select distinct(code_categorie),lib_categorie from silverpricing_data_db.health_organizations','larav');
+$categories=fun::sql('select distinct(code_categorie),lib_categorie from silverpricing_data_db.health_organizations','larav');
 $s=['code_categorie'=>-1,'lib_categorie'=>'Etablissements prescripteurs'];array_unshift($categories,$s);
 $_ENV['id2cat']=[];
 foreach($categories as &$t){
@@ -1765,7 +1778,7 @@ foreach($categories as &$t){
     if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE and  isset($_SESSION['hid']) and isset($_POST['latitude']) and isset($_POST['longitude']) and isset($_POST['perimetre']) and
         $_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.implode(',',$_POST['categories'])==$_SESSION['lastSearch']) {
         $a='https://ehpad.home/history/48179';#rediriger sur dernière historique
-        #Alptech\Wip\fun::r302('/history/'.$_SESSION['hid'].'#f5?');
+        #fun::r302('/history/'.$_SESSION['hid'].'#f5?');
         #"$_SESSION['lastSearch'];;
     }
 
@@ -1786,9 +1799,9 @@ foreach($categories as &$t){
                 if(in_array(-1,$_POST['categories']))$wor[]='prescripteur=1';
 #(6371 * acos(cos(radians(lat.field_latitude_value)) * cos(radians(:latitude) ) * cos(radians(:longitude) -radians(lng.field_longitude_value)) + sin(radians(lat.field_latitude_value)) * sin(radians(:latitude))))
 $s="select * from silverpricing_data_db.health_organizations where (".implode(' or ',$wor).") and (6371 * acos(cos(radians(latitude)) * cos(radians($lat) ) * cos(radians($lon) -radians(longitude)) + sin(radians(latitude)) * sin(radians($lat)))) <= $perimetre";
-$healthOrganizations=\Alptech\wip\fun::sql($s,'larav');
+$healthOrganizations=\fun::sql($s,'larav');
 foreach($healthOrganizations as &$t){$t=(object)$t;}unset($t);
-#$rkv=\Alptech\wip\fun::sql('select k from z_rkv limit 1','mysql');
+#$rkv=\fun::sql('select k from z_rkv limit 1','mysql');
 #$healthOrganizations = json_decode(postRequest( BASE_API_URL . "/api/health-organizations/search/" . $_POST['latitude'] . "/" . $_POST['longitude'] . "/" . $_POST['perimetre'], [ 'categories' => $_POST['categories'] ] ));#20 resultats
                 $a=1;
             }
@@ -2156,7 +2169,8 @@ function residence_mgmt_generate_document( $userId, $historyId ) {
 
   ob_start();
   switch($history->title) {
-      case "prescripteur":  include __DIR__ . "/templates/partial/pdf/prescripteur.php";    break;
+      case "prescripteur":  include __DIR__ . "/templates/partial/pdf/prescripteurPdf.php";
+      if(strpos($_SERVER['HTTP_HOST'],'.home')){$content = ob_get_clean();die($content);}   break;
       case "RESIDENCES_REQUEST":include __DIR__ . "/templates/partial/pdf/residences_request.php";break;
       case "DEPARTMENT_REQUEST":include __DIR__ . "/templates/partial/pdf/department_request.php";break;
       case "GROUP_REQUEST":include __DIR__ . "/templates/partial/pdf/group_request.php";break;
@@ -2164,7 +2178,7 @@ function residence_mgmt_generate_document( $userId, $historyId ) {
       default:echo "YEAP ! IT'S WORKING";
   }
   $content = ob_get_clean();
-  die($content);
+  #die($content);
   $generatedFile = $history->title . "_" . $history->nid;
   include __DIR__ . "/templates/layouts/default.pdf.php";
 }

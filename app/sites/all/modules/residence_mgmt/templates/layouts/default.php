@@ -1,18 +1,19 @@
 <?php
-#define("MODULE_PATH", "/sites/all/modules/residence_mgmt"); ?>
-<!DOCTYPE html>
-<html lang="fr" id="a"><head>
-<script type="text/javascript" id="dynjs"><?php
-    $json=[];
-    if(isset($GLOBALS['user']->uid)){$json=array_merge($json,['uid'=>$GLOBALS['user']->uid,'uname'=>$GLOBALS['user']->name]);}
-    if(isset($_POST)){$json=array_merge($json,['post'=>$_POST]);}
-    if(isset($_GET)){$json=array_merge($json,['get'=>$_GET]);}
-    if(isset($_SESSION['public'])){$json=array_merge($json,['session'=>$_SESSION['public']]);}
-
-echo"var json=".json_encode($json).",rgm,rmi='".RESIDENCE_MGMT_URI."',  frenchDataTables=rmi+'/lib/datatables.net/i18n/French.json';  for(var i in json){window[i]=json[i];}    rgm=rmi;";
+#define("MODULE_PATH", "/sites/all/modules/residence_mgmt");
+$json=[];
+if(isset($GLOBALS['user']->uid)){$json=array_merge($json,['uid'=>$GLOBALS['user']->uid,'uname'=>$GLOBALS['user']->name]);}
+if(isset($_POST)){$json=array_merge($json,['post'=>$_POST]);}
+if(isset($_GET)){$json=array_merge($json,['get'=>$_GET]);}
+if(isset($_SESSION['public'])){$json=array_merge($json,['session'=>$_SESSION['public']]);}
 $a=$user->uid.'-'.$user->name;
 ?>
-    </script>
+<!DOCTYPE html>
+<html lang="fr" id="a"><head>
+<script type="text/javascript" id="dynjs" class="<?=$currentMenu?>">
+<? echo"var json=".json_encode($json).",rgm,rmi='".RESIDENCE_MGMT_URI."',  frenchDataTables=rmi+'/lib/datatables.net/i18n/French.json';  for(var i in json){window[i]=json[i];}    rgm=rmi;";?>
+var currentMenu='<?=$currentMenu?>',BASE_ICON_PATH = "<?php echo RESIDENCE_MGMT_URI; ?>/assets/img/";
+</script>
+
     <link id="gcss" rel="stylesheet" href="/z/global.css?a=<?=filemtime(rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/z/global.css')?>" title="/z/global.css" />
     <script async id="gjs" src="/z/global.js?a=<?=filemtime(rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/z/global.js')?>" title="/z/global.js" ></script>
     <script async src="https://code.iconify.design/1/1.0.7/iconify.min.js#rendersExcel"></script>

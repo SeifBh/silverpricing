@@ -944,7 +944,8 @@ function addTMHMaquetteToFavoris( $fieldFavoris, $maquetteId ) {
 function addHistory($historyData = [], $organismes = [])
 {
     $tel=$groupe=$lits=$adresse=$aidesoc=$tarifs=$alz=$ids=[];foreach($historyData['body']['response'] as $t){$ids[]=intval($t->nid);}
-    if($ids and 'données additionnelles pour création du fichier excel de statistiques'){
+
+    if($historyData['title']!='prescripteur' and $ids and 'données additionnelles pour création du fichier excel de statistiques'){
 #$r2c=res2ch($ids);$tarifs=chprix($r2c,1);foreach($tarifs as &$t){$t=end($t);}unset($t);#dernière historique $historiquePrix=implode(',',$chp[$rid]);
     $sql="select entity_id as k,field_telephone_value as v from field_data_field_telephone where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$tel[$t['k']]=$t['v'];
     $sql="select entity_id as k,field_alzheimer_value as v from field_data_field_alzheimer where entity_id in (".implode(',',$ids).") and bundle='residence'";$x=Alptech\Wip\fun::sql($sql);foreach($x as $t)$alz[$t['k']]=$t['v'];
@@ -966,44 +967,68 @@ $a=1;
          if($historyData['name']) {$history->field_name[LANGUAGE_NONE][0]['value'] = $historyData['name'];}#
       node_object_prepare($history);
 
+    $offsetLignes=2;
+
     if($historyData['name'] and 1 and 'excel'){
+
+        $lines=[];
         $fn=$historyData['body']['request']['adresse'].'-'.$historyData['body']['request']['perimetre'];
-        $t=(array)$historyData['body']['response'][0];unset($t['nid'],$t['field_logo_fid'],$t['grp_term_name']);
-        $headers=array_merge(array_keys($t),['Addresse','Telephone',/*'Tarifs',*/'Alzeihmer','Aide sociale','Lits','Groupe']);#
-        $translate=['title'=>'Nom','field_statut_value'=>'type','field_location_locality'=>'ville','field_location_postal_code'=>'code postal','field_tarif_chambre_simple_value'=>'tarif chambre','field_gestionnaire_value'=>'gestionnaire','field_latitude_value'=>'latitude','field_longitude_value'=>'longitude','name'=>'département','distance'=>'distance en km'];
-        foreach($headers as &$v){
-            if(isset($translate[$v])){$v=$translate[$v];}
-            $v=str_replace(['field_','_value',],'',$v);
-        }unset($v);
-        $lines=[$headers];
+        $t=(array)$historyData['body']['response'][0];
 
-        foreach($historyData['body']['response'] as $k=>$t){
-            if(is_object($t))$t=(array)$t;$id=$t['nid'];
+        if($historyData['title']=='prescripteur'){#full dump A -- peut s'avérer être très, très, très long !!!!
+            $historyData['name']='prescripteurs '.$historyData['name'];
+            #unset($t['nid'],$t['field_logo_fid'],$t['grp_term_name']);
+            $headers=array_keys($t);#array_merge(array_keys($t),['Addresse','Telephone',/*'Tarifs',*/'Alzeihmer','Aide sociale','Lits','Groupe']);
+            if(0){$translate=['title'=>'Nom','field_statut_value'=>'type','field_location_locality'=>'ville','field_location_postal_code'=>'code postal','field_tarif_chambre_simple_value'=>'tarif chambre','field_gestionnaire_value'=>'gestionnaire','field_latitude_value'=>'latitude','field_longitude_value'=>'longitude','name'=>'département','distance'=>'distance en km'];
+            foreach($headers as &$v){
+                if(isset($translate[$v])){$v=$translate[$v];}
+                $v=str_replace(['field_','_value',],'',$v);
+            }unset($v);}
+            $lines=[$headers];#2nde ligne
+            foreach($historyData['body']['response'] as $k=>$t){if(is_object($t))$t=(array)$t;$lines[]=array_values($t);}
+
+        }else{#résidence request
             unset($t['nid'],$t['field_logo_fid'],$t['grp_term_name']);
+            $headers=array_merge(array_keys($t),['Addresse','Telephone',/*'Tarifs',*/'Alzeihmer','Aide sociale','Lits','Groupe']);#
+            $translate=['title'=>'Nom','field_statut_value'=>'type','field_location_locality'=>'ville','field_location_postal_code'=>'code postal','field_tarif_chambre_simple_value'=>'tarif chambre','field_gestionnaire_value'=>'gestionnaire','field_latitude_value'=>'latitude','field_longitude_value'=>'longitude','name'=>'département','distance'=>'distance en km'];
+            foreach($headers as &$v){
+                if(isset($translate[$v])){$v=$translate[$v];}
+                $v=str_replace(['field_','_value',],'',$v);
+            }unset($v);
 
-            $t['adresse']=(isset($adresse[$id])?$adresse[$id]:'');
-            $t['tel']=(isset($tel[$id])?$tel[$id]:'');
-            #$t['tarif']=(isset($tarifs[$id])?$tarifs[$id]:'');#déjà listés
-            $t['alz']=(isset($alz[$id])?($alz[$id]==1?'oui':'non'):'');
-            $t['aids']=(isset($adresse[$id])?($aidesoc[$id]==1?'oui':'non'):'');
-            $t['lits']=(isset($lits[$id])?$lits[$id]:'');
-            $t['groupe']=(isset($groupe[$id])?$groupe[$id]:'');
-            $lines[]=array_values($t);
-        }#
+            $lines=[$headers];#2nde ligne
+
+            foreach($historyData['body']['response'] as $k=>$t){
+                if(is_object($t))$t=(array)$t;$id=$t['nid'];
+                unset($t['nid'],$t['field_logo_fid'],$t['grp_term_name']);
+if('inject drupal sql data'){
+                $t['adresse']=(isset($adresse[$id])?$adresse[$id]:'');
+                $t['tel']=(isset($tel[$id])?$tel[$id]:'');
+                #$t['tarif']=(isset($tarifs[$id])?$tarifs[$id]:'');#déjà listés
+                $t['alz']=(isset($alz[$id])?($alz[$id]==1?'oui':'non'):'');
+                $t['aids']=(isset($adresse[$id])?($aidesoc[$id]==1?'oui':'non'):'');
+                $t['lits']=(isset($lits[$id])?$lits[$id]:'');
+                $t['groupe']=(isset($groupe[$id])?$groupe[$id]:'');
+}
+                $lines[]=array_values($t);
+            }
+        }
+
         $lines=array_filter($lines);
 
+if($lines){
         try{
 #1ère ligne:nom complet de la recherche
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            $sheet->setTitle(substr(preg_replace('~[^a-z0-9 \.]+~is','',$historyData['body']['request']['adresse']),0,31));#31 max chars '.$historyData['body']['request']['adresse'].','.$historyData['body']['request']['perimetre']);
+            $sheet->setTitle(substr(preg_replace('~[^a-z0-9 \.]+~is','',$historyData['body']['request']['adresse'].'-'.$historyData['body']['request']['latitude'].'-'.$historyData['body']['request']['longitude'].'-'),0,31));#31 max chars '.$historyData['body']['request']['adresse'].','.$historyData['body']['request']['perimetre']);
             $cols=[];$letter = 'A';while ($letter !== 'AAA') {$cols[] = $letter++;}
             $sheet->getCell('A1')->setValue($historyData['name']);
             if ('parcours des données') {
                 foreach ($lines as $l => $t) {
                     foreach ($t as $c => $v) {
                         $x = $cols[$c];
-                        $coord = $x . '' . ($l + 2);#démarre à la seconde ligne
+                        $coord = $x . '' . ($l + $offsetLignes);#démarre à la seconde ligne
                         $sheet->getCell($coord)->setValue($v);
                     }
                 }
@@ -1014,44 +1039,68 @@ $a=1;
 #could not close
             $writer->save(rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/'.$rp);#$GLOBALS['user']???
             $history->field_excel['und'][0]['value'] =  '/'.$rp;##
-        }catch(\Exception $e){
-            file_put_contents(ini_get('error_log'),"\n\n}{".print_r($e,1),8);
+            $a=1;
+        }catch(\Exception $__e){
+            file_put_contents(ini_get('error_log'),"\n\n}{".print_r($__e,1),8);#AG4
             $err=1;
         }
 
-        if(1 and $organismes){#second excel : personnes
-            try{
-                $lines=$cats=[];#$letter = 'A';while ($letter !== 'AAA') {$cols[] = $letter++;}
-                foreach($_POST['categories'] as $cat){$cats[]=$_ENV['id2cat'][$cat];}
-                $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-                $sheet = $spreadsheet->getActiveSheet();
-                $sheet->setTitle(substr(preg_replace('~[^a-z0-9 \.]+~is','','organismes '.implode(',',$cats)),0,31));#31 max chars '.$historyData['body']['request']['adresse'].','.$historyData['body']['request']['perimetre']);
-                $fields=array_keys((array)reset($organismes));
-                $lines=array_merge([[$historyData['name'].'- organismes : '.implode(',',$cats)],$fields],$organismes);
+
+if(1 and $organismes){#second excel : personnes ou organismes de recherche résidence ..
+    try{
+        $lines=$cats=[];#$letter = 'A';while ($letter !== 'AAA') {$cols[] = $letter++;}
+        foreach($_POST['categories'] as $cat){$cats[]=$_ENV['id2cat'][$cat];}
+
+$spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setTitle(substr(preg_replace('~[^a-z0-9 \.]+~is','','organismes '.implode(',',$cats)).'-',0,31));#31 max chars '.$historyData['body']['request']['adresse'].','.$historyData['body']['request']['perimetre']);
+
+if($historyData['title']=='prescripteur'){
+    $fields=array_diff(array_keys(reset($organismes)[0]),['md5','json','id','updated']);
+    array_unshift($fields,'finess');
+}
+else $fields=array_keys((array)reset($organismes));
+
+$lines=array_filter(array_merge([$historyData['name'].'- organismes : '.implode(',',$cats)],[$fields]));
+foreach($organismes as $finess=>$t){
+    if($historyData['title']=='prescripteur' and is_array($t)){
+        foreach($t as $t2){
+            unset($t2['md5'],$t2['json'],$t2['id'],$t2['updated']);
+            array_unshift($t2,$finess);
+            $lines[]=$t2;
+        }
+    }else{
+        $lines[]=$t;
+    }
+}
+#$lines=array_merge([[$historyData['name'].'- organismes : '.implode(',',$cats)],$fields],$organismes);
+$a=$offsetLignes=1;
+
 if('doesnotwork' and 0){
-    foreach ($lines as &$t) {if (!is_array($t)) {$t = (array)$t;}}unset($t);
     $sheet->fromArray([$lines], NULL, 'A1');
 } else{
-    $sheet->getCell('A1')->setValue($historyData['name'].'- organismes : '.implode(',',$cats));
+    /*if(0 and $historyData['title']=='prescripteur')$sheet->getCell('A1')->setValue($historyData['name'].'- organismes : '.implode(',',$cats));
+    else $sheet->getCell('A1')->setValue($historyData['name'].'- organismes : '.implode(',',$cats));*/
     if ('organismes') {
         foreach ($lines as $l => $t) {
             if(!is_array($t))$t=(array)$t;
-            $c=0;foreach ($t as $v) {$x = $cols[$c];$c++;$coord = $x . '' . ($l+2);$sheet->getCell($coord)->setValue($v);}
+            $c=0;foreach ($t as $v) {$x = $cols[$c];$c++;$coord = $x . '' . ($l+$offsetLignes);$sheet->getCell($coord)->setValue($v);}
         }
     }
 }
-                $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-                $rp='z/xls/'.$fn.'-'.implode('-',$_POST['categories']).'-'.$GLOBALS['user']->uid.'-'.$GLOBALS['user']->name.'-'.uniqid().'.xlsx';
-    #could not close
-                $writer->save(rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/'.$rp);#$GLOBALS['user']???
-#$history->field_excelorganismes['und'][0]['value'] =  '/'.$rp;#a pas vouloire persister ???????
+$writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+$rp='z/xls/org-'.$fn.'-'.implode('-',$_POST['categories']).'-'.$GLOBALS['user']->uid.'-'.$GLOBALS['user']->name.'-'.uniqid().'.xlsx';
+#could not close
+$writer->save(rtrim($_SERVER['DOCUMENT_ROOT'],'/').'/'.$rp);#$GLOBALS['user']???persister ???????
+$history->field_excelorganismes['und'][0]['value'] =  '/'.$rp;#a pas vouloire
+$a=1;
             }catch(\Exception $__e){
                 $err=1;
                 file_put_contents(ini_get('error_log'),"\n\n}{".print_r($__e,1),8);
             }
         }
-
-    }#end excel
+}
+}#end excel
     $history->body[$history->language][0]['value'] = json_encode($historyData['body']);
 
     $history->field_balance_consumed[$history->language][0]['value'] = $historyData['balance_consumed'];
@@ -1077,8 +1126,10 @@ function getHistories() {
     $query->leftjoin('field_data_field_name', 'name', 'name.entity_id = n.nid', array());
     $query->leftjoin('field_data_field_map', 'map', 'map.entity_id = n.nid', array());
     $query->leftjoin('field_data_field_excel', 'excel', 'excel.entity_id = n.nid', array());
+    $query->leftjoin('field_data_field_excelorganismes', 'exo', 'exo.entity_id = n.nid', []);
 
     $query->fields('excel', array('excel'=>'field_excel_value'));
+    $query->fields('exo', array('excel'=>'field_excelorganismes_value'));
     $query->fields('map', array('name'=>'field_map_value'));
     $query->fields('name', array('name'=>'field_name_value'));
 

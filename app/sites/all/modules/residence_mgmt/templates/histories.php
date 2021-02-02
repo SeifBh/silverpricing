@@ -19,15 +19,21 @@
                   <tbody>
                       <?php
                       $a=1;
-                      foreach( $histories as $h => $history ): ?>
+                      foreach( $histories as $h => $history ){
+                          $_ex=$history->field_excel_value;
+                          $_exo=$history->field_excelorganismes_value;
+                          ?>
                           <tr>
                               <td><?php echo ($history->field_name_value) ? $history->field_name_value : $history->title; ?></td>
                               <td>
                                 <p><?php
-                                    $currentHistory = json_decode($history->body_value);
-                                    if( $currentHistory->request->adresse ) {
-                                        unset($currentHistory->request->adresse);
+                                    if(strpos($_SERVER['HTTP_HOST'],'.home')){
+                                        $a=1;
                                     }
+
+                                    $currentHistory = json_decode($history->body_value);
+                                    if(isset($currentHistory->request->confirm))unset($currentHistory->request->confirm);
+                                    if(isset($currentHistory->request->adresse))unset($currentHistory->request->adresse);
                                     echo json_encode($currentHistory->request);
                                 ?></p>
                               </td>
@@ -37,10 +43,12 @@
                                   <a class="btn btn-sm btn-primary btn-icon" href="<?php echo "/ged/" . $account->uid . "/document/" . $history->nid ; ?>" title="Télécharger"><i data-feather="download"></i></a>
                                   <?php if(in_array($history->title,['RESIDENCES_REQUEST','prescripteur'])){?>
                                   <a class="btn btn-sm btn-primary btn-icon" href="<?php echo "/history/" . $history->nid ; ?>" title="Consulter"><i data-feather="eye"></i></a>
-                                  <?php if($history->field_excel_value){?><a class="btn btn-sm btn-primary btn-icon" href="<?php echo $history->field_excel_value;?>" title="excel"><span class="iconify" data-icon="fe-file-excel" data-inline="false"></span></a><?}}#?>
+                                  <?php if($_ex){?><a class="btn btn-sm btn-primary btn-icon" href="<?php echo $_ex;?>" title="excel"><span class="iconify" data-icon="fe-file-excel" data-inline="false"></span></a><?}#?>
+                                  <?php if($_exo){?><a title="fichier secondaire" class="btn btn-sm btn-primary btn-icon" href="<?php echo $_exo;?>" title="excel"><span class="iconify" data-icon="bi:file-zip-fill" data-inline="false"></span></span></a><?}
+                                  }#?>
                               </td>
                           </tr>
-                      <?php endforeach; ?>
+                      <?php } ?>
                   </tbody>
               </table>
               </div>
