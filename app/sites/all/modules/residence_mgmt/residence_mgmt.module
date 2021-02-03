@@ -67,7 +67,6 @@ $s="select (6371 * acos(cos(radians(latitude)) * cos(radians($_lat) ) * cos(radi
                 #return 'cette requête va consommer '.$nbr.' crédits';
             }else{
                 $p=$_POST;
-
                 residence_mgmt_update_user_balance('prescripteur', ["perimetre" => $_POST['perimetre']], $p, $healthOrganizations, $name,$persons,$nbr);
             }
         }

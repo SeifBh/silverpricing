@@ -111,14 +111,13 @@ if($healthOrganizations){?>
                     <thead>
                         <tr>
                         <th scope="col">Etablissement</th>
-                        <th scope="col">Finess</th>
                         <th scope="col">Code postal</th>
                         <th scope="col">Ville</th>
                         <th scope="col">Département</th>
                         <th scope="col">Distance</th>
                         <th scope="col">Téléphone</th>
                         <th scope="col">Email</th>
-                        <?/*
+                        <?/*<th scope="col">Finess</th>    <td><?=$t->finess?></td>
                         <th scope="col">Groupe</th>
                         <th scope="col">Status</th>
                         <th scope="col">Tarif</th>*/?>
@@ -126,10 +125,12 @@ if($healthOrganizations){?>
                     </thead>
                     <tbody>
                         <?php
-                            foreach( $healthOrganizations as $k=>$t ){ ?>
+                        $f2e=[];
+                            foreach( $healthOrganizations as $k=>$t ){#_juridique
+                                $f2e[$t->finess]=$t->raison_sociale;
+                                ?>
                             <tr>
                                 <td><?=$t->raison_sociale?></td>
-                                <td><?=$t->finess?></td>
                                 <td><?=$t->code_postal?></td>
                                 <td><?=$t->libelle_routage?></td>
                                 <td><?=substr($t->code_postal,0,2)?></td>
@@ -157,7 +158,7 @@ if($healthOrganizations){?>
                 <table id="persons" class="table table-sm table-hover">
                     <thead>
                         <tr>
-                        <th scope="col">Finess</th>
+                            <th scope="col">Etablissement</th>
                         <th scope="col">Service</th>
                         <th scope="col">Fonction</th>
                         <th scope="col">Nom</th>
@@ -179,7 +180,13 @@ if($healthOrganizations){?>
                             foreach($persons as $finess=>$personsArray ){
                                 foreach($personsArray as $t){?>
                             <tr>
-                                <td><?=$finess?></td>
+                                <td><?
+                                    if(!isset($f2e[$finess])){
+                                        $a=1;
+                                    }else{
+                                        echo $f2e[$finess];
+                                    }
+                                    ?></td>
                                 <td><?=$t['service']?></td>
                                 <td><?=$t['fonction']?></td>
                                 <td><?=$t['nom']?></td>
@@ -238,7 +245,7 @@ currentMap.map.getEngine().addEventListener('render',function(e){if (currentMap.
 
     if($('#residences-result-table').length){
         $('#residences-result-table').DataTable( {"language": {url: frenchDataTables},"paging":true,"pagelength":25,"searching": true, "order": [[ 5, "asc" ]]
-           , columnDefs: [{"searchable": false, "targets": [1,4,5,6]} /*,{ type: 'natural-nohtml', targets: 5 }, { type: 'natural-nohtml', targets: 7 }*/]
+           , columnDefs: [{"searchable": false, "targets": [3,4,5]} /*,{ type: 'natural-nohtml', targets: 5 }, { type: 'natural-nohtml', targets: 7 }*/]
         });
     }
     if($('#persons').length){

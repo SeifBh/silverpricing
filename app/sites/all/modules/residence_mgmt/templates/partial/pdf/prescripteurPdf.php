@@ -74,8 +74,10 @@ foreach( $historyResult->response as $k=>&$residence ) {
 
 usort($historyResult->response, '_distAsc');
 
+#$f2e=[];
 foreach( $historyResult->response as $k=>$residence ) {
-    $finess = $residence->finess;
+    $finess = $residence->finess;#$f2e[$t->finess_juridique]=$t->raison_sociale;
+    #$f2e[$t->finess]=$t->raison_sociale;
     ?>
     <tr>
         <td><?php

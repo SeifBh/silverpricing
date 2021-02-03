@@ -69,7 +69,7 @@ $rows = 0;
             <div class="box-body">
     <table id="residences-result-table" class="table table-sm table-hover"><thead>
     <tr>
-        <th scope="col">Finess</th>
+        <?#<th scope="col">Finess</th>?>
         <th scope="col">Etablissement</th>        
         <th scope="col">Code postal</th>
         <th scope="col">Ville</th>
@@ -80,10 +80,13 @@ $rows = 0;
     </tr>
     </thead>
     <tbody>
-    <?php 
-    foreach( $historyBody->response as $k=>$t ){ ?>
+    <?php
+$f2e=[];
+    foreach( $historyBody->response as $k=>$t ){
+        $f2e[$t->finess]=$t->raison_sociale;
+        ?>
         <tr>
-            <td><?=$t->finess?></td>
+            <?/*<td><?=$t->finess?></td>*/?>
             <td><?=$t->raison_sociale?></td>
             <td><?=$t->code_postal?></td>
             <td><?=$t->libelle_routage?></td>
@@ -99,7 +102,7 @@ $rows = 0;
 <hr><div class="box box-default">
     <div class="box-body">
     <table id="persons"><thead><tr>
-          <th scope="col">Finess</th>
+            <th scope="col">Etablissement</th>
             <th scope="col">Service</th>
             <th scope="col">Fonction</th>
             <th scope="col">Nom</th>
@@ -117,7 +120,7 @@ $rows = 0;
         foreach( $historyBody->organismes as $finess=>$persons ){
             foreach($persons as $t){$t=(array)$t;#$t-> stdclass here?>
             <tr>
-                <td><?=$finess?></td>
+                <td><?=$f2e[$finess]?></td>
                 <td><?=$t['service']?></td>
                 <td><?=$t['fonction']?></td>
                 <td><?=$t['nom']?></td>
@@ -179,11 +182,11 @@ $(document).ready(function(){
             });
         }
         if($('#residences-result-table').length) {
-            $('#residences-result-table').DataTable({"language": {url: frenchDataTables}, "paging":true,"pagelength":25,"searching": true, "order": [[5, "asc"]], columnDefs: [{type: 'natural-nohtml', targets: 6}]});
+            $('#residences-result-table').DataTable({"language": {url: frenchDataTables}, "paging":true,"pagelength":25,"searching": true, "order": [[4, "asc"]], columnDefs: [/*{type: 'natural-nohtml', targets: 6}*/]});
         }
     }else{
         if($('#residences-result-table').length) {
-            $('#residences-result-table').DataTable({"language": {url: frenchDataTables}, "paging":true,"pagelength":25,"searching": true, "order": [[4, "asc"]], columnDefs: [{type: 'natural-nohtml', targets: 6}]});
+            $('#residences-result-table').DataTable({"language": {url: frenchDataTables}, "paging":true,"pagelength":25,"searching": true, "order": [[4, "asc"]], columnDefs: [/*{type: 'natural-nohtml', targets: 6}*/]});
         }
     }
 });

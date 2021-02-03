@@ -1718,9 +1718,7 @@ addInfoBubble(<?/*history*/?>hereMap, markerObject, "<?php echo "<b>" . htmlspec
     <?php elseif($currentMenu == "mes-residences"): ?>
         $(document).ready(function() {
             $('#mes-residences-table').DataTable( {
-                "language": {
-                    url: frenchDataTables
-                },
+                "language": {url: frenchDataTables},
                 "info": false,
                 "order": [[ 1, "asc" ]],
                 'columnDefs': [
@@ -1733,9 +1731,7 @@ addInfoBubble(<?/*history*/?>hereMap, markerObject, "<?php echo "<b>" . htmlspec
     <?php elseif($currentMenu == "development-tools"): ?>
         // DATATABLES
         var yeelderToolsTable = $('#yeelder-tools-table').DataTable( {
-            "language": {
-                url: frenchDataTables
-            },
+            "language": {url: frenchDataTables},
             columns: [
                 { data: 'id_mutation' },
                 { data: 'date_mutation' },
@@ -1871,10 +1867,7 @@ addInfoBubble(<?/*history*/?>hereMap, markerObject, "<?php echo "<b>" . htmlspec
     <?php elseif($currentMenu == "nearby-residences"): ?>
         
         $(document).ready(function() {
-            $('#nearby-residences-updated-table').DataTable( {
-                "language": {
-                    url: frenchDataTables
-                },
+            $('#nearby-residences-updated-table').DataTable( {"language": {url: frenchDataTables},
                 "info": false,
                 "order": [[ 1, "asc" ]]
             });

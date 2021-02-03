@@ -977,15 +977,27 @@ $a=1;
 
         if($historyData['title']=='prescripteur'){#full dump A -- peut s'avérer être très, très, très long !!!!
             $historyData['name']='prescripteurs '.$historyData['name'];
+            #$f2e[$t->finess_juridique]=$t->raison_sociale;
             #unset($t['nid'],$t['field_logo_fid'],$t['grp_term_name']);
             $headers=array_keys($t);#array_merge(array_keys($t),['Addresse','Telephone',/*'Tarifs',*/'Alzeihmer','Aide sociale','Lits','Groupe']);
+            $dontDisplay=['id','finess','finess_juridique'];
+            $headers=array_diff($headers,$dontDisplay);
+
             if(0){$translate=['title'=>'Nom','field_statut_value'=>'type','field_location_locality'=>'ville','field_location_postal_code'=>'code postal','field_tarif_chambre_simple_value'=>'tarif chambre','field_gestionnaire_value'=>'gestionnaire','field_latitude_value'=>'latitude','field_longitude_value'=>'longitude','name'=>'département','distance'=>'distance en km'];
             foreach($headers as &$v){
                 if(isset($translate[$v])){$v=$translate[$v];}
                 $v=str_replace(['field_','_value',],'',$v);
             }unset($v);}
-            $lines=[$headers];#2nde ligne
-            foreach($historyData['body']['response'] as $k=>$t){if(is_object($t))$t=(array)$t;$lines[]=array_values($t);}
+            $lines=[$headers];#2nde ligne :: fields
+            $f2e=[];
+            foreach($historyData['body']['response'] as $k=>$t){
+                $f2e[$t->finess]=$t->raison_sociale;
+                if(is_object($t))$t=(array)$t;
+                $t2=$t;
+                foreach($dontDisplay as $hide)unset($t2[$hide]);
+                #unset($t2['finess'],$t2['finess_juridique']);#keep it for display !!!
+                $lines[]=array_values($t2);
+            }
 
         }else{#résidence request
             unset($t['nid'],$t['field_logo_fid'],$t['grp_term_name']);
@@ -1057,7 +1069,8 @@ $sheet->setTitle(substr(preg_replace('~[^a-z0-9 \.]+~is','','organismes '.implod
 
 if($historyData['title']=='prescripteur'){
     $fields=array_diff(array_keys(reset($organismes)[0]),['md5','json','id','updated']);
-    array_unshift($fields,'finess');
+     #array_unshift($fields,'finess');
+    array_unshift($fields,'etablissement');
 }
 else $fields=array_keys((array)reset($organismes));
 
@@ -1066,7 +1079,7 @@ foreach($organismes as $finess=>$t){
     if($historyData['title']=='prescripteur' and is_array($t)){
         foreach($t as $t2){
             unset($t2['md5'],$t2['json'],$t2['id'],$t2['updated']);
-            array_unshift($t2,$finess);
+            array_unshift($t2,$f2e[$finess]/*$finess*/);
             $lines[]=$t2;
         }
     }else{
