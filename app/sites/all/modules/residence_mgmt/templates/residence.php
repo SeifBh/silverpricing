@@ -1,5 +1,7 @@
 <?php /*
-
+ 404 pages =>
+ /admin/config/system/site-information
+/z/img/bed-solid.svg
  https://ehpad.home/residence/40233
  js img modal popup
 
@@ -115,7 +117,9 @@ if($images){?>
 <span class="text-left">
   <?php echo ( isset($residence->field_location['und'][0]["thoroughfare"]) ) ? $residence->field_location['und'][0]["thoroughfare"]:""; ?>
   <?php echo ",<br> " . $residence->field_location['und'][0]['postal_code']; ?>
-  <?php echo ", " . $residence->field_location['und'][0]['locality']; ?>
+  <?php echo ", " . $residence->field_location['und'][0]['locality'];
+
+  echo $residence->field_capacite["und"][0]["value"]." nombre de lits";?>
 </span>
 
 </td>

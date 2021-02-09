@@ -175,6 +175,18 @@ addMenuItem('admin/config/content/importExcelPersons',['type' => MENU_NORMAL_ITE
 
 addMenuItem('b',['title' => 'a', 'page callback' => 'a', 'access callback' => true,]);
 function a(){die(__FILE__.__LINE__);}
+
+#cuj https://ehpad.home/ccAll?m=83;cuj https://ehpad.home/xp a '' 1
+addMenuItem('xp',['title' => 'xp', 'page callback' => 'xp', 'access callback' => true,]);
+function xp(){
+    $at='2019-07-03T22:00:00.000Z';
+    $at=date('Y-m-d H:i:s',strtotime($at));
+    $prixR=node_load(48178);
+    #$prixR->field_updatedat‎['und'][0]['value']=$at;node_save($prixR);
+    $prixR->field_updatedat=['und'=>[0=>['date_type'=>'datetime','value'=>$at,'timezone' => 'Europe/Paris', 'timezone_db' => 'UTC',]]];node_save($prixR);
+    die('done');
+}
+
 #drushy cc all
 #cuj http://ehpad.silverpricing.fr/ccAll?m=83
 #cuj https://ehpad.home/ccAll?m=83;cuj https://ehpad.home/depStats a {} 1;

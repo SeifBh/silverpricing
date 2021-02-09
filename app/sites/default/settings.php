@@ -1,20 +1,19 @@
 <?php
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE & ~E_WARNING);#overrides drupal base exluding notices
-$databases = array (
-  'default' => 
-  array (
-    'default' => 
-    array (
-      'database' => 'silverpricing_db',
+$databases = ['default' => ['default' => [
+#drushy en -y prixres3;
+'database' => 'silverpricing_db_dev',
+#'database' => 'silverpricing_db_prod',
+      #'database' => 'silverpricing_db',
       'username' => 'silverpricing',
       'password' => 'Silverpicing@wynter@2020',
       'host' => 'localhost',
       'port' => '',
       'driver' => 'mysql',
       'prefix' => '',
-    ),
-  ),
-);
+    ],
+  ],
+];
 
 $update_free_access = FALSE;
 

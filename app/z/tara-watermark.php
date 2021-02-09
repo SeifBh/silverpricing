@@ -10,7 +10,7 @@ namespace Alptech\Wip;chdir(__DIR__);require_once'../autoload.php';
 if(!$included and !isset($argv))die('no argv nor included');
 
 #imagecropauto ( resource $image , int $mode = IMG_CROP_DEFAULT ) crop white or black sides of an image
-function cropTo($baseImg,$ratio=16/9,$position='center',$suffix='-t£.jpg',$save=1,$qual=80,$target=''){
+function _cropTo($baseImg,$ratio=16/9,$position='center',$suffix='-t£.jpg',$save=1,$qual=80,$target=''){
     if(is_array($baseImg))extract($baseImg);
     if(gettype($baseImg)=='resource')$im =$baseImg;else{$im=imagecreatefromjpeg($baseImg);if(!$target)$target=$baseImg.$suffix;}
     $w=imagesx($im);$h=imagesy($im);
@@ -32,7 +32,7 @@ $x=$y=0;#starts
     if($save)return imagejpeg($res,$target,$qual);else return imagejpeg($res,null,$qual);
 }
 
-function addBorder($baseImg,$perWidth=0.5,$suffix='-t£.jpg',$save=1,$qual=80){
+function _addBorder($baseImg,$perWidth=0.5,$suffix='-t£.jpg',$save=1,$qual=80){
     if(is_array($baseImg))extract($baseImg);
     if(gettype($baseImg)=='resource'){$im=$baseImg;}
     else{$im = imagecreatefromjpeg($baseImg);if(!$target)$target=$baseImg.$suffix;}
