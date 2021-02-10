@@ -1,5 +1,16 @@
 <?php /*
+ residence.silverpricing.fr
+
+ Senioriales.xlsx => créer residence , dupliquer page import xls
+    from URL DE LA RESIDENCE => extraction nodeid
+    type : résidence senior
+    sous-type : résidence service
+        => nouveaux champs dans résidence
+
  404 pages =>
+ /sites/all/modules/residence_mgmt/assets/img/user-default.png
+
+
  /admin/config/system/site-information
 /z/img/bed-solid.svg
  https://ehpad.home/residence/40233

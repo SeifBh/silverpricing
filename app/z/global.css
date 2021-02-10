@@ -67,3 +67,5 @@ label,button,.pointer,.label,.zoom{cursor:pointer;}
 }
 .prescripteurs .dataTables_filter label{margin-top: -2px;}/*arent you overreacting borther ? */
 .history .dataTables_filter label{margin-top: -2px;}/*arent you overreacting borther ? */
+.aside-loggedin{}
+.departement .dataTables_filter label{margin-top:0px;}

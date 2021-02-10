@@ -366,6 +366,7 @@ foreach ($departementChartData as $k => $data) {
 p= {"language": {url: frenchDataTables}, "searching": true, "lengthChange": false, "paging": true, "info": false, "pageLength":10
     //, "order": [[4, "desc"]]
     , "columnDefs": [{"searchable": false, "targets": [0,4,6,7,8]}]
+    /*
     , initComplete: function () {
         this.api().columns([2]).every(function () {
             var column = this, select = $('<select><option value="">Tous</option></select>');
@@ -381,7 +382,7 @@ p= {"language": {url: frenchDataTables}, "searching": true, "lengthChange": fals
                     column.search(val ? '^' + val + '$' : '', true, false).draw();
                 });
         });
-    }
+    }*/
 };
 
 $('#request-table').DataTable(p);

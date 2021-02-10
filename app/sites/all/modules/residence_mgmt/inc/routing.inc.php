@@ -7,51 +7,6 @@
 */
 function residence_mgmt_menu() {
     global $menuItems;
-    $menuItems['ccAll'] = array('title' => 'ccAll', 'page callback' => 'ccAll', 'access callback' => true,);
-/**  } START BEN {*****/
-    $menuItems['listResidenceLinks'] = array(#uuid#/%
-        'title'             =>  'Lien édition prix',
-        'page callback'     =>  'listResidenceLinks',
-        'access callback'   => 'hasrole', 'access arguments'  => [['administrator','prospecteur']],
-        #'access callback'   => 'fastAccess','access arguments' => array('PAGE_MES_RESIDENCES'),
-    );
-
-    $menuItems['ra'] = array(#uuid#/%
-        'title'             =>  'Evolution des prix',
-        'page callback'     =>  'fullAlert2',
-        'page arguments'    => array( 1 ),
-        'access callback'   => true,
-        #'access callback'   => 'fastAccess','access arguments' => array('PAGE_MES_RESIDENCES'),
-    );
-
-    $menuItems['updateAllRoomsUuid'] = array(
-        'title'             =>  'updateAllRoomsUuid',
-        'page callback'     =>  'updateAllRoomsUuid',
-        'access callback'   => 'fastAccess',
-    );#drushy cc all
-
-    $menuItems['capretraite'] = array(
-        'title'             =>  'capretraite',
-        'page callback'     =>  'capretraite',
-        'access callback'   => 'fastAccess',
-    );#drushy cc all
-#public accès
-    $menuItems['er/%'] = array(#uuid
-        'title'             =>  'Modifier la résidence',
-        'page callback'     =>  'editChambreByUuid',
-        'page arguments'    => array( 1 ),
-        'access callback'   => true,
-        #'access callback'   => 'fastAccess','access arguments' => array('PAGE_MES_RESIDENCES'),
-    );
-    $menuItems['updateAllResidencesByJson'] = array(
-        'title'             =>  'updateAllResidencesByJson',
-        'access callback'   =>  'fastAccess',
-        'page callback'     =>  'residence_mgmt_yo',#residence_mgmt_yo,#drushy cc all
-        #'yo/%'=> 'page arguments'    => array( 1 ),
-        #'access arguments'  => array(array('administrator')),
-    );
-
-    $menuItems['updateHistory'] = array('title' => 'updateHistory', 'access callback' => true, 'page callback' => 'updateHistory');
 /**  } END BEN{*****/
 
 
