@@ -103,6 +103,7 @@ if('1:residence2chambre'){
         $mainChambres[]=$residence2chambre[$rid];
     }
 }
+$chambresSansPrix=array_filter($chambresSansPrix);
 
 if("2:tous les prix sans distinctions pour l'instant"){
     $sql = "select group_concat(nr.timestamp)as tt,group_concat(field_tarif_chambre_simple_value order by revision_id desc) as v,group_concat(revision_id order by revision_id desc) as revid,entity_id as cid from field_revision_field_tarif_chambre_simple cs inner join node_revision nr on nr.nid=cs.entity_id where cs.entity_id in(" . implode(',', $chambresSansPrix) . ") and cs.field_tarif_chambre_simple_value<>'NA' group by cs.entity_id order by field(cs.entity_id,".implode(',',$chambresSansPrix).")";#,timestamp asc
@@ -213,6 +214,7 @@ $chambresSansPrix=[];
             foreach($triggersSansPrix as $rid){
                 $chambresSansPrix[]=$residence2chambre[$rid];
             }
+            $chambresSansPrix=array_filter($chambresSansPrix);
             $a=1;
         }if($chambresSansPrix){#donc, si l'un des ehpad parent n'a pas eu de variation de prix au cours des n derniers mois ..
             $sql = "select group_concat(nr.timestamp)as tt,group_concat(field_tarif_chambre_simple_value order by revision_id desc) as v,group_concat(revision_id order by revision_id desc) as revid,entity_id as cid from field_revision_field_tarif_chambre_simple cs inner join node_revision nr on nr.nid=cs.entity_id where cs.entity_id in(" . implode(',', $chambresSansPrix) . ") and cs.field_tarif_chambre_simple_value<>'NA' group by cs.entity_id order by field(cs.entity_id,".implode(',',$chambresSansPrix).")";#,timestamp asc

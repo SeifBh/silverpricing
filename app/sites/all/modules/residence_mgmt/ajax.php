@@ -154,6 +154,7 @@ foreach ($chartData['xAxe'] as $mois) {
     foreach ($residences as $r) {
         $chambresNids[] = $r->c_nid;
     }
+    $chambresNids=array_filter($chambresNids);
     /*
     $query = db_select('field_revision_field_date_de_modification', 'dm');
     $query->leftJoin('field_revision_field_tarif_chambre_simple', 'cs', 'cs.revision_id = dm.revision_id', array());
