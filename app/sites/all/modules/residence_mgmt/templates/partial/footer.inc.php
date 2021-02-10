@@ -398,6 +398,8 @@ var detailParVille=[<?=$detailParVille?>]
     ,mesPrixParVille=[<?=$mesPrixParVille2?>]
     ,mesPrixParVilleLabels=[<?=$mesPrixParVilleLabels?>];
 
+Chart.defaults.global.defaultFontColor = 'grey';
+
 var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getContext('2d'), {
     type: 'bar',
     data: {
@@ -421,8 +423,10 @@ var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getCo
                 borderColor: '#65e0e0',
                 fill: false,
                 data: tmoy
-            },
-            {
+            }
+            ,{yAxisID: 'nombre-residences', label: 'Nombre de résidences', backgroundColor: '#6dbaf5', data: nres}
+            , {yAxisID: 'nombre-residences', label: 'Mes résidences', backgroundColor: '#6f42c1', data: myres}
+            ,{
                 type: "line",
                 yAxisID: 'departement-tarif',
                 label: 'TARIF PLUS HAUT',
@@ -454,21 +458,13 @@ var barChartCanvas = new Chart(document.getElementById('bar_chart_canvas').getCo
                 //backgroundColor: '#f6030300', borderColor: '#f6030355',borderDash: [1,1],
                 fill: false,
                 pointRadius: 0, borderWidth: 1, data:tpb,
-            }, /*
+            } /*
 Répeter pour autant de valeurs par ville
 http://jsfiddle.net/onesev/bpcLs7uz/
 chartjs add custom label to dataset points => aka custom tooltip
 
 http://www.chartjs.org/samples/latest/tooltips/custom-points.html
 */
-
-            {yAxisID: 'nombre-residences', label: 'Nombre de résidences', backgroundColor: '#6dbaf5', data: nres,
-            }, {
-                yAxisID: 'nombre-residences',
-                label: 'Mes résidences',
-                backgroundColor: '#6f42c1',
-                data: myres,
-            },
         ],
 //Add Dots
         labels: villes
