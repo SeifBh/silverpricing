@@ -69,3 +69,4 @@ label,button,.pointer,.label,.zoom{cursor:pointer;}
 .history .dataTables_filter label{margin-top: -2px;}/*arent you overreacting borther ? */
 .aside-loggedin{display:none}
 .departement .dataTables_filter label{margin-top:0px;}
+#b .aside.maximize .nav-label{display:block;margin: 1rem 0 0 0;border-bottom: 1px solid #AAA;}
