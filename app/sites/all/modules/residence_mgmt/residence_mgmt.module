@@ -40,7 +40,7 @@ function prescripteurs(){
 
     $categories=fun::sql('select distinct(code_categorie),lib_categorie from silverpricing_data_db.health_organizations','larav');
     $s=['code_categorie'=>-1,'lib_categorie'=>'Etablissements prescripteurs'];array_unshift($categories,$s);
-    
+
     foreach($categories as &$t){
         if($t['code_categorie']){$_ENV['id2cat'][$t['code_categorie']]=$t['lib_categorie'];}$t=(object)$t;
     }unset($t);
@@ -61,7 +61,7 @@ function prescripteurs(){
             $selectedStatut = ($_POST['statut'] != "aucun") ? $_POST['statut'] : null;#
             #$residences = getResidencesConcurrentesOnAddress($_POST['latitude'], $_POST['longitude'], $_POST['perimetre'], $selectedStatut);
             $name = trim($selectedStatut.' '.implode('-',$_POST['categories']).' '.$_POST['perimetre'] . 'km autour de ' . $adr);
-            
+
             if(!empty($_POST['categories']))$wor=['code_categorie in ('.implode(',',$_POST['categories']).')'];
             if(in_array(-1,$_POST['categories']))$wor[]='prescripteur=1';
 #harversine :: fastest (with indexes)
@@ -803,9 +803,7 @@ function residence_mgmt_dashboard() {
     // }
 
     $residences = array();
-
     $residenceIds = getResidencesByUser($user->uid);
-
     // QUICK WINS
     $cache_file = "quick_wins_" . date('Y-m-d') . ".json";
     $quickWins = null;
@@ -923,8 +921,6 @@ if($residenceIds) {
         $query = db_select('node', 'n');
         $query->condition('n.type', "residence", '=');
         $query->condition('n.nid', $residenceIds, 'IN');
-        $query->join('field_data_field_departement', 'd', 'd.entity_id = n.nid', array());
-        $query->join('field_data_field_manager', 'mgr', 'd.entity_id = n.nid', array());
         $query->fields('n', array('nid', 'title'));
 
         if (isset($_POST['residence']) && !empty($_POST['residence'])) {
@@ -932,10 +928,12 @@ if($residenceIds) {
         }
 
         if (isset($_POST['departements']) && !empty($_POST['departements'])) {
+          $query->join('field_data_field_departement', 'd', 'd.entity_id = n.nid', array());
             $query->condition('d.field_departement_tid', $_POST['departements'], 'IN');
         }
 
         if (isset($_POST['gestionnaire']) && !empty($_POST['gestionnaire'])) {
+          $query->join('field_data_field_manager', 'mgr', 'd.entity_id = n.nid', array());
             $query->condition('mgr.field_manager_value', '%' . $_POST['gestionnaire'] . '%', 'LIKE');
         }
 
@@ -1809,7 +1807,7 @@ foreach($categories as &$t){
         $_ENV['id2cat'][$t['code_categorie']]=$t['lib_categorie'];
     }
     $t=(object)$t;
-}unset($t);    
+}unset($t);
 #Si F5
     if(strpos($_SERVER['HTTP_HOST'],'.home')===FALSE and  isset($_SESSION['hid']) and isset($_POST['latitude']) and isset($_POST['longitude']) and isset($_POST['perimetre']) and
         $_POST['latitude'].'-'.$_POST['longitude'].'-'.$_POST['perimetre'].'-'.implode(',',$_POST['categories'])==$_SESSION['lastSearch']) {
@@ -2346,33 +2344,33 @@ die('#deprecated#'.__line__);
 }
 
 function residence_mgmt_nearby_residences_updated( $SchedulingType ) {
-    
+
     $currentMenu = "nearby-residences";
     $SchedulingTypes = array( "DAILY" => 1, "WEEKLY" => 7, "MONTHLY" => 30, "QUARTERLY" => 90 );
-    
+
     $updatedDate = new DateTime();
     $updatedDate->sub(new DateInterval("P" . $SchedulingTypes[strtoupper($SchedulingType)] . "D"));
-    
+
     // echo $updatedDate->format("Y-m-d H:m:s") . "\n";
     // exit();
 
     global $user;
 
-    // GET ALL MY RESIDENCES 
+    // GET ALL MY RESIDENCES
     $queryAccessResidence = db_select('node', 'r');
-    $queryAccessResidence->condition('r.type', 'residence', '=');    
+    $queryAccessResidence->condition('r.type', 'residence', '=');
     $queryAccessResidence->join('field_data_field_acces_residences', 'ar', 'ar.field_acces_residences_target_id = r.nid and ar.entity_id = :currentUser', array( ':currentUser' => $user->uid ));
     $queryAccessResidence->fields('r', array('nid', 'title'));
 
     $query = db_select('node', 'r');
-    $query->condition('r.type', 'residence', '=');    
+    $query->condition('r.type', 'residence', '=');
     $query->join('field_data_field_acces_groupes', 'ag', 'ag.entity_id = :currentUser', array( ':currentUser' => $user->uid ));
     $query->join('field_data_field_groupe', 'g', 'g.field_groupe_tid = ag.field_acces_groupes_target_id and g.entity_id = r.nid', array());
     $query->fields('r', array('nid', 'title'));
     $query->union($queryAccessResidence);
 
     $allResidences = $query->execute()->fetchCol("nid");
-    
+
     // varDebug($allResidences);
     // exit();
 
@@ -2411,7 +2409,7 @@ function residence_mgmt_nearby_residences_updated( $SchedulingType ) {
 
     // varDebug($nearbyResidencesUpdated);
     // exit();
-    
+
     ob_start();
 
     include_once __DIR__ . "/templates/nearby_residences_updated.php";
