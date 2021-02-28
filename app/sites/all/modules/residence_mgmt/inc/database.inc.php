@@ -514,40 +514,67 @@ ORDER BY distance ASC
 LIMIT 10 OFFSET 0";
 }
 
-$a="select entity_id from field_data_field_statut where field_statut_value='".$rankedResidence->field_statut_value."' and entity_id in(".$closests.") ORDER BY FIELD(entity_id,$closests) limit 0,10";
+$a="select s.entity_id from field_data_field_statut s
+ INNER JOIN field_data_field_residence rc ON rc.field_residence_target_id = s.entity_id
+ INNER JOIN field_data_field_tarif_chambre_simple cs ON cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> 'NA'
+ where field_statut_value='".$rankedResidence->field_statut_value."' and s.entity_id in(".$closests.") ORDER BY FIELD(s.entity_id,$closests) limit 0,10";
 $having=[];$x=Alptech\Wip\fun::sql($a);foreach($x as $t){$having[]=$t['entity_id'];}###"
 #field_departement_tid
+/*
+$limit10c="SELECT r.nid AS nid, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value FROM node r
+INNER JOIN field_data_field_statut s ON s.entity_id = r.nid and s.field_statut_value = '".$rankedResidence->field_statut_value."'
+INNER JOIN field_data_field_residence rc ON rc.field_residence_target_id = r.nid
+INNER JOIN field_data_field_tarif_chambre_simple cs ON cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> 'NA'
+WHERE r.nid in (".$closests.",".$rankedResidence->nid.") order by cs.field_tarif_chambre_simple_value * 1 asc";#order by id c
+$residencesTutti=Alptech\Wip\fun::sql($limit10c);##
+foreach( $residencesTutti as $k=>$t){
+  if($t['nid']==$rankedResidence->nid){
+    $a=1;
+  }
+}
+*/
+
 $limit10b="SELECT r.nid AS nid, cs.field_tarif_chambre_simple_value AS field_tarif_chambre_simple_value FROM  node r 
 -- INNER JOIN field_data_field_statut s ON s.entity_id = r.nid -- and s.field_statut_value = '".$rankedResidence->field_statut_value."'
 INNER JOIN field_data_field_residence rc ON rc.field_residence_target_id = r.nid
 INNER JOIN field_data_field_tarif_chambre_simple cs ON cs.entity_id = rc.entity_id and cs.field_tarif_chambre_simple_value <> 'NA'
-WHERE  r.nid in (".implode(',',$having).")";#order by id
+WHERE r.nid in (".implode(',',$having).",".$rankedResidence->nid.") order by field_tarif_chambre_simple_value * 1 desc";#order by id
 $residences=Alptech\Wip\fun::sql($limit10b);##
-foreach($residences as &$t){$t=(object)$t;}unset($t);
+$classement=0;
+foreach($residences as $k=>&$t){
+  if($t['nid']==$rankedResidence->nid){
+    $residenceRanking["concurrence_directe"]=$classement=$k+1;
+    $t=null;
+    continue;
+  }
+  $t=(object)$t;
 
-        array_unshift($residences, $rankedResidence);#remove::self
+}unset($t);$t=array_filter($t);
+
+#array_unshift($residences, $rankedResidence);#remove::self
 #['distance'=>0,'field_departement_tid'=>60,'field_statut_value'=>'privé','field_tarif_chambre_value'=>1,'nid'=>1];
         // varDebug($residences);
         // exit();
+if(0){
+  usort($residences, function($r1, $r2) {
+      $firstResidenceTarif = (double) $r1->field_tarif_chambre_simple_value;
+      $secondResidenceTarif = (double) $r2->field_tarif_chambre_simple_value;
+      if( $firstResidenceTarif == $secondResidenceTarif ) {
+          return 0;
+      }
+      return ( $firstResidenceTarif > $secondResidenceTarif ) ? -1 : 1;
+  });
 
-        usort($residences, function($r1, $r2) {
-            $firstResidenceTarif = (double) $r1->field_tarif_chambre_simple_value;
-            $secondResidenceTarif = (double) $r2->field_tarif_chambre_simple_value;
-            if( $firstResidenceTarif == $secondResidenceTarif ) {
-                return 0;
-            }
-            return ( $firstResidenceTarif > $secondResidenceTarif ) ? -1 : 1;
-        });
-
-        foreach( $residences as $position => $r ) {
-            if( $r->nid == $residenceNid ) {
-                $residenceRanking["concurrence_directe"] = $position + 1;
-                break;
-            }
-        }
+foreach( $residences as $position => $r ) {
+    if( $r->nid == $residenceNid ) {#WTF ???
+        $residenceRanking['concurrence_directe'] = $position + 1;
+        break;
+    }
+}
+}
         }
     }#end concurrencedirecte
-    
+
     if( in_array("DEPARTEMENT", $rankingTypes) ) {
 
         // POSITION PAR RAPPORT AU DEPARTEMENT
@@ -686,12 +713,12 @@ function findResidencesByUserAccess($groupes, $residenceIds, $departement = null
 function getResidencesByUser( $userId ) {
 
     $queryAccessResidence = db_select('node', 'r');
-    $queryAccessResidence->condition('r.type', 'residence', '=');    
+    $queryAccessResidence->condition('r.type', 'residence', '=');
     $queryAccessResidence->join('field_data_field_acces_residences', 'ar', 'ar.field_acces_residences_target_id = r.nid and ar.entity_id = :currentUser', array( ':currentUser' => $user->uid ));
     $queryAccessResidence->fields('r', array('nid', 'title'));
 
     $query = db_select('node', 'r');
-    $query->condition('r.type', 'residence', '=');    
+    $query->condition('r.type', 'residence', '=');
     $query->join('field_data_field_acces_groupes', 'ag', 'ag.entity_id = :currentUser', array( ':currentUser' => $userId ));
     $query->join('field_data_field_groupe', 'g', 'g.field_groupe_tid = ag.field_acces_groupes_target_id and g.entity_id = r.nid', array());
     $query->fields('r', array('nid', 'title'));

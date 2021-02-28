@@ -194,7 +194,7 @@ if($images){?>
                     <span class="info-box-icon bg-danger"><i class="fa fa-trophy tx-white"></i></span>
                   <?php endif; ?>
                   <div class="info-box-content">
-                    <span class="info-box-text">Position concurrence direct</span>
+                    <span class="info-box-text">Position concurrence directe</span>
                     <span class="info-box-number"><?php echo $residenceRanking['concurrence_directe']; ?></span>
                   </div>
                 </div>
