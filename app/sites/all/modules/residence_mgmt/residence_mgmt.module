@@ -1984,23 +1984,38 @@ function get_statistique_globale($departementId = null, $ajax = false) {
     );
 
     db_query('SET SESSION group_concat_max_len = 20000000');
-$a=fun::sql("select count(*)as roww,s.field_statut_value as ARRAYK from node n inner join field_data_field_statut s on s.entity_id = n.nid inner join field_data_field_departement d on d.entity_id = n.nid and d
+$a=fun::sql("select count(*)as roww,s.field_statut_value as pkid from node n inner join field_data_field_statut s on s.entity_id = n.nid inner join field_data_field_departement d on d.entity_id = n.nid and d
   .field_departement_tid   = 17
 inner join field_data_field_capacite c on c.entity_id = n.nid
 inner join field_data_field_residence rc on rc.field_residence_target_id = n.nid
 inner join field_data_field_tarif_chambre_simple tarif on tarif.entity_id = rc.entity_id and tarif.field_tarif_chambre_simple_value != 'NA'
 where n.type='residence'
-group by s.field_statut_value");
-$b=1;
+group by s.field_statut_value",'mysql','utf8');#better as utf8 :)
+
+  $b=fun::sql("select n.nid as pkid,tarif.field_tarif_chambre_simple_value,field_capacite_value from node n inner join field_data_field_statut s on s.entity_id = n.nid inner join field_data_field_departement d on d.entity_id = n.nid and d
+  .field_departement_tid   = 17
+inner join field_data_field_capacite c on c.entity_id = n.nid
+inner join field_data_field_residence rc on rc.field_residence_target_id = n.nid
+inner join field_data_field_tarif_chambre_simple tarif on tarif.entity_id = rc.entity_id and tarif.field_tarif_chambre_simple_value != 'NA'
+where n.type='residence'",'mysql','utf8');#better as utf8 :)
+  $residenceTarifs=[];$cap=0;
+  foreach($b as $t){
+    $residenceTarifs[]=$t['field_tarif_chambre_simple_value'];
+    $cap+=$t['field_capacite_value'];
+  }
+$c=1;
 
   /* STATUT */
-  $residenceStatuses = explode(",", $residences->statuses);
-  $statuses = array_count_values($residenceStatuses);
-  $statistique_globale["Privé"] = $statuses["Privé"];
-  $statistique_globale["Associatif"] = $statuses["Associatif"];
-  $statistique_globale["Public"] = $statuses["Public"];
-  $statistique_globale['Nbre de maisons'] = $residences->count;
-
+  $statistique_globale["Privé"] = $a["Privé"];
+  $statistique_globale["Associatif"] = $a["Associatif"];
+  $statistique_globale["Public"] = $a["Public"];
+  $statistique_globale['Nbre de maisons'] = array_sum($a);
+  $residenceTarifs = explode(",", $residences->tarifs);
+  $statistique_globale["Tarif moyen"] = round(moyen($residenceTarifs), 2);
+  $statistique_globale["Tarif médian"] = round(median($residenceTarifs), 2);
+  $statistique_globale["Tarif plus bas"] = min($residenceTarifs);
+  $statistique_globale["Tarif plus haut"] = max($residenceTarifs);
+  if( $ajax ) { $statistique_globale['Nbre de lits'] = $cap; }
   if(0){
     $query = db_select('node', 'n');
     $query->condition('n.type', "residence", '=');
@@ -2063,8 +2078,7 @@ GROUP BY s.field_statut_value
     $statistique_globale["Privé"] = $statuses["Privé"];
     $statistique_globale["Associatif"] = $statuses["Associatif"];
     $statistique_globale["Public"] = $statuses["Public"];
-}
-    /* TARIF */
+
     $residenceTarifs = explode(",", $residences->tarifs);
     $statistique_globale["Tarif moyen"] = round(moyen($residenceTarifs), 2);
     $statistique_globale["Tarif médian"] = round(median($residenceTarifs), 2);
@@ -2074,6 +2088,9 @@ GROUP BY s.field_statut_value
 
     if( $ajax ) { $statistique_globale['Nbre de lits'] = $residences->nombre_lits; }
 
+
+  }
+    /* TARIF */
 
 
     // /* NOMBRE DE LITS */
