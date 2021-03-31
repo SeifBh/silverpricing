@@ -1,7 +1,15 @@
 {
-    "require": {
-        "alptech/wip": "dev-master",
-        "phpoffice/phpspreadsheet": "*",
-        "drush/drush": "6"
-    }
+  "not": {
+    "phpoffice/phpspreadsheet": "^1.9",
+    "location-iq/locationiq-php-client": "*@dev"
+  },
+  "require": {
+    "guzzlehttp/guzzle": "*",
+    "alptech/wip": "v0.0.546",
+    "phpoffice/phpspreadsheet": "*",
+    "drush/drush": "6",
+    "imangazaliev/didom": "^1.14",
+    "mikehaertl/phpwkhtmltopdf": "^2.4",
+    "peppeocchi/php-cron-scheduler": "^3.1"
+  }
 }
