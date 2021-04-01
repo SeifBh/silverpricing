@@ -5,7 +5,7 @@
   },
   "require": {
     "guzzlehttp/guzzle": "*",
-    "alptech/wip": "v0.0.546",
+    "alptech/wip": "1.1",
     "phpoffice/phpspreadsheet": "*",
     "drush/drush": "6",
     "imangazaliev/didom": "^1.14",

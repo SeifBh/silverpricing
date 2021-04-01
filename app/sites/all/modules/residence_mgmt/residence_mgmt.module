@@ -275,7 +275,7 @@ function listResidenceLinks($a=null){
         left join field_data_field_site l on l.entity_id=a.field_residence_target_id              
      
       left join z_rkv z on z.k='chambreTarifMailLock' and z.k2=a.field_residence_target_id
-       where a.bundle='chambre'");#and field_residence_target_id in(" . implode(',
+       where a.bundle='chambre'",'mysql','utf8');#and field_residence_target_id in(" . implode(',
 # ',$totalResidences) . ")
 #<th>cid</th>
 /*
@@ -1985,7 +1985,7 @@ function get_statistique_globale($departementId = null, $ajax = false) {
 
     db_query('SET SESSION group_concat_max_len = 20000000');
 $a=fun::sql("select count(*)as roww,s.field_statut_value as pkid from node n inner join field_data_field_statut s on s.entity_id = n.nid inner join field_data_field_departement d on d.entity_id = n.nid and d
-  .field_departement_tid   = 17
+  .field_departement_tid   = $departementId
 inner join field_data_field_capacite c on c.entity_id = n.nid
 inner join field_data_field_residence rc on rc.field_residence_target_id = n.nid
 inner join field_data_field_tarif_chambre_simple tarif on tarif.entity_id = rc.entity_id and tarif.field_tarif_chambre_simple_value != 'NA'
@@ -1993,7 +1993,7 @@ where n.type='residence'
 group by s.field_statut_value",'mysql','utf8');#better as utf8 :)
 
   $b=fun::sql("select n.nid as pkid,tarif.field_tarif_chambre_simple_value,field_capacite_value from node n inner join field_data_field_statut s on s.entity_id = n.nid inner join field_data_field_departement d on d.entity_id = n.nid and d
-  .field_departement_tid   = 17
+  .field_departement_tid   = $departementId
 inner join field_data_field_capacite c on c.entity_id = n.nid
 inner join field_data_field_residence rc on rc.field_residence_target_id = n.nid
 inner join field_data_field_tarif_chambre_simple tarif on tarif.entity_id = rc.entity_id and tarif.field_tarif_chambre_simple_value != 'NA'

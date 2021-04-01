@@ -1562,7 +1562,7 @@ left JOIN field_data_field_logo logo on logo.entity_id  = grp.tid
 
 WHERE n.type = 'residence' and n.nid<>$residenceNid and n.nid in(".implode(',',$clo).") order by FIELD(n.nid,".implode(',',$clo).") limit $limit";
 $_ENV['stop']=__line__.__file__;
-    $residences = Alptech\Wip\fun::sql($sql);
+    $residences = Alptech\Wip\fun::sql($sql);#,'mysql','utf'
     $id2tarif=[];/*#red-bonobo :: compare with
 getResidencesProchesByStatus :: {"33171":"98.5","33121":"82.3","33133":"81.72","33169":"98.2","33135":"82.1","33087":"55.57","33147":"84.28","33151":"87.5","33119":"79.83","33127":"80.86"}
 */
