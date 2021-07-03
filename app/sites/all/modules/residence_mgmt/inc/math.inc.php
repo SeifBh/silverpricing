@@ -11,7 +11,11 @@ function median($tarifs){
     return 0;
 }
 
-function moyen($tarifs){if( $tarifs ){return array_sum($tarifs) / count($tarifs);}
+function moyen($tarifs){
+    if( $tarifs ){
+        return array_sum($tarifs) / count($tarifs);
+    }
+
     return 0;
 }
 
