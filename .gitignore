@@ -30,7 +30,6 @@
 *.ini
 *.ics
 *.rss2
-*.md
 *.xlsx
 *.xls
 *.xml
